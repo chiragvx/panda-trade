@@ -1,11 +1,14 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { Model } from 'flexlayout-react';
-import { useLayoutStore } from '../../store/useStore';
+import { motion, useAnimation } from 'framer-motion';
+import { useLayoutStore, useSelectionStore } from '../../store/useStore';
 import { useUpstoxStore } from '../../store/useUpstoxStore';
 import { WidgetDropdown } from '../WidgetDropdown/WidgetDropdown';
 import { COLOR, TYPE, BORDER } from '../../ds/tokens';
 import { Change } from '../../ds/components/Change';
-import { Layout as LayoutIcon, Zap, Activity, PieChart, ShieldCheck, Clock, ShieldAlert } from 'lucide-react';
+import { Layout as LayoutIcon, Zap, Activity, Clock, ShieldAlert } from 'lucide-react';
+import { WorkspaceSelector } from './WorkspaceSelector';
+import logoSvg from '../../assets/logo.svg';
 
 interface TopBarProps {
   model: Model;
@@ -16,6 +19,10 @@ const INDEX_ITEMS = [
   { sym: 'BANK NIFTY', key: 'NSE_INDEX|Nifty Bank' },
   { sym: 'FINNIFTY', key: 'NSE_INDEX|Nifty Fin Service' },
   { sym: 'INDIA VIX', key: 'NSE_INDEX|India VIX' },
+  { sym: 'GOLD', key: 'MCX_FO|GOLD24JUNFUT' },
+  { sym: 'SILVER', key: 'MCX_FO|SILVER24JULBIT' },
+  { sym: 'CRUDE OIL', key: 'MCX_FO|CRUDEOIL24MAYFUT' },
+  { sym: 'DOW JONES', key: 'NYSE|DJI' }, // Illustrative if available
 ];
 
 export const TopBar: React.FC<TopBarProps> = ({ model }) => {
@@ -24,13 +31,29 @@ export const TopBar: React.FC<TopBarProps> = ({ model }) => {
   const widgetBtnRef = useRef<HTMLButtonElement>(null);
 
   const { openOrderModal, workspace, setWorkspace } = useLayoutStore();
-  const { status, checkTokenValidity, prices, funds } = useUpstoxStore();
+  const { status, checkTokenValidity, prices, funds, instrumentMeta } = useUpstoxStore();
+  const { setSelectedSymbol } = useSelectionStore();
+  const controls = useAnimation();
 
   useEffect(() => {
     const timer = setInterval(() => setCurrentTime(new Date()), 1000);
     checkTokenValidity();
     return () => clearInterval(timer);
   }, [checkTokenValidity]);
+
+  useEffect(() => {
+    controls.start({
+      x: ["0%", "-33.33%"],
+      transition: {
+        x: {
+          repeat: Infinity,
+          repeatType: "loop",
+          duration: 35,
+          ease: "linear",
+        },
+      },
+    });
+  }, [controls]);
 
   const cell: React.CSSProperties = {
     display: 'flex',
@@ -40,37 +63,6 @@ export const TopBar: React.FC<TopBarProps> = ({ model }) => {
     borderRight: BORDER.standard,
     height: '100%',
     flexShrink: 0,
-  };
-
-  const workspaceBtn = (id: 'EXECUTION' | 'ANALYSIS' | 'DERIVATIVES' | 'API', icon: any) => {
-    const active = workspace === id;
-    const Icon = icon;
-    return (
-      <button
-        key={id}
-        onClick={() => setWorkspace(id)}
-        style={{
-          display: 'flex',
-          alignItems: 'center',
-          gap: '8px',
-          height: '100%',
-          padding: '0 16px',
-          background: active ? COLOR.interactive.selected : 'transparent',
-          border: 'none',
-          borderRight: BORDER.standard,
-          cursor: 'pointer',
-          fontFamily: TYPE.family.mono,
-          fontSize: '11px',
-          fontWeight: active ? '900' : '500',
-          color: active ? COLOR.semantic.info : COLOR.text.muted,
-          borderBottom: active ? `2px solid ${COLOR.semantic.info}` : '2px solid transparent',
-          transition: 'none',
-        }}
-      >
-        <Icon size={14} />
-        <span style={{ letterSpacing: '0.05em' }}>{id}</span>
-      </button>
-    );
   };
 
   const liveIndices = useMemo(
@@ -115,68 +107,65 @@ export const TopBar: React.FC<TopBarProps> = ({ model }) => {
       }}
     >
       <div style={{ height: '40px', display: 'flex', alignItems: 'stretch', background: '#000', borderBottom: BORDER.standard, overflow: 'hidden' }}>
-        {liveIndices.slice(0, 2).map((item) => {
-          const isUp = item.pct >= 0;
-          return (
-            <div
-              key={item.sym}
-              style={{
-                display: 'flex',
-                flexDirection: 'column',
-                gap: '2px',
-                padding: '0 24px',
-                borderRight: BORDER.standard,
-                height: '100%',
-                minWidth: '180px',
-                justifyContent: 'center',
-              }}
-            >
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
-                <span style={{ color: COLOR.text.muted, fontSize: '10px', fontWeight: '900' }}>{item.sym}</span>
-                <span style={{ color: isUp ? COLOR.semantic.up : COLOR.semantic.down, fontSize: '11px', fontWeight: '900' }}>
-                  {isUp ? '▲' : '▼'} {Math.abs(item.pct).toFixed(2)}%
-                </span>
-              </div>
-              <div style={{ color: '#fff', fontSize: '20px', fontWeight: '900', fontFamily: TYPE.family.mono, letterSpacing: '-0.02em', lineHeight: 1 }}>
-                {item.price.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
-              </div>
-            </div>
-          );
-        })}
 
-        <div style={{ flex: 1, position: 'relative', display: 'flex', alignItems: 'center' }}>
-          <div className="marquee-container" style={{ display: 'flex', gap: '40px', padding: '0 20px', whiteSpace: 'nowrap' }}>
-            {[...liveIndices, ...liveIndices].map((item, i) => (
-              <div key={`${item.sym}-${i}`} style={{ display: 'flex', alignItems: 'center', gap: '8px', fontFamily: TYPE.family.mono }}>
+        <div style={{ flex: 1, position: 'relative', display: 'flex', alignItems: 'center', overflow: 'hidden' }}>
+          <motion.div 
+            animate={controls}
+            drag="x"
+            dragConstraints={{ left: -2000, right: 0 }}
+            onDragStart={() => controls.stop()}
+            onDragEnd={() => {
+              controls.start({
+                x: ["-33.33%"], // Resume loop
+                transition: { repeat: Infinity, repeatType: "loop", duration: 35, ease: "linear" }
+              });
+            }}
+            style={{ display: 'flex', gap: '40px', padding: '0 20px', whiteSpace: 'nowrap', cursor: 'grab' }}
+          >
+            {[...liveIndices, ...liveIndices, ...liveIndices].map((item, i) => (
+              <div 
+                key={`${item.sym}-${i}`} 
+                onClick={() => {
+                  const meta = Object.values(instrumentMeta).find(m => m.ticker === item.sym) || { ticker: item.sym, exchange: item.sym.includes('NIFTY') ? 'NSE' : 'MCX', name: item.sym };
+                  setSelectedSymbol({
+                    ticker: item.sym,
+                    name: meta.name,
+                    exchange: meta.exchange,
+                    instrument_key: INDEX_ITEMS.find(idx => idx.sym === item.sym)?.key || '',
+                    ltp: item.price,
+                    change: 0,
+                    changePct: item.pct,
+                    volume: 0,
+                    open: 0, high: 0, low: 0, close: 0
+                  });
+                }}
+                style={{ display: 'flex', alignItems: 'center', gap: '8px', fontFamily: TYPE.family.mono, cursor: 'pointer', padding: '0 4px' }}
+              >
                 <span style={{ color: COLOR.text.muted, fontSize: '11px', fontWeight: 'bold' }}>{item.sym}</span>
                 <span style={{ color: '#fff', fontSize: '13px', fontWeight: '900' }}>{item.price.toFixed(2)}</span>
                 <Change value={item.pct} format="percent" size="xs" weight="bold" />
               </div>
             ))}
-          </div>
+          </motion.div>
         </div>
 
-        <div style={{ display: 'flex', alignItems: 'center', padding: '0 20px', gap: '16px', borderLeft: BORDER.standard, background: '#0a0a0a' }}>
+        <div style={{ display: 'flex', alignItems: 'center', padding: '0 20px', gap: '16px', borderLeft: BORDER.standard, background: '#000000' }}>
           <div style={{ display: 'flex', gap: '8px', alignItems: 'baseline' }}>
             <span style={{ fontSize: '10px', color: COLOR.text.muted, fontWeight: 'bold' }}>ADV/DEC</span>
             <span style={{ fontSize: '13px', color: COLOR.semantic.up, fontWeight: '900' }}>{advDec.adv}</span>
-            <span style={{ fontSize: '11px', color: '#444' }}>/</span>
+            <span style={{ fontSize: '11px', color: '#666666' }}>/</span>
             <span style={{ fontSize: '13px', color: COLOR.semantic.down, fontWeight: '900' }}>{advDec.dec}</span>
           </div>
         </div>
       </div>
 
       <div style={{ height: '32px', display: 'flex', alignItems: 'stretch' }}>
-        <div style={{ ...cell, background: COLOR.bg.surface, gap: '6px', borderRight: BORDER.standard }}>
-          <Zap size={14} color={COLOR.semantic.info} fill={COLOR.semantic.info} />
-          <span style={{ fontFamily: TYPE.family.mono, fontSize: '12px', fontWeight: '900', color: '#fff', letterSpacing: '0.1em' }}>OT_PRO</span>
+        <div style={{ ...cell, background: 'transparent', gap: '6px', borderRight: 'none', padding: '0 16px' }}>
+          <img src={logoSvg} alt="OpenTrader" style={{ height: '16px', objectFit: 'contain', opacity: 1 }} />
         </div>
 
-        <div style={{ display: 'flex' }}>
-          {workspaceBtn('EXECUTION', Activity)}
-          {workspaceBtn('DERIVATIVES', ShieldCheck)}
-          {workspaceBtn('ANALYSIS', PieChart)}
-          {workspaceBtn('API', LayoutIcon)}
+        <div style={{ display: 'flex', alignItems: 'center', padding: '0 12px' }}>
+          <WorkspaceSelector model={model} />
         </div>
 
         <div style={{ flex: 1 }} />

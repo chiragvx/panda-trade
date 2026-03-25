@@ -6,26 +6,26 @@
 
 /* ─── CSS DESIGN TOKENS ──────────────────────────────────────────────────── */
 :root {
-  --bg-base:          #0a0a0a;
-  --bg-surface:       #0f0f0f;
-  --bg-elevated:      #141414;
-  --bg-overlay:       #1a1a1a;
-  --border:           #1f1f1f;
+  --bg-base:          #000000;
+  --bg-surface:       #000000;
+  --bg-elevated:      #000000;
+  --bg-overlay:       #050505;
+  --border:           #222222;
 
-  --text-primary:     #e8e8e8;
-  --text-secondary:   #888888;
-  --text-muted:       #444444;
-  --text-inverse:     #0a0a0a;
+  --text-primary:     #FFFFFF;
+  --text-secondary:   #CCCCCC;
+  --text-muted:       #666666;
+  --text-inverse:     #000000;
 
   --color-up:         #00d084;
   --color-down:       #ff3b57;
   --color-warning:    #f5a623;
-  --color-info:       #4a9eff;
+  --color-info:       #FF7722;
   --color-purple:     #b06aff;
 
-  --interactive-hover:    #1a1a1a;
-  --interactive-selected: #141f2e;
-  --interactive-focus:    #4a9eff;
+  --interactive-hover:    #111111;
+  --interactive-selected: #221105;
+  --interactive-focus:    #FF7722;
 
   --font-mono: "JetBrains Mono", "Fira Code", "Consolas", monospace;
 
@@ -53,7 +53,7 @@
   }
 
   ::selection {
-    background: rgba(74, 158, 255, 0.25);
+    background: rgba(255, 119, 34, 0.25);
     color: var(--text-primary);
   }
 
@@ -64,24 +64,23 @@
 }
 
 /* ─── SCROLLBAR ──────────────────────────────────────────────────────────── */
-::-webkit-scrollbar        { width: 4px; height: 4px; }
+::-webkit-scrollbar        { width: 3px; height: 3px; }
 ::-webkit-scrollbar-track  { background: transparent; }
-::-webkit-scrollbar-thumb  { background: var(--border); border-radius: 2px; }
-::-webkit-scrollbar-thumb:hover { background: var(--text-muted); }
+::-webkit-scrollbar-thumb  { background: #333333; }
+::-webkit-scrollbar-thumb:hover { background: var(--color-info); }
 
 /* ─── FLEXLAYOUT OVERRIDES ───────────────────────────────────────────────── */
 .flexlayout__layout {
-  background: var(--bg-base) !important;
+  background: #000000 !important;
 }
 
 .flexlayout__tabset {
-  background: var(--bg-surface) !important;
+  background: #000000 !important;
   border: 1px solid var(--border) !important;
-  border-radius: 0 !important;
 }
 
 .flexlayout__tabset_header {
-  background: var(--bg-surface) !important;
+  background: #000000 !important;
   border-bottom: 1px solid var(--border) !important;
   height: 28px !important;
   min-height: 28px !important;
@@ -90,29 +89,29 @@
 
 .flexlayout__tab_button {
   height: 28px !important;
-  padding: 0 10px !important;
+  padding: 0 12px !important;
   font-family: var(--font-mono) !important;
   font-size: 10px !important;
-  font-weight: 500 !important;
-  letter-spacing: 0.06em !important;
+  font-weight: 700 !important;
+  letter-spacing: 0.1em !important;
   text-transform: uppercase !important;
   color: var(--text-muted) !important;
   border: none !important;
   border-right: 1px solid var(--border) !important;
   border-radius: 0 !important;
   background: transparent !important;
-  transition: color 80ms linear, background 80ms linear !important;
+  transition: all 50ms linear !important;
 }
 
 .flexlayout__tab_button--selected {
-  color: var(--text-primary) !important;
-  background: var(--bg-elevated) !important;
-  border-bottom: 1px solid var(--color-info) !important;
+  color: #FFFFFF !important;
+  background: #111111 !important;
+  border-bottom: 2px solid var(--color-info) !important;
 }
 
 .flexlayout__tab_button:hover:not(.flexlayout__tab_button--selected) {
-  color: var(--text-secondary) !important;
-  background: var(--interactive-hover) !important;
+  color: var(--text-primary) !important;
+  background: #080808 !important;
 }
 
 .flexlayout__tab_button_trailing {
@@ -127,22 +126,22 @@
 }
 
 .flexlayout__tab {
-  background: var(--bg-surface) !important;
+  background: #000000 !important;
   border: none !important;
   padding: 0 !important;
 }
 
 .flexlayout__splitter {
-  background: var(--border) !important;
+  background: #111111 !important;
   transition: background 80ms linear !important;
 }
 
 .flexlayout__splitter_vertical {
-  width: 4px !important;
+  width: 2px !important;
 }
 
 .flexlayout__splitter_horizontal {
-  height: 4px !important;
+  height: 2px !important;
 }
 
 .flexlayout__splitter:hover,
@@ -151,7 +150,7 @@
 }
 
 .flexlayout__drag_rect {
-  background: rgba(74, 158, 255, 0.06) !important;
+  background: rgba(255, 119, 34, 0.06) !important;
   border: 1px solid var(--color-info) !important;
   border-radius: 0 !important;
 }
@@ -207,26 +206,18 @@
 /* ─── MOVERS TICKER ──────────────────────────────────────────────────────── */
 @keyframes marquee {
   from { transform: translateX(0); }
-  to   { transform: translateX(-50%); }
+  to   { transform: translateX(-33.333%); }
 }
 
 .marquee-container {
   display: flex;
-  animation: marquee 30s linear infinite;
+  animation: marquee 35s linear infinite;
   width: max-content;
-}
-
-.marquee-container:hover {
-  animation-play-state: paused;
 }
 
 .ticker-scroll {
-  animation: marquee 40s linear infinite;
+  animation: marquee 45s linear infinite;
   width: max-content;
   display: flex;
   gap: 0;
-}
-
-.ticker-scroll:hover {
-  animation-play-state: paused;
 }

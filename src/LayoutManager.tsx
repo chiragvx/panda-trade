@@ -34,7 +34,6 @@ import {
   TechnicalsStub, 
   CandlePatternsStub, 
   VWapStub, 
-  OptionsChainStub, 
   StraddleChainStub, 
   FuturesChainStub, 
   OptionScalperStub, 
@@ -46,6 +45,7 @@ import {
   CorpActionsStub, 
   FundamentalsStub 
 } from './widgets/Other/Stubs';
+import { OptionChainWidget } from './widgets/OptionChain/OptionChainWidget';
 
 import FIIDIITracker from './widgets/fii-dii/FIIDIITracker';
 import BlockDealFeed from './widgets/block-deals/BlockDealFeed';
@@ -94,7 +94,7 @@ const renderWidget = (id: string, node: TabNode) => {
         case 'technicals': return <TechnicalsStub />;
         case 'candle-patterns': return <CandlePatternsStub />;
         case 'vwap': return <VWapStub />;
-        case 'options-chain': return <OptionsChainStub />;
+        case 'options-chain': return <OptionChainWidget />;
         case 'straddle-chain': return <StraddleChainStub />;
         case 'futures-chain': return <FuturesChainStub />;
         case 'option-scalper': return <OptionScalperStub />;

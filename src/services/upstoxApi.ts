@@ -153,6 +153,24 @@ export const upstoxApi = {
     return response.data;
   },
 
+  placeGTT: async (token: string, gttData: any) => {
+    const response = await api.post(`${BASE_URL}/gtt/place`, gttData, {
+      headers: {
+        ...authHeaders(token),
+        'Content-Type': 'application/json',
+      },
+    });
+    return response.data;
+  },
+
+  getGTTOrders: async (token: string) =>
+    guardedRequest(`gtt-orders:${token.slice(-8)}`, 5000, async () => {
+      const response = await api.get(`${BASE_URL}/gtt/get-order-details`, {
+        headers: authHeaders(token),
+      });
+      return response.data;
+    }),
+
   getMarketDataFeedUrl: async (token: string) =>
     guardedRequest(`ws-auth:${token.slice(-8)}`, 1000, async () => {
       try {
@@ -255,4 +273,32 @@ export const upstoxApi = {
       return response.data;
     });
   },
+
+  getOptionChain: async (token: string, instrumentKey: string, expiry: string) =>
+    guardedRequest(`opt-chain:${token.slice(-8)}:${instrumentKey}:${expiry}`, 1500, async () => {
+      let key = instrumentKey;
+      if (key.toUpperCase().includes('NIFTY 50')) key = 'NSE_INDEX|Nifty 50';
+      if (key.toUpperCase().includes('BANK')) key = 'NSE_INDEX|Nifty Bank';
+      if (key.toUpperCase().includes('FIN')) key = 'NSE_INDEX|Nifty Fin Service';
+      
+      const encodedKey = encodeURIComponent(key).replace(/\+/g, '%20');
+      const response = await api.get(`${BASE_URL}/option/chain?instrument_key=${encodedKey}&expiry_date=${expiry}`, {
+        headers: authHeaders(token),
+      });
+      return response.data;
+    }),
+
+  getExpiries: async (token: string, instrumentKey: string) =>
+    guardedRequest(`expiries:${token.slice(-8)}:${instrumentKey}`, 3600000, async () => {
+      let key = instrumentKey;
+      if (key.toUpperCase().includes('NIFTY 50')) key = 'NSE_INDEX|Nifty 50';
+      if (key.toUpperCase().includes('BANK')) key = 'NSE_INDEX|Nifty Bank';
+      if (key.toUpperCase().includes('FIN')) key = 'NSE_INDEX|Nifty Fin Service';
+
+      const encodedKey = encodeURIComponent(key).replace(/\+/g, '%20');
+      const response = await api.get(`${BASE_URL}/option/expiry?instrument_key=${encodedKey}`, {
+        headers: authHeaders(token),
+      });
+      return response.data;
+    }),
 };

@@ -104,6 +104,7 @@ const WatchlistRow: React.FC<{
   const livePrice = symbol.instrument_key ? prices[symbol.instrument_key]?.ltp : undefined;
   const price = livePrice !== undefined && livePrice !== null ? Number(livePrice) : Number(symbol.ltp || 0);
   const flash = usePriceFlash(price);
+  const isIndex = symbol.instrument_key?.startsWith('NSE_INDEX');
 
   return (
     <div
@@ -211,7 +212,7 @@ const WatchlistRow: React.FC<{
         }
       })}
 
-      {hovered && (
+      {hovered && !isIndex && (
         <div
           style={{
             position: 'absolute',
@@ -226,8 +227,28 @@ const WatchlistRow: React.FC<{
             borderLeft: `1px solid ${COLOR.bg.border}`,
           }}
         >
-          <Button variant="buy" size="xs" onClick={(e) => { e.stopPropagation(); setSelectedSymbol(symbol); openOrderModal('BUY'); }}>B</Button>
-          <Button variant="sell" size="xs" onClick={(e) => { e.stopPropagation(); setSelectedSymbol(symbol); openOrderModal('SELL'); }}>S</Button>
+          <Button 
+            variant="buy" 
+            size="xs" 
+            onClick={(e) => { 
+                e.stopPropagation(); 
+                setSelectedSymbol(symbol); 
+                setTimeout(() => openOrderModal('BUY'), 0); 
+            }}
+          >
+            B
+          </Button>
+          <Button 
+            variant="sell" 
+            size="xs" 
+            onClick={(e) => { 
+                e.stopPropagation(); 
+                setSelectedSymbol(symbol); 
+                setTimeout(() => openOrderModal('SELL'), 0); 
+            }}
+          >
+            S
+          </Button>
         </div>
       )}
     </div>
@@ -316,13 +337,15 @@ export const WatchlistWidget: React.FC = () => {
         }
       } else if (e.key.toLowerCase() === 'b') {
         const active = filtered[selectedIndex];
-        if (active) {
+        const isIndex = active?.instrument_key?.startsWith('NSE_INDEX');
+        if (active && !isIndex) {
           setSelectedSymbol(active);
           openOrderModal('BUY');
         }
       } else if (e.key.toLowerCase() === 's') {
         const active = filtered[selectedIndex];
-        if (active) {
+        const isIndex = active?.instrument_key?.startsWith('NSE_INDEX');
+        if (active && !isIndex) {
           setSelectedSymbol(active);
           openOrderModal('SELL');
         }

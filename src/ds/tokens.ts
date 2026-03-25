@@ -3,30 +3,30 @@
 
 export const COLOR = {
   bg: {
-    base:     '#0a0a0a',
-    surface:  '#0f0f0f',
-    elevated: '#141414',
-    overlay:  '#1a1a1a',
-    border:   '#1f1f1f',
+    base:     '#000000',
+    surface:  '#000000',
+    elevated: '#000000',
+    overlay:  '#050505',
+    border:   '#222222',
   },
   text: {
-    primary:   '#e8e8e8',
-    secondary: '#888888',
-    muted:     '#444444',
-    inverse:   '#0a0a0a',
+    primary:   '#FFFFFF',
+    secondary: '#CCCCCC',
+    muted:     '#666666',
+    inverse:   '#000000',
   },
   semantic: {
     up:      '#00d084',
     down:    '#ff3b57',
     warning: '#f5a623',
-    info:    '#4a9eff',
+    info:    '#FF7722',
     purple:  '#b06aff',
   },
   interactive: {
-    hover:    '#1a1a1a',
-    selected: '#141f2e',
-    focus:    '#4a9eff',
-    active:   '#0f1a2e',
+    hover:    '#111111',
+    selected: '#1a110a',
+    focus:    '#FF7722',
+    active:   '#221105',
   },
 } as const;
 

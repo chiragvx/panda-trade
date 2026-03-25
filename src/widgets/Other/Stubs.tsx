@@ -59,7 +59,6 @@ export const CandlePatternsStub = () => <GenericStub name="Candlestick Patterns"
 export const VWapStub = () => <GenericStub name="VWAP" category="Charts & Analytics" />;
 
 // Options Stubs
-export const OptionsChainStub = () => <GenericStub name="Options Chain" category="Options" />;
 export const StraddleChainStub = () => <GenericStub name="Straddle Chain" category="Options" />;
 export const FuturesChainStub = () => <GenericStub name="Futures Chain" category="Options" />;
 export const OptionScalperStub = () => <GenericStub name="Option Scalper" category="Options" />;

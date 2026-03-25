@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { Model, IJsonModel, Actions, DockLocation } from 'flexlayout-react';
 import { TopBar } from './components/TopBar/TopBar';
 import { LayoutManager } from './LayoutManager';
@@ -11,7 +11,15 @@ import UpstoxCallback from './components/UpstoxCallback';
 import { useLayoutStore } from './store/useStore';
 import { useKeyboardShortcuts } from './hooks/useKeyboardShortcuts';
 import { useUpstoxBridge } from './hooks/useUpstoxBridge';
-import { EXECUTION_LAYOUT, ANALYSIS_LAYOUT, DERIVATIVES_LAYOUT } from './constants/layouts';
+import { 
+  CASUAL_LAYOUT, 
+  OPTIONS_TRADER_LAYOUT, 
+  RESEARCH_LAYOUT, 
+  PORTFOLIO_MANAGER_LAYOUT, 
+  QUANT_LAYOUT, 
+  CHART_TRADER_LAYOUT, 
+  PSYCHO_LAYOUT 
+} from './constants/layouts';
 import { ApiDashboard } from './layout/ApiDashboard';
 
 const queryClient = new QueryClient({
@@ -29,8 +37,13 @@ const App: React.FC = () => {
   useUpstoxBridge();
   
   const [model, setModel] = useState<Model>(() => {
-    const saved = localStorage.getItem('opentrader_layout');
-    return Model.fromJson(saved ? JSON.parse(saved) : EXECUTION_LAYOUT);
+    const savedWs = localStorage.getItem('opentrader_workspace') || 'CASUAL';
+    const savedLayout = localStorage.getItem(`opentrader_layout_${savedWs}`);
+    if (savedLayout) return Model.fromJson(JSON.parse(savedLayout));
+    
+    // Fallback to constants
+    const mapping: Record<string, IJsonModel> = { 'CASUAL': CASUAL_LAYOUT, 'OPTIONS': OPTIONS_TRADER_LAYOUT, 'RESEARCH': RESEARCH_LAYOUT, 'PM': PORTFOLIO_MANAGER_LAYOUT, 'QUANT': QUANT_LAYOUT, 'CHART': CHART_TRADER_LAYOUT, 'PSYCHO': PSYCHO_LAYOUT };
+    return Model.fromJson(mapping[savedWs] || CASUAL_LAYOUT);
   });
 
   const [isTransitioning, setIsTransitioning] = useState(false);
@@ -51,13 +64,27 @@ const App: React.FC = () => {
     }, 200);
   }, []);
 
+  const mapping: Record<string, IJsonModel> = { 'CASUAL': CASUAL_LAYOUT, 'OPTIONS': OPTIONS_TRADER_LAYOUT, 'RESEARCH': RESEARCH_LAYOUT, 'PM': PORTFOLIO_MANAGER_LAYOUT, 'QUANT': QUANT_LAYOUT, 'CHART': CHART_TRADER_LAYOUT, 'PSYCHO': PSYCHO_LAYOUT };
+
   /* Workspace listener */
   useEffect(() => {
-    if (workspace === 'EXECUTION') loadLayout(EXECUTION_LAYOUT);
-    else if (workspace === 'ANALYSIS') loadLayout(ANALYSIS_LAYOUT);
-    else if (workspace === 'DERIVATIVES') loadLayout(DERIVATIVES_LAYOUT);
-  }, [workspace, loadLayout]);
+    localStorage.setItem('opentrader_workspace', workspace);
+    
+    if (workspace === 'CUSTOM') {
+      const saved = localStorage.getItem('opentrader_custom_layout');
+      if (saved) loadLayout(JSON.parse(saved));
+      return;
+    }
 
+    if (workspace === 'API') return; // Handled by ApiDashboard
+
+    const saved = localStorage.getItem(`opentrader_layout_${workspace}`);
+    if (saved) {
+      loadLayout(JSON.parse(saved));
+    } else if (mapping[workspace]) {
+      loadLayout(mapping[workspace]);
+    }
+  }, [workspace, loadLayout]);
 
   useEffect(() => {
     (window as any).loadLayout = loadLayout;
