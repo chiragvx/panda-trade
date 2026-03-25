@@ -1,0 +1,222 @@
+@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:ital,wght@0,100..800;1,100..800&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ─── CSS DESIGN TOKENS ──────────────────────────────────────────────────── */
+:root {
+  --bg-base:          #0a0a0a;
+  --bg-surface:       #0f0f0f;
+  --bg-elevated:      #141414;
+  --bg-overlay:       #1a1a1a;
+  --border:           #1f1f1f;
+
+  --text-primary:     #e8e8e8;
+  --text-secondary:   #888888;
+  --text-muted:       #444444;
+  --text-inverse:     #0a0a0a;
+
+  --color-up:         #00d084;
+  --color-down:       #ff3b57;
+  --color-warning:    #f5a623;
+  --color-info:       #4a9eff;
+  --color-purple:     #b06aff;
+
+  --interactive-hover:    #1a1a1a;
+  --interactive-selected: #141f2e;
+  --interactive-focus:    #4a9eff;
+
+  --font-mono: "JetBrains Mono", "Fira Code", "Consolas", monospace;
+
+  --row-compact:  22px;
+  --row-default:  26px;
+  --row-relaxed:  30px;
+  --row-header:   24px;
+}
+
+/* ─── BASE RESET ─────────────────────────────────────────────────────────── */
+@layer base {
+  *, *::before, *::after { box-sizing: border-box; }
+
+  body {
+    background: var(--bg-base);
+    color: var(--text-primary);
+    font-family: var(--font-mono);
+    font-size: 12px;
+    line-height: 1.4;
+    overflow: hidden;
+    height: 100vh;
+    width: 100vw;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  ::selection {
+    background: rgba(74, 158, 255, 0.25);
+    color: var(--text-primary);
+  }
+
+  *:focus-visible {
+    outline: 1px solid var(--interactive-focus);
+    outline-offset: -1px;
+  }
+}
+
+/* ─── SCROLLBAR ──────────────────────────────────────────────────────────── */
+::-webkit-scrollbar        { width: 4px; height: 4px; }
+::-webkit-scrollbar-track  { background: transparent; }
+::-webkit-scrollbar-thumb  { background: var(--border); border-radius: 2px; }
+::-webkit-scrollbar-thumb:hover { background: var(--text-muted); }
+
+/* ─── FLEXLAYOUT OVERRIDES ───────────────────────────────────────────────── */
+.flexlayout__layout {
+  background: var(--bg-base) !important;
+}
+
+.flexlayout__tabset {
+  background: var(--bg-surface) !important;
+  border: 1px solid var(--border) !important;
+  border-radius: 0 !important;
+}
+
+.flexlayout__tabset_header {
+  background: var(--bg-surface) !important;
+  border-bottom: 1px solid var(--border) !important;
+  height: 28px !important;
+  min-height: 28px !important;
+  padding: 0 !important;
+}
+
+.flexlayout__tab_button {
+  height: 28px !important;
+  padding: 0 10px !important;
+  font-family: var(--font-mono) !important;
+  font-size: 10px !important;
+  font-weight: 500 !important;
+  letter-spacing: 0.06em !important;
+  text-transform: uppercase !important;
+  color: var(--text-muted) !important;
+  border: none !important;
+  border-right: 1px solid var(--border) !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  transition: color 80ms linear, background 80ms linear !important;
+}
+
+.flexlayout__tab_button--selected {
+  color: var(--text-primary) !important;
+  background: var(--bg-elevated) !important;
+  border-bottom: 1px solid var(--color-info) !important;
+}
+
+.flexlayout__tab_button:hover:not(.flexlayout__tab_button--selected) {
+  color: var(--text-secondary) !important;
+  background: var(--interactive-hover) !important;
+}
+
+.flexlayout__tab_button_trailing {
+  opacity: 0 !important;
+  color: var(--text-muted) !important;
+  transition: opacity 80ms linear !important;
+}
+
+.flexlayout__tab_button:hover .flexlayout__tab_button_trailing,
+.flexlayout__tab_button--selected .flexlayout__tab_button_trailing {
+  opacity: 1 !important;
+}
+
+.flexlayout__tab {
+  background: var(--bg-surface) !important;
+  border: none !important;
+  padding: 0 !important;
+}
+
+.flexlayout__splitter {
+  background: var(--border) !important;
+  transition: background 80ms linear !important;
+}
+
+.flexlayout__splitter_vertical {
+  width: 4px !important;
+}
+
+.flexlayout__splitter_horizontal {
+  height: 4px !important;
+}
+
+.flexlayout__splitter:hover,
+.flexlayout__splitter_drag {
+  background: var(--color-info) !important;
+}
+
+.flexlayout__drag_rect {
+  background: rgba(74, 158, 255, 0.06) !important;
+  border: 1px solid var(--color-info) !important;
+  border-radius: 0 !important;
+}
+
+.flexlayout__tabset_header_inner {
+  padding: 0 !important;
+}
+
+.flexlayout__tabset_tabbar_inner_tab_container {
+  padding: 0 !important;
+}
+
+/* Tab insert animation */
+.flexlayout__tab_button--inserted {
+  animation: tabInsert 200ms cubic-bezier(0.0, 0.0, 0.2, 1.0) forwards;
+}
+
+@keyframes tabInsert {
+  from { opacity: 0; transform: translateX(-6px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+
+/* ─── WATCHLIST ROW STYLES ───────────────────────────────────────────────── */
+.wl-row .row-actions {
+  transform: translateX(100%);
+  opacity: 0;
+  transition: transform 80ms linear, opacity 80ms linear;
+  will-change: transform, opacity;
+}
+
+.wl-row:hover .row-actions {
+  transform: translateX(0);
+  opacity: 1;
+}
+
+/* ─── PRICE FLASH ────────────────────────────────────────────────────────── */
+.price-flash-up {
+  animation: flashUp 600ms cubic-bezier(0.25, 0.1, 0.25, 1) forwards;
+}
+.price-flash-down {
+  animation: flashDown 600ms cubic-bezier(0.25, 0.1, 0.25, 1) forwards;
+}
+
+@keyframes flashUp {
+  0%   { color: #00d084; }
+  100% { color: inherit; }
+}
+@keyframes flashDown {
+  0%   { color: #ff3b57; }
+  100% { color: inherit; }
+}
+
+/* ─── MOVERS TICKER ──────────────────────────────────────────────────────── */
+@keyframes marquee {
+  from { transform: translateX(0); }
+  to   { transform: translateX(-50%); }
+}
+
+.ticker-scroll {
+  animation: marquee 40s linear infinite;
+  width: max-content;
+  display: flex;
+  gap: 0;
+}
+
+.ticker-scroll:hover {
+  animation-play-state: paused;
+}
