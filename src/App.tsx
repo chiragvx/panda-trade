@@ -2,7 +2,6 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { Model, IJsonModel, Actions, DockLocation } from 'flexlayout-react';
 import { TopBar } from './components/TopBar/TopBar';
 import { LayoutManager } from './LayoutManager';
-import { EcosystemDashboard } from './layout/EcosystemDashboard';
 import { OrderEntryModal } from './components/OrderEntry/OrderEntryModal';
 import { ToastContainer } from './components/ToastContainer';
 import { CommandPalette } from './components/CommandPalette/CommandPalette';
@@ -11,7 +10,10 @@ import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import UpstoxCallback from './components/UpstoxCallback';
 import { useLayoutStore } from './store/useStore';
 import { useKeyboardShortcuts } from './hooks/useKeyboardShortcuts';
-import { INTRADAY_LAYOUT, RESEARCH_LAYOUT, FO_LAYOUT } from './constants/layouts';
+import { EXECUTION_LAYOUT, ANALYSIS_LAYOUT, DERIVATIVES_LAYOUT } from './constants/layouts';
+import { ApiDashboard } from './layout/ApiDashboard';
+import { marketDataWS } from './services/MarketDataWebSocket';
+import { useUpstoxStore } from './store/useUpstoxStore';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -28,7 +30,7 @@ const App: React.FC = () => {
   
   const [model, setModel] = useState<Model>(() => {
     const saved = localStorage.getItem('opentrader_layout');
-    return Model.fromJson(saved ? JSON.parse(saved) : INTRADAY_LAYOUT);
+    return Model.fromJson(saved ? JSON.parse(saved) : EXECUTION_LAYOUT);
   });
 
   const [isTransitioning, setIsTransitioning] = useState(false);
@@ -51,9 +53,9 @@ const App: React.FC = () => {
 
   /* Workspace listener */
   useEffect(() => {
-    if (workspace === 'INTRADAY') loadLayout(INTRADAY_LAYOUT);
-    else if (workspace === 'RESEARCH') loadLayout(RESEARCH_LAYOUT);
-    else if (workspace === 'F&O') loadLayout(FO_LAYOUT);
+    if (workspace === 'EXECUTION') loadLayout(EXECUTION_LAYOUT);
+    else if (workspace === 'ANALYSIS') loadLayout(ANALYSIS_LAYOUT);
+    else if (workspace === 'DERIVATIVES') loadLayout(DERIVATIVES_LAYOUT);
   }, [workspace, loadLayout]);
 
 
@@ -82,8 +84,8 @@ const App: React.FC = () => {
                 <TopBar model={model} />
 
                 <main className={`flex-1 flex flex-col overflow-hidden transition-opacity duration-150 ${isTransitioning ? 'opacity-0' : 'opacity-100'}`}>
-                  {workspace === 'ECOSYSTEM' ? (
-                    <EcosystemDashboard />
+                  {workspace === 'API' ? (
+                    <ApiDashboard />
                   ) : (
                     <LayoutManager model={model} />
                   )}

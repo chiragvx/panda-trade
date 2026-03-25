@@ -29,10 +29,10 @@ const MOCK_NEWS: NewsItem[] = [
 
 const CATEGORY_COLORS: Record<string, string> = {
   RESULTS: COLOR.semantic.info,
-  REGULATORY: '#A78BFA',
-  MANAGEMENT: '#34D399',
-  MACRO: '#FBBF24',
-  RATING: '#F87171',
+  REGULATORY: COLOR.semantic.info,
+  MANAGEMENT: COLOR.semantic.info,
+  MACRO: COLOR.semantic.warning,
+  RATING: COLOR.semantic.down,
 };
 
 const NEWS_VELOCITY_DATA = [4, 8, 12, 10, 15, 20, 18, 25, 30, 22];
@@ -67,7 +67,7 @@ export const NewsWidget: React.FC = () => {
                     background: filterMode === 'LINKED' ? COLOR.semantic.info + '22' : 'transparent',
                     border: 'none', color: filterMode === 'LINKED' ? COLOR.semantic.info : COLOR.text.muted,
                     fontSize: '9px', fontFamily: TYPE.family.mono, padding: '2px 6px', cursor: 'pointer',
-                    borderRadius: '2px', display: 'flex', alignItems: 'center', gap: '4px'
+                    borderRadius: '0', display: 'flex', alignItems: 'center', gap: '4px'
                 }}
             >
                 {filterMode === 'LINKED' ? <Zap size={10} /> : <Filter size={10} />}

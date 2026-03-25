@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { useSelectionStore } from '../../store/useStore';
+import { useSelectionStore, useLayoutStore } from '../../store/useStore';
 import { useMockSymbols } from '../../mock/hooks';
 import { COLOR, TYPE, BORDER } from '../../ds/tokens';
 import { Search, Command, Zap, ArrowRight, TrendingUp } from 'lucide-react';
@@ -11,13 +11,49 @@ export const CommandPalette: React.FC = () => {
     const [selectedIndex, setSelectedIndex] = useState(0);
     const symbols = useMockSymbols();
     const { setSelectedSymbol } = useSelectionStore();
+    const { setWorkspace } = useLayoutStore();
     const inputRef = useRef<HTMLInputElement>(null);
+
+    const parseCommand = (input: string) => {
+        const parts = input.toUpperCase().trim().split(' ');
+        const symbol = symbols.find(s => s.ticker === parts[0]);
+        
+        // Handle Nav: COMMAND <GO>
+        if (parts[1] === '<GO>' || parts[1] === 'GO') {
+            const cmd = parts[0];
+            if (cmd === 'ECO' || cmd === 'ECOSYSTEM') setWorkspace('ECOSYSTEM');
+            if (cmd === 'INTRA' || cmd === 'INTRADAY') setWorkspace('INTRADAY');
+            if (cmd === 'FO' || cmd === 'F&O') setWorkspace('F&O');
+            if (cmd === 'RES' || cmd === 'RESEARCH') setWorkspace('RESEARCH');
+            setIsOpen(false);
+            return true;
+        }
+
+        // Handle Symbol + Timeframe: RELIANCE 1M
+        if (symbol) {
+            setSelectedSymbol(symbol);
+            if (parts[1]) {
+                const tfMap: any = { '1M': '1minute', '30M': '30minute', '1D': 'day' };
+                const tf = tfMap[parts[1].toUpperCase()];
+                if (tf) {
+                    // We'll need a way to communicate timeframe change globally
+                    // For now, we just set the symbol.
+                    console.log(`Setting timeframe to ${tf}`);
+                }
+            }
+            setIsOpen(false);
+            return true;
+        }
+
+        return false;
+    };
 
     const filtered = useMemo(() => {
         if (!query) return symbols.slice(0, 8);
+        const q = query.split(' ')[0].toLowerCase();
         return symbols.filter(s => 
-            s.ticker.toLowerCase().includes(query.toLowerCase()) ||
-            s.name?.toLowerCase().includes(query.toLowerCase())
+            s.ticker.toLowerCase().includes(q) ||
+            s.name?.toLowerCase().includes(q)
         ).slice(0, 10);
     }, [symbols, query]);
 
@@ -38,7 +74,6 @@ export const CommandPalette: React.FC = () => {
         if (isOpen) {
             setTimeout(() => inputRef.current?.focus(), 50);
             setSelectedIndex(0);
-            setQuery('');
         }
     }, [isOpen]);
 
@@ -55,6 +90,7 @@ export const CommandPalette: React.FC = () => {
             e.preventDefault();
             setSelectedIndex(prev => (prev - 1 + filtered.length) % filtered.length);
         } else if (e.key === 'Enter') {
+            if (parseCommand(query)) return;
             if (filtered[selectedIndex]) handleSelect(filtered[selectedIndex]);
         }
     };

@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useUpstoxStore } from '../../store/useUpstoxStore';
 import { ShieldCheck, ShieldAlert, Key, Globe, LogIn, ExternalLink, HelpCircle, Lock } from 'lucide-react';
+import { COLOR, TYPE, BORDER, SPACE } from '../../ds/tokens';
 
 const UpstoxConnect: React.FC = () => {
     const { apiKey, apiSecret, accessToken, status, isSandbox, setCredentials, logout, toggleSandbox } = useUpstoxStore();
@@ -20,139 +21,225 @@ const UpstoxConnect: React.FC = () => {
             alert('Please save API Key first');
             return;
         }
-        // Redirect to Upstox OAuth
         const authUrl = `https://api.upstox.com/v2/login/authorization/dialog?response_type=code&client_id=${apiKey}&redirect_uri=${encodeURIComponent(redirectUrl)}`;
         window.location.href = authUrl;
     };
 
     const statusMap = {
-        'connected': { color: 'text-green-500', icon: ShieldCheck, label: 'CONNECTED' },
-        'disconnected': { color: 'text-red-500', icon: ShieldAlert, label: 'DISCONNECTED' },
-        'expired': { color: 'text-amber-500', icon: ShieldAlert, label: 'SESSION EXPIRED' },
+        'connected': { color: COLOR.semantic.up, icon: ShieldCheck, label: 'CONNECTED' },
+        'disconnected': { color: COLOR.semantic.down, icon: ShieldAlert, label: 'DISCONNECTED' },
+        'expired': { color: COLOR.semantic.warning, icon: ShieldAlert, label: 'SESSION EXPIRED' },
     };
 
     const config = statusMap[status];
-    const Icon = config.icon;
+
+    const inputStyle: React.CSSProperties = {
+        width: '100%',
+        background: COLOR.bg.surface,
+        border: BORDER.standard,
+        padding: '8px 10px',
+        fontSize: TYPE.size.md,
+        fontFamily: TYPE.family.mono,
+        color: COLOR.text.primary,
+        outline: 'none',
+        borderRadius: 0,
+    };
+
+    const labelStyle: React.CSSProperties = {
+        fontSize: TYPE.size.xs,
+        fontWeight: TYPE.weight.bold,
+        color: COLOR.text.secondary,
+        textTransform: 'uppercase',
+        letterSpacing: TYPE.letterSpacing.caps,
+        display: 'flex',
+        alignItems: 'center',
+        gap: '6px',
+        marginBottom: '6px',
+    };
 
     return (
-        <div className="h-full flex flex-col bg-[#050505] p-5">
-            <div className="flex justify-between items-center mb-8">
-                <div className="flex flex-col">
-                    <span className="text-[10px] font-black text-text-muted uppercase tracking-[0.2em] mb-1">Broker Integration</span>
-                    <h2 className="text-xl font-black italic text-white leading-none">UPSTOX × OPENTRADER</h2>
+        <div style={{ height: '100%', display: 'flex', flexDirection: 'column', background: COLOR.bg.base, padding: SPACE[4], fontFamily: TYPE.family.mono }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: SPACE[6] }}>
+                <div style={{ display: 'flex', flexDirection: 'column' }}>
+                    <span style={{ fontSize: TYPE.size.xs, color: COLOR.text.muted, textTransform: 'uppercase', letterSpacing: TYPE.letterSpacing.caps, marginBottom: '2px' }}>Broker Configuration</span>
+                    <h2 style={{ fontSize: TYPE.size.xl, fontWeight: TYPE.weight.bold, color: COLOR.text.primary, margin: 0 }}>UPSTOX TERMINAL BRIDGE</h2>
                 </div>
-                <div className={`flex items-center gap-2 px-3 py-1.5 rounded-lg border bg-[#0A0A0A] ${status === 'connected' ? 'border-green-500/20' : 'border-red-500/20'}`}>
-                    <Icon size={14} className={config.color} />
-                    <span className={`text-[10px] font-black tracking-widest ${config.color}`}>{config.label}</span>
+                <div style={{ 
+                    display: 'flex', 
+                    alignItems: 'center', 
+                    gap: '8px', 
+                    padding: '4px 12px', 
+                    border: `1px solid ${config.color}40`,
+                    background: COLOR.bg.surface,
+                    color: config.color,
+                    fontSize: TYPE.size.xs,
+                    fontWeight: TYPE.weight.bold,
+                    letterSpacing: TYPE.letterSpacing.caps
+                }}>
+                    <config.icon size={12} />
+                    {config.label}
                 </div>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 flex-1">
-                {/* Credentials Side */}
-                <div className="space-y-6">
-                    <div className="space-y-4">
-                        <div className="flex justify-between items-center pr-2">
-                             <label className="text-[10px] font-bold text-text-muted uppercase flex items-center gap-2">
-                                <Key size={12} /> API KEY
-                             </label>
-                             <HelpCircle size={12} className="text-text-muted hover:text-white cursor-help" />
-                        </div>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: SPACE[6], flex: 1 }}>
+                {/* Credentials */}
+                <div style={{ display: 'flex', flexDirection: 'column', gap: SPACE[4] }}>
+                    <div>
+                        <label style={labelStyle}><Key size={12} /> API KEY</label>
                         <input 
                             type="text" 
                             value={tempKey}
                             onChange={(e) => setTempKey(e.target.value)}
-                            className="w-full bg-[#0A0A0A] border border-[#1A1A1A] p-3 rounded-lg text-sm font-mono text-white focus:border-accent-info focus:ring-1 focus:ring-accent-info/20 outline-none transition-all placeholder:text-[#222]" 
-                            placeholder="Enter Client ID / API Key"
+                            style={inputStyle}
+                            placeholder="Client ID / API Key"
                         />
                     </div>
 
-                    <div className="space-y-4">
-                        <label className="text-[10px] font-bold text-text-muted uppercase flex items-center gap-2">
-                            <Lock size={12} /> API SECRET
-                        </label>
+                    <div>
+                        <label style={labelStyle}><Lock size={12} /> API SECRET</label>
                         <input 
                             type="password" 
                             value={tempSecret}
                             onChange={(e) => setTempSecret(e.target.value)}
-                            className="w-full bg-[#0A0A0A] border border-[#1A1A1A] p-3 rounded-lg text-sm font-mono text-white focus:border-accent-info focus:ring-1 focus:ring-accent-info/20 outline-none transition-all" 
-                             placeholder="••••••••••••••••"
+                            style={inputStyle}
+                            placeholder="••••••••••••••••"
                         />
                     </div>
 
-                    <div className="space-y-4">
-                        <label className="text-[10px] font-bold text-text-muted uppercase flex items-center gap-2">
-                            <Globe size={12} /> REDIRECT URL
-                        </label>
+                    <div>
+                        <label style={labelStyle}><Globe size={12} /> REDIRECT URL</label>
                         <input 
                             type="text" 
                             value={redirectUrl}
                             onChange={(e) => setRedirectUrl(e.target.value)}
-                            className="w-full bg-[#0A0A0A] border border-[#1A1A1A] p-3 rounded-lg text-xs font-mono text-text-muted focus:border-accent-info outline-none transition-all" 
+                            style={{ ...inputStyle, color: COLOR.text.muted, fontSize: TYPE.size.xs }}
                         />
                     </div>
 
-                    <div className="pt-4 flex gap-4">
+                    <div style={{ marginTop: SPACE[2] }}>
                         <button 
                             onClick={handleSave}
                             disabled={isSaving}
-                            className="flex-1 bg-white hover:bg-[#EEE] text-black text-[11px] font-black h-10 rounded-lg transition-all active:scale-95 disabled:opacity-50"
+                            style={{ 
+                                width: '100%',
+                                height: '32px',
+                                background: COLOR.bg.elevated,
+                                border: BORDER.standard,
+                                color: COLOR.text.primary,
+                                fontSize: TYPE.size.xs,
+                                fontWeight: TYPE.weight.bold,
+                                textTransform: 'uppercase',
+                                letterSpacing: TYPE.letterSpacing.wide,
+                                cursor: 'pointer',
+                                transition: 'all 0.1s'
+                            }}
+                            className="hover:bg-bg-overlay"
                         >
-                            {isSaving ? 'UPDATING...' : 'SAVE ENCRYPTED'}
+                            {isSaving ? 'UPDATING...' : 'STORE CREDENTIALS'}
                         </button>
                     </div>
                 </div>
 
-                {/* Status/Login Side */}
-                <div className="bg-[#0A0A0A] rounded-2xl border border-[#111] p-6 flex flex-col items-center justify-center text-center space-y-6">
-                    <div className="w-16 h-16 rounded-full bg-gradient-to-tr from-accent-info/20 to-transparent flex items-center justify-center border border-accent-info/30">
-                        <LogIn size={28} className="text-accent-info" />
+                {/* Session Control */}
+                <div style={{ 
+                    background: COLOR.bg.surface, 
+                    border: BORDER.standard, 
+                    padding: SPACE[4], 
+                    display: 'flex', 
+                    flexDirection: 'column', 
+                    alignItems: 'center', 
+                    justifyContent: 'center',
+                    textAlign: 'center'
+                }}>
+                    <div style={{ 
+                        width: '48px', 
+                        height: '48px', 
+                        border: BORDER.standard, 
+                        display: 'flex', 
+                        alignItems: 'center', 
+                        justifyContent: 'center',
+                        marginBottom: SPACE[4],
+                        color: COLOR.semantic.info
+                    }}>
+                        <LogIn size={24} />
                     </div>
                     
-                    <div>
-                        <h4 className="text-sm font-black text-white uppercase tracking-widest mb-2">DAILY AUTHENTICATION</h4>
-                        <p className="text-[11px] text-text-muted font-medium leading-relaxed max-w-[200px]">
-                            Connect your session once per day to enable live trading and portfolio monitoring.
+                    <div style={{ marginBottom: SPACE[6] }}>
+                        <h4 style={{ fontSize: TYPE.size.sm, fontWeight: TYPE.weight.bold, color: COLOR.text.primary, margin: '0 0 8px 0', textTransform: 'uppercase' }}>Session Management</h4>
+                        <p style={{ fontSize: TYPE.size.xs, color: COLOR.text.muted, lineHeight: '1.5', margin: 0, maxWidth: '240px' }}>
+                            Auth required every 24h as per SEBI regulations. Ensure API Key is saved before connecting.
                         </p>
                     </div>
 
-                    <div className="w-full space-y-3">
+                    <div style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: SPACE[2] }}>
                          <button 
                             onClick={handleLogin}
-                            className="w-full bg-accent-info hover:bg-accent-info/90 text-white text-[11px] font-black h-11 rounded-xl transition-all flex items-center justify-center gap-2 group shadow-lg shadow-accent-info/10"
+                            style={{ 
+                                width: '100%',
+                                height: '40px',
+                                background: COLOR.semantic.info,
+                                color: COLOR.text.inverse,
+                                border: 'none',
+                                fontSize: TYPE.size.sm,
+                                fontWeight: TYPE.weight.bold,
+                                letterSpacing: TYPE.letterSpacing.caps,
+                                cursor: 'pointer',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                gap: '8px'
+                            }}
+                            className="hover:opacity-90"
                         >
-                            CONNECT NOW <ExternalLink size={14} className="group-hover:translate-x-0.5 transition-transform" />
+                            INITIATE AUTH <ExternalLink size={14} />
                         </button>
 
                         <button 
                             onClick={() => toggleSandbox(!isSandbox)}
-                            className={`w-full text-[10px] font-black h-9 rounded-lg border transition-all ${isSandbox ? 'bg-amber-500/10 border-amber-500/30 text-amber-500 hover:bg-amber-500/20' : 'bg-[#141414] border-[#222] text-text-muted hover:border-[#444] hover:text-white'}`}
+                            style={{ 
+                                width: '100%',
+                                height: '32px',
+                                background: isSandbox ? `${COLOR.semantic.warning}20` : COLOR.bg.elevated,
+                                border: isSandbox ? `1px solid ${COLOR.semantic.warning}` : BORDER.standard,
+                                color: isSandbox ? COLOR.semantic.warning : COLOR.text.muted,
+                                fontSize: TYPE.size.xs,
+                                fontWeight: TYPE.weight.bold,
+                                cursor: 'pointer',
+                                textTransform: 'uppercase'
+                            }}
                         >
-                            {isSandbox ? 'SANDBOX ACTIVE (SAFE MODE)' : 'ENTER SANDBOX MODE'}
+                            {isSandbox ? 'SANDBOX ACTIVE' : 'SWITCH TO SANDBOX'}
                         </button>
-                    </div>
 
-                    {accessToken && (
-                        <button 
-                            onClick={logout}
-                            className="text-[10px] font-black text-red-500/60 hover:text-red-500 uppercase tracking-widest underline decoration-2 underline-offset-4"
-                        >
-                           Terminate Session
-                        </button>
-                    )}
+                        {accessToken && (
+                            <button 
+                                onClick={logout}
+                                style={{ 
+                                    background: 'none',
+                                    border: 'none',
+                                    color: COLOR.semantic.down,
+                                    fontSize: TYPE.size.xs,
+                                    fontWeight: TYPE.weight.bold,
+                                    textTransform: 'uppercase',
+                                    marginTop: SPACE[4],
+                                    cursor: 'pointer',
+                                    textDecoration: 'underline'
+                                }}
+                            >
+                               Terminate Connection
+                            </button>
+                        )}
+                    </div>
                 </div>
             </div>
 
-            {/* Bottom Help */}
-            <div className="mt-8 border-t border-[#111] pt-4 flex justify-between items-center">
-                 <div className="flex items-center gap-3">
-                    <div className="bg-green-500/10 p-1.5 rounded-md">
-                        <Lock size={12} className="text-green-500" />
-                    </div>
-                    <span className="text-[9px] font-bold text-text-muted uppercase tracking-widest">AES-256 Local Encryption Active</span>
+            <div style={{ marginTop: 'auto', paddingTop: SPACE[4], borderTop: BORDER.standard, display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: TYPE.size.xs }}>
+                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: COLOR.text.muted }}>
+                    <Lock size={10} style={{ color: COLOR.semantic.up }} />
+                    SECURE LOCAL DATA STORE
                  </div>
-                 <a href="https://account.upstox.com/developer/apps" target="_blank" className="text-[9px] font-black text-accent-info hover:underline flex items-center gap-1 group">
-                    OPEN UPSTOX DEVELOPER PORTAL
-                    <ExternalLink size={10} />
+                 <a href="https://account.upstox.com/developer/apps" target="_blank" style={{ color: COLOR.semantic.info, textDecoration: 'none', fontWeight: TYPE.weight.bold }}>
+                    API DASHBOARD <ExternalLink size={10} style={{ verticalAlign: 'middle', marginLeft: '4px' }} />
                  </a>
             </div>
         </div>

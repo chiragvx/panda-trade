@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useAnthropicAPI } from '../../hooks/useAnthropicAPI';
-import { Search, History, Sparkles, Filter, ChevronRight, CornerDownRight } from 'lucide-react';
+import { Search, History, Sparkles, ChevronRight, CornerDownRight } from 'lucide-react';
+import { COLOR, TYPE, BORDER, SPACE } from '../../ds/tokens';
 
 interface ScreenerFilter {
   field: string;
@@ -69,15 +70,24 @@ Respond only with JSON:
   ];
 
   return (
-    <div className="h-full flex flex-col bg-[#050505]">
-      {/* Search Bar Area */}
-      <div className="p-4 border-b border-[#111] bg-[#0A0A0A] space-y-3">
-        <div className="relative flex items-center group">
-          <Search className="absolute left-3 text-text-muted group-focus-within:text-accent-info transition-colors" size={16} />
+    <div style={{ height: '100%', display: 'flex', flexDirection: 'column', background: COLOR.bg.base, fontFamily: TYPE.family.mono, overflow: 'hidden' }}>
+      {/* Search Section */}
+      <div style={{ padding: SPACE[4], borderBottom: BORDER.standard, background: COLOR.bg.surface }}>
+        <div style={{ position: 'relative', display: 'flex', alignItems: 'center', marginBottom: SPACE[3] }}>
+          <Search style={{ position: 'absolute', left: '12px', color: COLOR.text.muted }} size={14} />
           <input 
             type="text"
-            className="w-full bg-[#111] border border-[#222] rounded-xl py-3 pl-10 pr-4 text-xs font-medium text-white placeholder:text-[#444] focus:ring-1 focus:ring-accent-info focus:border-accent-info transition-all outline-none"
-            placeholder="Type your screen query (e.g. 'delivery above 65%')..."
+            style={{ 
+                width: '100%', 
+                background: COLOR.bg.elevated, 
+                border: BORDER.standard, 
+                padding: '10px 10px 10px 36px',
+                fontSize: TYPE.size.xs,
+                color: COLOR.text.primary,
+                outline: 'none',
+                fontFamily: TYPE.family.mono
+            }}
+            placeholder="TYPE_QUERY_E.G._DELIVERY_>_65%..."
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
@@ -85,112 +95,150 @@ Respond only with JSON:
           <button 
             onClick={() => handleSearch()}
             disabled={loading}
-            className="absolute right-2 px-3 py-1.5 bg-accent-info text-white text-[10px] font-black rounded-lg hover:bg-accent-info/80 transition-all opacity-0 group-focus-within:opacity-100 disabled:opacity-50"
+            style={{ 
+                position: 'absolute', 
+                right: '8px', 
+                padding: '4px 12px', 
+                background: COLOR.semantic.info,
+                color: COLOR.text.inverse,
+                border: 'none',
+                fontSize: '9px',
+                fontWeight: TYPE.weight.bold,
+                cursor: 'pointer'
+            }}
+            className="hover:opacity-90 disabled:opacity-50"
           >
-            {loading ? 'SCREEEING...' : 'RUN'}
+            {loading ? 'PROCESSING...' : 'EXECUTE'}
           </button>
         </div>
 
-        {/* Interpretation */}
         {spec && (
-          <div className="flex items-center gap-2 px-1">
-             <CornerDownRight size={12} className="text-text-muted" />
-             <span className="text-[10px] text-accent-info font-bold italic tracking-wide">
-                "{spec.interpretation}"
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '8px' }}>
+             <CornerDownRight size={10} style={{ color: COLOR.text.muted }} />
+             <span style={{ fontSize: '9px', color: COLOR.semantic.info, fontWeight: TYPE.weight.bold, fontStyle: 'italic' }}>
+                "{spec.interpretation.toUpperCase()}"
              </span>
           </div>
         )}
 
-        {/* Quick Pills */}
         {!spec && !loading && (
-          <div className="flex gap-2 overflow-x-auto no-scrollbar py-1">
+          <div style={{ display: 'flex', gap: '8px', overflowX: 'auto', padding: '4px 0' }} className="no-scrollbar">
             {suggestedQueries.map((q, i) => (
               <button 
                 key={i}
                 onClick={() => { setQuery(q); handleSearch(q); }}
-                className="whitespace-nowrap px-3 py-1.5 bg-[#141414] border border-[#222] rounded-full text-[10px] font-bold text-text-muted hover:text-white hover:border-[#444] transition-all flex items-center gap-1.5"
+                style={{ 
+                    whiteSpace: 'nowrap',
+                    padding: '4px 8px',
+                    background: COLOR.bg.elevated,
+                    border: BORDER.standard,
+                    fontSize: '9px',
+                    color: COLOR.text.secondary,
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '6px'
+                }}
+                className="hover:text-text-primary"
               >
-                <Sparkles size={10} className="text-amber-500/50" />
-                {q}
+                <Sparkles size={8} style={{ color: COLOR.semantic.warning }} />
+                {q.toUpperCase()}
               </button>
             ))}
           </div>
         )}
       </div>
 
-      {/* Results / Empty State */}
-      <div className="flex-1 overflow-y-auto custom-scrollbar bg-[#050505]">
+      {/* Results / List */}
+      <div style={{ flex: 1, overflowY: 'auto' }} className="custom-scrollbar">
         {loading ? (
-          <div className="h-full flex flex-col items-center justify-center space-y-3 opacity-40">
-             <div className="w-8 h-1 bg-[#111] rounded-full overflow-hidden">
-                <div className="h-full bg-accent-info animate-[loading_1s_infinite]" />
+          <div style={{ height: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '12px', opacity: 0.5 }}>
+             <div style={{ width: '64px', height: '2px', background: COLOR.bg.elevated, overflow: 'hidden' }}>
+                <div style={{ height: '100%', background: COLOR.semantic.info }} className="animate-[loading_1s_infinite]" />
              </div>
-             <span className="text-[10px] font-black text-text-muted uppercase tracking-[0.2em]">Neural Processing...</span>
+             <span style={{ fontSize: '9px', fontWeight: TYPE.weight.bold, color: COLOR.text.muted, textTransform: 'uppercase', letterSpacing: TYPE.letterSpacing.caps }}>NEURAL_SCAN_IN_PROGRESS</span>
           </div>
         ) : spec ? (
-          <div className="p-0">
-            <table className="w-full text-left border-collapse">
-               <thead>
-                  <tr className="bg-[#0A0A0A] border-b border-[#111]">
-                     <th className="px-4 py-3 text-[10px] font-black text-text-muted uppercase tracking-widest">Symbol</th>
-                     <th className="px-4 py-3 text-[10px] font-black text-text-muted uppercase tracking-widest text-right">Price</th>
-                     <th className="px-4 py-3 text-[10px] font-black text-text-muted uppercase tracking-widest text-right">% Chg</th>
-                     <th className="px-4 py-3 text-[10px] font-black text-text-muted uppercase tracking-widest text-right">Delivery</th>
+          <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: TYPE.size.sm }}>
+             <thead>
+                <tr style={{ background: COLOR.bg.surface, borderBottom: BORDER.standard }}>
+                   <th style={{ padding: '8px 12px', textAlign: 'left', fontSize: '9px', fontWeight: TYPE.weight.bold, color: COLOR.text.secondary, textTransform: 'uppercase' }}>SYMBOL</th>
+                   <th style={{ padding: '8px 12px', textAlign: 'right', fontSize: '9px', fontWeight: TYPE.weight.bold, color: COLOR.text.secondary, textTransform: 'uppercase' }}>PRICE</th>
+                   <th style={{ padding: '8px 12px', textAlign: 'right', fontSize: '9px', fontWeight: TYPE.weight.bold, color: COLOR.text.secondary, textTransform: 'uppercase' }}>%_CHG</th>
+                   <th style={{ padding: '8px 12px', textAlign: 'right', fontSize: '9px', fontWeight: TYPE.weight.bold, color: COLOR.text.secondary, textTransform: 'uppercase' }}>DELV_PTS</th>
+                </tr>
+             </thead>
+             <tbody style={{ color: COLOR.text.primary }}>
+                {mockResults.map((row, i) => (
+                  <tr key={i} style={{ borderBottom: BORDER.standard }} className="hover:bg-bg-elevated transition-colors cursor-pointer">
+                     <td style={{ padding: '8px 12px' }}>
+                        <div style={{ display: 'flex', flexDirection: 'column' }}>
+                           <span style={{ fontSize: TYPE.size.sm, fontWeight: TYPE.weight.bold }}>{row.symbol}</span>
+                           <span style={{ fontSize: '9px', color: COLOR.text.muted }}>{row.sector}</span>
+                        </div>
+                     </td>
+                     <td style={{ padding: '8px 12px', textAlign: 'right', fontVariantNumeric: 'tabular-nums' }}>
+                        {row.price.toLocaleString()}
+                     </td>
+                     <td style={{ 
+                        padding: '8px 12px', 
+                        textAlign: 'right', 
+                        fontWeight: TYPE.weight.bold,
+                        fontVariantNumeric: 'tabular-nums',
+                        color: row.change >= 0 ? COLOR.semantic.up : COLOR.semantic.down 
+                     }}>
+                        {row.change > 0 ? '+' : ''}{row.change}%
+                     </td>
+                     <td style={{ padding: '8px 12px', textAlign: 'right' }}>
+                        <span style={{ fontSize: '10px', fontWeight: TYPE.weight.bold, fontVariantNumeric: 'tabular-nums', background: COLOR.bg.elevated, padding: '2px 6px', border: BORDER.standard }}>
+                          {row.delivery}%
+                        </span>
+                     </td>
                   </tr>
-               </thead>
-               <tbody className="divide-y divide-[#111]">
-                  {mockResults.map((row, i) => (
-                    <tr key={i} className="hover:bg-[#0A0A0A] transition-colors group cursor-pointer">
-                       <td className="px-4 py-3">
-                          <div className="flex flex-col">
-                             <span className="text-xs font-black text-white group-hover:text-accent-info transition-colors">{row.symbol}</span>
-                             <span className="text-[9px] text-text-muted font-medium">{row.sector}</span>
-                          </div>
-                       </td>
-                       <td className="px-4 py-3 text-right text-xs font-bold tabular-nums text-[#EEE]">
-                          {row.price.toLocaleString()}
-                       </td>
-                       <td className={`px-4 py-3 text-right text-xs font-black tabular-nums ${row.change >= 0 ? 'text-green-500' : 'text-red-500'}`}>
-                          {row.change > 0 ? '+' : ''}{row.change}%
-                       </td>
-                       <td className="px-4 py-3 text-right">
-                          <span className="text-xs font-bold tabular-nums text-text-primary bg-[#111] px-2 py-0.5 rounded border border-[#222]">
-                            {row.delivery}%
-                          </span>
-                       </td>
-                    </tr>
-                  ))}
-               </tbody>
-            </table>
-          </div>
+                ))}
+             </tbody>
+          </table>
         ) : history.length > 0 ? (
-          <div className="p-4 space-y-4">
-             <div className="flex items-center gap-2 text-text-muted">
-                <History size={14} />
-                <span className="text-[10px] font-black uppercase tracking-widest">Recent Queries</span>
+          <div style={{ padding: SPACE[4], display: 'flex', flexDirection: 'column', gap: SPACE[3] }}>
+             <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: COLOR.text.muted }}>
+                <History size={12} />
+                <span style={{ fontSize: '9px', fontWeight: TYPE.weight.bold, textTransform: 'uppercase', letterSpacing: TYPE.letterSpacing.caps }}>HISTORICAL_QUERIES</span>
              </div>
-             <div className="space-y-2">
+             <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
                 {history.map((h, i) => (
                   <button 
                     key={i}
                     onClick={() => { setQuery(h); handleSearch(h); }}
-                    className="w-full text-left p-2.5 rounded-lg border border-[#111] bg-[#0A0A0A] hover:bg-[#141414] hover:border-[#333] transition-all text-[11px] font-medium text-text-secondary flex justify-between items-center group"
+                    style={{ 
+                        width: '100%', 
+                        textAlign: 'left', 
+                        padding: '8px 12px', 
+                        background: COLOR.bg.surface, 
+                        border: BORDER.standard,
+                        color: COLOR.text.secondary,
+                        fontSize: '11px',
+                        cursor: 'pointer',
+                        display: 'flex',
+                        justifyContent: 'space-between',
+                        alignItems: 'center'
+                    }}
+                    className="hover:border-text-muted hover:text-text-primary transition-colors"
                   >
-                    {h}
-                    <ChevronRight size={14} className="opacity-0 group-hover:opacity-100 transition-opacity" />
+                    {h.toUpperCase()}
+                    <ChevronRight size={12} />
                   </button>
                 ))}
              </div>
           </div>
         ) : (
-          <div className="h-full flex flex-col items-center justify-center p-10 text-center space-y-4">
-             <div className="p-4 bg-accent-info/5 rounded-full ring-1 ring-accent-info/10">
-                <Sparkles size={24} className="text-accent-info opacity-40" />
+          <div style={{ height: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '40px', textAlign: 'center' }}>
+             <div style={{ marginBottom: SPACE[6], opacity: 0.2 }}>
+                <Sparkles size={32} style={{ color: COLOR.semantic.info }} />
              </div>
-             <div className="space-y-2">
-                <h5 className="text-sm font-black text-white">Ask the Market Anything</h5>
-                <p className="text-[11px] text-text-muted leading-relaxed max-w-[240px]">
-                   Describe the pattern you're looking for and our AI will convert it to a scan.
+             <div>
+                <h5 style={{ fontSize: TYPE.size.md, fontWeight: TYPE.weight.bold, color: COLOR.text.primary, textTransform: 'uppercase', marginBottom: '8px' }}>MARKET_COGNITION_READY</h5>
+                <p style={{ fontSize: '10px', color: COLOR.text.muted, lineHeight: '1.5', maxWidth: '200px', margin: '0 auto' }}>
+                   Describe pattern requirements to execute neural-assisted scan.
                 </p>
              </div>
           </div>

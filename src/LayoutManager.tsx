@@ -22,6 +22,7 @@ import {
   BasketWidget, 
   PriceLadderWidget 
 } from './widgets/Other/Widgets';
+import UpstoxHoldings from './widgets/upstox/UpstoxHoldings';
 import { 
   IndicesStub, 
   ETFStub, 
@@ -46,6 +47,17 @@ import {
   FundamentalsStub 
 } from './widgets/Other/Stubs';
 
+import FIIDIITracker from './widgets/fii-dii/FIIDIITracker';
+import BlockDealFeed from './widgets/block-deals/BlockDealFeed';
+import FearIndex from './widgets/fear-index/FearIndex';
+import MaxPainCalculator from './widgets/max-pain/MaxPainCalculator';
+import MorningBrief from './widgets/morning-brief/MorningBrief';
+import NLScreener from './widgets/nl-screener/NLScreener';
+import FilingReader from './widgets/filing-reader/FilingReader';
+import PortMonitor from './widgets/port-monitor/PortMonitor';
+import JetTracker from './widgets/jet-tracker/JetTracker';
+import AccumulationScreener from './widgets/accumulation-screener/AccumulationScreener';
+
 import { SnakeGame } from './widgets/Games/Snake';
 import { Minesweeper } from './widgets/Games/Minesweeper';
 import { WordleGame } from './widgets/Games/Wordle';
@@ -67,6 +79,7 @@ const renderWidget = (id: string, node: TabNode) => {
         case 'positions': return <PositionsWidget />;
         case 'orders': return <OrdersWidget />;
         case 'portfolio': return <PortfolioWidget />;
+        case 'holdings': return <UpstoxHoldings />;
         case 'basket': return <BasketWidget />;
         case 'orderEntry': return <OrderEntryWidget node={node} />;
         case 'priceLadder': return <PriceLadderWidget />;
@@ -92,6 +105,19 @@ const renderWidget = (id: string, node: TabNode) => {
         case 'live-scanner': return <LiveScannerStub />;
         case 'corp-actions': return <CorpActionsStub />;
         case 'fundamentals': return <FundamentalsStub />;
+        
+        // Intelligence Widgets
+        case 'fii-dii': return <FIIDIITracker />;
+        case 'block-deals': return <BlockDealFeed />;
+        case 'fear-index': return <FearIndex />;
+        case 'max-pain': return <MaxPainCalculator />;
+        case 'morning-brief': return <MorningBrief />;
+        case 'nl-screener': return <NLScreener />;
+        case 'filing-reader': return <FilingReader />;
+        case 'port-monitor': return <PortMonitor />;
+        case 'jet-tracker': return <JetTracker />;
+        case 'accumulation-screener': return <AccumulationScreener />;
+
         case 'snake': return <SnakeGame />;
         case 'minesweeper': return <Minesweeper />;
         case 'wordle': return <WordleGame />;

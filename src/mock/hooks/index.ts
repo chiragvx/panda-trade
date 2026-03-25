@@ -47,8 +47,18 @@ export function useMockTicker(symbolTicker: string) {
 }
 
 export function useMockSymbols(): SymbolData[] {
+  const commonKeys: Record<string, string> = {
+    'RELIANCE': 'NSE_EQ|INE002A01018',
+    'TATASTEEL': 'NSE_EQ|INE848E01016',
+    'HDFCBANK': 'NSE_EQ|INE040A01034',
+    'INFY': 'NSE_EQ|INE009A01021',
+    'TCS': 'NSE_EQ|INE467B01029',
+    'SBIN': 'NSE_EQ|INE062A01020',
+  };
+
   return useMemo(() => MOCK_SYMBOLS.map(s => ({
     ...s,
+    instrument_key: commonKeys[s.ticker],
     bid: s.ltp * 0.9995,
     ask: s.ltp * 1.0005,
     deliveryPct: 10 + Math.random() * 80,
@@ -68,7 +78,9 @@ export function useMockOHLCV(symbolTicker: string) {
   useEffect(() => {
     const s = MOCK_SYMBOLS.find(s => s.ticker === symbolTicker);
     let price = s ? s.ltp : 1000;
+    // Mock date fix: shift 2 years back from "2026" to 2024 to avoid user confusion
     const now = new Date();
+    now.setFullYear(now.getFullYear() - 2);
     const bars: OHLCV[] = [];
     
     for (let i = 0; i < 365; i++) {
@@ -124,4 +136,14 @@ export function useMockMovers() {
 
 export function useMockTrending() {
     return MOCK_SYMBOLS.sort((a, b) => b.volume - a.volume).slice(0, 5);
+}
+
+export function useMockHoldings() {
+    return [
+        { symbol: 'RELIANCE', exchange: 'NSE', quantity: 25, avgCost: 2450.75, ltp: 2945.10, marketValue: 73627.50, pnl: 12358.75, pnlPct: 20.17 },
+        { symbol: 'HDFCBANK', exchange: 'NSE', quantity: 100, avgCost: 1580.20, ltp: 1642.50, marketValue: 164250.00, pnl: 6230.00, pnlPct: 3.94 },
+        { symbol: 'INFY', exchange: 'NSE', quantity: 40, avgCost: 1420.00, ltp: 1395.40, marketValue: 55816.00, pnl: -984.00, pnlPct: -1.73 },
+        { symbol: 'TCS', exchange: 'NSE', quantity: 15, avgCost: 3650.00, ltp: 3842.15, marketValue: 57632.25, pnl: 2882.25, pnlPct: 5.26 },
+        { symbol: 'SBIN', exchange: 'NSE', quantity: 200, avgCost: 580.00, ltp: 742.30, marketValue: 148460.00, pnl: 32460.00, pnlPct: 27.98 },
+    ];
 }

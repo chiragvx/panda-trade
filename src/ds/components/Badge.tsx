@@ -27,7 +27,7 @@ export const Badge: React.FC<BadgeProps> = ({ label, variant = 'default' }) => (
     height: '14px',
     padding: '0 3px',
     border: `1px solid ${VARIANT_STYLES[variant].borderColor}`,
-    borderRadius: '2px',
+    borderRadius: '0',
     fontFamily: TYPE.family.mono,
     fontSize: TYPE.size.xs,
     fontWeight: TYPE.weight.medium,

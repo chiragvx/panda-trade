@@ -210,6 +210,16 @@
   to   { transform: translateX(-50%); }
 }
 
+.marquee-container {
+  display: flex;
+  animation: marquee 30s linear infinite;
+  width: max-content;
+}
+
+.marquee-container:hover {
+  animation-play-state: paused;
+}
+
 .ticker-scroll {
   animation: marquee 40s linear infinite;
   width: max-content;

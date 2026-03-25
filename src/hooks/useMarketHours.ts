@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react';
 import { isWeekend, isWithinInterval, set, isAfter, isBefore } from 'date-fns';
-import { toZonedTime } from 'date-fns-tz'; // Need this if user is not in India
 
 export const useMarketHours = () => {
   const [isMarketOpen, setIsMarketOpen] = useState(false);

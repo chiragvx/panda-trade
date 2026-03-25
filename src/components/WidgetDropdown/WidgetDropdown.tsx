@@ -16,7 +16,7 @@ interface WidgetDropdownProps {
   anchorEl: HTMLElement | null;
 }
 
-const CATEGORIES = ['All', 'Market Data', 'Charts & Analytics', 'Account', 'Options', 'Scalping', 'Tools', 'Take a Break'];
+const CATEGORIES = ['All', 'Market Data', 'Account', 'Institutional Intel', 'Charts & Analytics', 'Options', 'Scalping', 'Tools', 'Take a Break'];
 
 export const WidgetDropdown: React.FC<WidgetDropdownProps> = ({ isOpen, onOpenChange, anchorEl }) => {
   const [search, setSearch] = useState('');

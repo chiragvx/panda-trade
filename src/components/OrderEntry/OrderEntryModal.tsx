@@ -1,21 +1,26 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { motion, AnimatePresence, useDragControls } from 'framer-motion';
 import { useLayoutStore, useSelectionStore } from '../../store/useStore';
+import { useUpstoxStore } from '../../store/useUpstoxStore';
+import { upstoxApi } from '../../services/upstoxApi';
 import { useToastStore } from '../ToastContainer';
 import { COLOR, TYPE, BORDER } from '../../ds/tokens';
+import { ShieldCheck, ShieldAlert, Cpu } from 'lucide-react';
 
 export const OrderEntryModal: React.FC = () => {
     const { isOrderModalOpen, orderMode, closeOrderModal, openOrderModal } = useLayoutStore();
     const { selectedSymbol } = useSelectionStore();
+    const { accessToken, status } = useUpstoxStore();
     const { addToast } = useToastStore();
     const dragControls = useDragControls();
 
     const [mode, setMode] = useState<'BUY' | 'SELL'>(orderMode || 'BUY');
     const [quantity, setQuantity] = useState(1);
     const [price, setPrice] = useState<string>('');
-    const [productType, setProductType] = useState('MIS');
+    const [productType, setProductType] = useState('I'); // Upstox: I = Intraday, D = Delivery
     const [exchange, setExchange] = useState('NSE');
-    const [orderType, setOrderType] = useState('MKT');
+    const [orderType, setOrderType] = useState('MARKET'); // Upstox: MARKET, LIMIT, SL, SL_M
+    const [executing, setExecuting] = useState(false);
 
     /* Pack 1 additions: Bracket Order */
     const [isBracket, setIsBracket] = useState(false);
@@ -49,6 +54,7 @@ export const OrderEntryModal: React.FC = () => {
     const isBuy = mode === 'BUY';
     const accentColor = isBuy ? COLOR.semantic.up : COLOR.semantic.down;
     const currentLtp = selectedSymbol?.ltp || 0;
+    const isLive = status === 'connected' && accessToken;
 
     /* Risk/Reward Calculation */
     const rrRatio = useMemo(() => {
@@ -61,12 +67,43 @@ export const OrderEntryModal: React.FC = () => {
         return risk > 0 ? (reward / risk).toFixed(2) : '0';
     }, [isBracket, stopLoss, target, price, currentLtp, selectedSymbol]);
 
-    const handleExecute = () => {
-        const slippage = (Math.random() * 0.05).toFixed(2);
-        const fillPrice = (parseFloat(price || currentLtp.toString()) + (isBuy ? 0.05 : -0.05)).toFixed(2);
-        
-        addToast(`${mode} EXEC @ ₹${fillPrice} (Slippage: ₹${slippage})`, 'success');
-        closeOrderModal();
+    const handleExecute = async () => {
+        if (isLive && selectedSymbol?.instrument_key) {
+            setExecuting(true);
+            try {
+                const orderData = {
+                    quantity: quantity,
+                    product: productType,
+                    validity: 'DAY',
+                    price: orderType === 'MARKET' ? 0 : parseFloat(price),
+                    tag: 'OPENTRADER_PRO',
+                    instrument_token: selectedSymbol.instrument_key,
+                    order_type: orderType,
+                    transaction_type: mode,
+                    disclosed_quantity: 0,
+                    trigger_price: 0,
+                    is_amo: false
+                };
+                
+                const res = await upstoxApi.placeOrder(accessToken!, orderData);
+                if (res.status === 'success') {
+                    addToast(`UPSTOX: ${mode} ORDER PLACED • ID: ${res.data.order_id}`, 'success');
+                    closeOrderModal();
+                } else {
+                    addToast(`UPSTOX ERROR: ${res.errors?.[0]?.message || 'Unknown error'}`, 'error');
+                }
+            } catch (err: any) {
+                addToast(`BROKER ERROR: ${err.response?.data?.errors?.[0]?.message || 'Connection failed'}`, 'error');
+            } finally {
+                setExecuting(false);
+            }
+        } else {
+            // Simulated Execution
+            const slippage = (Math.random() * 0.05).toFixed(2);
+            const fillPrice = (parseFloat(price || currentLtp.toString()) + (isBuy ? 0.05 : -0.05)).toFixed(2);
+            addToast(`SIMULATED: ${mode} EXEC @ ₹${fillPrice} (Slippage: ₹${slippage})`, 'success');
+            closeOrderModal();
+        }
     };
 
     const labelStyle: React.CSSProperties = {
@@ -141,13 +178,28 @@ export const OrderEntryModal: React.FC = () => {
 
                     {/* Form Controls */}
                     <div style={{ padding: '12px', display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                        {/* Live Status Bar */}
+                        <div style={{ 
+                            display: 'flex', alignItems: 'center', gap: '8px', padding: '6px 10px', 
+                            background: isLive ? 'rgba(34,197,94,0.05)' : 'rgba(255,255,255,0.02)',
+                            border: `1px solid ${isLive ? 'rgba(34,197,94,0.2)' : 'rgba(255,255,255,0.05)'}`
+                        }}>
+                             {isLive ? <ShieldCheck size={14} className="text-green-500" /> : <Cpu size={14} className="text-text-muted" />}
+                             <span style={{ ...labelStyle, color: isLive ? COLOR.semantic.up : COLOR.text.muted, flex: 1 }}>
+                                {isLive ? 'LIVE BROKER EXECUTION ENABLED' : 'SIMULATION MODE (OFFLINE)'}
+                             </span>
+                             {isLive && !selectedSymbol.instrument_key && <span style={{ ...labelStyle, color: COLOR.semantic.down }}>KEY MISSING</span>}
+                        </div>
+
                         {/* Type selectors */}
                         <div style={{ display: 'flex', gap: '4px' }}>
-                            {(['MIS', 'NRML', 'CNC'] as const).map(pt => (
-                                <button key={pt} onClick={() => setProductType(pt)} style={{ ...segStyle(productType === pt), flex: 'none', padding: '2px 10px', border: BORDER.standard }}>{pt}</button>
+                            {(['I', 'D'] as const).map(pt => (
+                                <button key={pt} onClick={() => setProductType(pt)} style={{ ...segStyle(productType === pt), flex: 'none', padding: '2px 10px', border: BORDER.standard, width: '60px' }}>
+                                    {pt === 'I' ? 'INTRADAY' : 'DELIVERY'}
+                                </button>
                             ))}
                             <div style={{ flex: 1 }} />
-                            {(['MKT', 'LMT', 'SL'] as const).map(ot => (
+                            {(['MARKET', 'LIMIT', 'SL', 'SL_M'] as const).map(ot => (
                                 <button key={ot} onClick={() => setOrderType(ot)} style={{ ...segStyle(orderType === ot), flex: 'none', padding: '2px 10px', border: BORDER.standard }}>{ot}</button>
                             ))}
                         </div>
@@ -162,10 +214,10 @@ export const OrderEntryModal: React.FC = () => {
                                 <label style={labelStyle}>Price</label>
                                 <input 
                                     type="text" 
-                                    value={orderType === 'MKT' ? 'MARKET' : price} 
-                                    disabled={orderType === 'MKT'} 
+                                    value={orderType === 'MARKET' ? 'MARKET' : price} 
+                                    disabled={orderType === 'MARKET'} 
                                     onChange={e => setPrice(e.target.value)} 
-                                    style={{ ...inputStyle, opacity: orderType === 'MKT' ? 0.5 : 1 }} 
+                                    style={{ ...inputStyle, opacity: orderType === 'MARKET' ? 0.5 : 1 }} 
                                 />
                             </div>
                         </div>
@@ -217,13 +269,14 @@ export const OrderEntryModal: React.FC = () => {
                         {/* Execute */}
                         <button 
                             onClick={handleExecute}
+                            disabled={executing}
                             style={{
-                                width: '100%', padding: '10px', background: accentColor,
+                                width: '100%', padding: '10px', background: executing ? COLOR.bg.border : accentColor,
                                 border: 'none', color: COLOR.text.inverse, fontFamily: TYPE.family.mono,
-                                fontWeight: 'bold', letterSpacing: '0.1em', cursor: 'pointer'
+                                fontWeight: 'bold', letterSpacing: '0.1em', cursor: executing ? 'not-allowed' : 'pointer'
                             }}
                         >
-                            {isBuy ? 'BUY' : 'SELL'} {quantity} {selectedSymbol.ticker}
+                            {executing ? 'EXECUTING...' : `${isBuy ? 'BUY' : 'SELL'} ${quantity} ${selectedSymbol.ticker}`}
                         </button>
                     </div>
                 </motion.div>

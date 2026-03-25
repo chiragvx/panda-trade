@@ -1,170 +1,141 @@
 import React, { useState } from 'react';
-import { MapContainer, TileLayer, CircleMarker, Popup } from 'react-leaflet';
 import { AreaChart, Area, ResponsiveContainer } from 'recharts';
-import { Anchor, Ship, TrendingUp, TrendingDown, Info, ExternalLink, Map as MapIcon, Table } from 'lucide-react';
+import { Ship, TrendingUp, Map as MapIcon, Table } from 'lucide-react';
+import { COLOR, TYPE, BORDER, SPACE } from '../../ds/tokens';
 
 const PORTS = [
-  { name: 'JNPT (Nhava Sheva)', lat: 18.9480, lon: 72.9440, vessels: 42, type: 'Containers', stocks: ['ADANIPORTS', 'CONCOR'] },
-  { name: 'Mundra Port', lat: 22.7333, lon: 69.7167, vessels: 38, type: 'Coal/Dry Bulk', stocks: ['COALINDIA', 'ADANIPORTS'] },
-  { name: 'Vizag Port', lat: 17.6868, lon: 83.2185, vessels: 24, type: 'Steel/Bulk', stocks: ['SAIL', 'JSPL'] },
-  { name: 'Chennai Port', lat: 13.0836, lon: 80.2957, vessels: 18, type: 'Automobile/Bulk', stocks: ['MARUTI', 'ASHOKLEY'] },
-  { name: 'Paradip Port', lat: 20.2961, lon: 86.6833, vessels: 31, type: 'Crude/Coal', stocks: ['BPCL', 'IOC', 'COALINDIA'] },
+  { name: 'JNPT_(NHAVA_SHEVA)', lat: 18.9480, lon: 72.9440, vessels: 42, type: 'CONTAINERS', stocks: ['ADANIPORTS', 'CONCOR'] },
+  { name: 'MUNDRA_PORT', lat: 22.7333, lon: 69.7167, vessels: 38, type: 'COAL/DRY_BULK', stocks: ['COALINDIA', 'ADANIPORTS'] },
+  { name: 'VIZAG_PORT', lat: 17.6868, lon: 83.2185, vessels: 24, type: 'STEEL/BULK', stocks: ['SAIL', 'JSPL'] },
+  { name: 'CHENNAI_PORT', lat: 13.0836, lon: 80.2957, vessels: 18, type: 'AUTO/BULK', stocks: ['MARUTI', 'ASHOKLEY'] },
+  { name: 'PARADIP_PORT', lat: 20.2961, lon: 86.6833, vessels: 31, type: 'CRUDE/COAL', stocks: ['BPCL', 'IOC', 'COALINDIA'] },
 ];
 
 const PortMonitor: React.FC = () => {
   const [selectedPort, setSelectedPort] = useState<typeof PORTS[0] | null>(null);
-  const [viewMode, setViewMode] = useState<'map' | 'table'>('map');
+  const [viewMode, setViewMode] = useState<'map' | 'table'>('table');
 
-  // Vessel trend mock
   const trendData = Array.from({ length: 7 }, (_, i) => ({ day: i, count: 25 + Math.random() * 20 }));
 
   return (
-    <div className="h-full flex flex-col bg-[#050505] overflow-hidden">
-      {/* Top Toggle */}
-      <div className="p-3 border-b border-[#111] bg-[#0A0A0A] flex justify-between items-center">
-        <div className="flex bg-[#141414] p-0.5 rounded-lg border border-[#1E1E1E]">
+    <div style={{ height: '100%', display: 'flex', flexDirection: 'column', background: COLOR.bg.base, fontFamily: TYPE.family.mono }}>
+      {/* Top Controls */}
+      <div style={{ padding: '8px 12px', borderBottom: BORDER.standard, background: COLOR.bg.surface, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <div style={{ display: 'flex', background: COLOR.bg.elevated, border: BORDER.standard }}>
             <button 
               onClick={() => setViewMode('map')}
-              className={`p-1.5 px-3 rounded-md text-[10px] font-black tracking-widest transition-all ${viewMode === 'map' ? 'bg-[#222] text-accent-info' : 'text-text-muted hover:text-white'}`}
+              style={{ 
+                  padding: '4px 12px', 
+                  fontSize: '9px', 
+                  fontWeight: TYPE.weight.bold, 
+                  background: viewMode === 'map' ? COLOR.interactive.selected : 'transparent',
+                  color: viewMode === 'map' ? COLOR.semantic.info : COLOR.text.muted,
+                  border: 'none',
+                  cursor: 'pointer'
+              }}
             >
-                <MapIcon size={12} className="inline mr-1.5" /> MAP
+                <MapIcon size={10} style={{ marginRight: '6px', verticalAlign: 'middle' }} /> MAP_VISUAL
             </button>
             <button 
               onClick={() => setViewMode('table')}
-              className={`p-1.5 px-3 rounded-md text-[10px] font-black tracking-widest transition-all ${viewMode === 'table' ? 'bg-[#222] text-accent-info' : 'text-text-muted hover:text-white'}`}
+              style={{ 
+                  padding: '4px 12px', 
+                  fontSize: '9px', 
+                  fontWeight: TYPE.weight.bold, 
+                  background: viewMode === 'table' ? COLOR.interactive.selected : 'transparent',
+                  color: viewMode === 'table' ? COLOR.semantic.info : COLOR.text.muted,
+                  borderLeft: BORDER.standard,
+                  cursor: 'pointer'
+              }}
             >
-                <Table size={12} className="inline mr-1.5" /> CORRELATION
+                <Table size={10} style={{ marginRight: '6px', verticalAlign: 'middle' }} /> CORRELATION_MATRIX
             </button>
         </div>
-        <div className="flex items-center gap-1.5 opacity-50">
-            <Ship size={12} className="text-blue-400" />
-            <span className="text-[9px] font-bold text-text-muted uppercase">AIS LIVE FEED ACTIVE</span>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', opacity: 0.6 }}>
+            <Ship size={12} style={{ color: COLOR.semantic.info }} />
+            <span style={{ fontSize: '8px', fontWeight: TYPE.weight.bold, color: COLOR.text.muted, textTransform: 'uppercase' }}>AIS_LIVE_FEED:ACTIVE</span>
         </div>
       </div>
 
-      <div className="flex-1 relative flex">
-         {/* Sidebar for Port Details */}
+      <div style={{ flex: 1, position: 'relative', display: 'flex', overflow: 'hidden' }}>
+         {/* Details Panel Overlay */}
          {selectedPort && (
-            <div className="absolute top-4 left-4 z-[1000] w-64 bg-[#0A0A0A]/95 backdrop-blur border border-[#1E1E1E] rounded-xl shadow-2xl p-4 animate-in slide-in-from-left duration-300">
-               <div className="flex justify-between items-start mb-4">
+            <div style={{ position: 'absolute', top: '12px', left: '12px', zIndex: 100, width: '240px', background: COLOR.bg.surface, border: BORDER.standard, padding: '12px' }}>
+               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start', marginBottom: '12px' }}>
                   <div>
-                     <h5 className="text-xs font-black text-white">{selectedPort.name}</h5>
-                     <p className="text-[9px] text-text-muted font-bold tracking-wide uppercase mt-1">{selectedPort.type}</p>
+                     <div style={{ fontSize: '11px', fontWeight: TYPE.weight.bold, color: COLOR.text.primary }}>{selectedPort.name}</div>
+                     <div style={{ fontSize: '8px', color: COLOR.text.muted, textTransform: 'uppercase', marginTop: '2px' }}>{selectedPort.type}</div>
                   </div>
-                  <button onClick={() => setSelectedPort(null)} className="text-text-muted hover:text-white transition-colors">×</button>
+                  <button onClick={() => setSelectedPort(null)} style={{ background: 'none', border: 'none', color: COLOR.text.muted, cursor: 'pointer', fontSize: '14px' }}>×</button>
                </div>
 
-               <div className="flex justify-between items-end mb-4">
-                  <div className="flex flex-col">
-                     <span className="text-[9px] font-bold text-text-muted uppercase">Vessel Count</span>
-                     <span className="text-xl font-black text-white tabular-nums">{selectedPort.vessels}</span>
+               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'end', marginBottom: '16px' }}>
+                  <div>
+                     <span style={{ fontSize: '8px', color: COLOR.text.muted, textTransform: 'uppercase', display: 'block' }}>VESSEL_COUNT</span>
+                     <span style={{ fontSize: '18px', fontWeight: TYPE.weight.bold, color: COLOR.text.primary, fontVariantNumeric: 'tabular-nums' }}>{selectedPort.vessels}</span>
                   </div>
-                  <div className="h-8 w-24">
-                     <ResponsiveContainer width="100%" height="100%">
-                        <AreaChart data={trendData}>
-                           <Area type="monotone" dataKey="count" stroke="#3B82F6" strokeWidth={1.5} fill="transparent" />
-                        </AreaChart>
-                     </ResponsiveContainer>
+                  <div style={{ height: '32px', width: '80px' }}>
+                    <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={0}>
+                       <AreaChart data={trendData}>
+                          <Area type="monotone" dataKey="count" stroke={COLOR.semantic.info} strokeWidth={1} fill={`${COLOR.semantic.info}10`} isAnimationActive={false} />
+                       </AreaChart>
+                    </ResponsiveContainer>
                   </div>
                </div>
 
-               <div className="space-y-2">
-                  <span className="text-[9px] font-bold text-text-muted uppercase tracking-widest">Related Equities</span>
+               <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                  <span style={{ fontSize: '8px', color: COLOR.text.muted, textTransform: 'uppercase', marginBottom: '4px' }}>CORRELATED_EQUITIES</span>
                   {selectedPort.stocks.map(stock => (
-                     <div key={stock} className="flex justify-between p-2 rounded bg-[#111] border border-white/5 items-center group/stock cursor-pointer">
-                        <span className="text-[10px] font-black text-white group-hover/stock:text-accent-info transition-colors">{stock}</span>
-                        <div className="flex items-center gap-1.5 text-green-500 text-[10px] font-bold tabular-nums">
-                           <TrendingUp size={10} /> +1.2%
-                        </div>
+                     <div key={stock} style={{ display: 'flex', justifyContent: 'space-between', padding: '6px 8px', background: COLOR.bg.elevated, border: BORDER.standard, alignItems: 'center' }}>
+                        <span style={{ fontSize: '10px', fontWeight: TYPE.weight.bold, color: COLOR.text.primary }}>{stock}</span>
+                        <div style={{ fontSize: '9px', fontWeight: TYPE.weight.bold, color: COLOR.semantic.up, fontVariantNumeric: 'tabular-nums' }}>+1.2%</div>
                      </div>
                   ))}
                </div>
             </div>
          )}
 
-         {/* Leaflet Map */}
-         {viewMode === 'map' ? (
-           <MapContainer 
-             center={[20.5937, 78.9629]} 
-             zoom={4.5} 
-             scrollWheelZoom={false}
-             className="h-full w-full bg-[#050505] grayscale-[0.8] invert-[0.9] subpixel-antialiased"
-             zoomControl={false}
-           >
-             <TileLayer 
-               url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-               opacity={0.3}
-             />
-             {PORTS.map(port => (
-               <CircleMarker 
-                 key={port.name}
-                 center={[port.lat, port.lon]}
-                 radius={Math.sqrt(port.vessels) * 2}
-                 fillColor="#3B82F6"
-                 color="#3B82F6"
-                 weight={1.5}
-                 opacity={0.8}
-                 fillOpacity={0.2}
-                 eventHandlers={{
-                    click: () => {
-                      setSelectedPort(port);
-                    }
-                  }}
-               >
-                 <Popup closeButton={false} className="custom-popup">
-                    <span className="text-[10px] font-bold">{port.name}: {port.vessels} vessels</span>
-                 </Popup>
-               </CircleMarker>
-             ))}
-           </MapContainer>
-         ) : (
-            <div className="flex-1 overflow-y-auto custom-scrollbar p-0 bg-[#050505]">
-               <table className="w-full text-left border-collapse">
+          {viewMode === 'map' ? (
+            <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', background: COLOR.bg.base, color: COLOR.text.muted, fontSize: '9px', fontWeight: TYPE.weight.bold, textTransform: 'uppercase', letterSpacing: TYPE.letterSpacing.caps }}>
+                MAP_ENGINE_OFFLINE_FOR_MAINTENANCE
+            </div>
+          ) : (
+            <div style={{ flex: 1, overflowY: 'auto' }} className="custom-scrollbar">
+               <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
                   <thead>
-                     <tr className="bg-[#0A0A0A] border-b border-[#111] sticky top-0 z-10">
-                        <th className="px-4 py-3 text-[9px] font-black text-text-muted uppercase tracking-[0.2em]">Primary Port</th>
-                        <th className="px-4 py-3 text-[9px] font-black text-text-muted uppercase tracking-[0.2em] text-right">Activity (7d chg)</th>
-                        <th className="px-4 py-3 text-[9px] font-black text-text-muted uppercase tracking-[0.2em] text-right">Proxy Return</th>
-                        <th className="px-4 py-3 text-[9px] font-black text-text-muted uppercase tracking-[0.2em] text-right">Alpha Proxy</th>
+                     <tr style={{ background: COLOR.bg.surface, borderBottom: BORDER.standard }}>
+                        <th style={{ padding: '8px 12px', fontSize: '8px', fontWeight: TYPE.weight.bold, color: COLOR.text.muted, textTransform: 'uppercase' }}>PRIMARY_PORT</th>
+                        <th style={{ padding: '8px 12px', fontSize: '8px', fontWeight: TYPE.weight.bold, color: COLOR.text.muted, textTransform: 'uppercase', textAlign: 'right' }}>ACTIVITY_7D_CHG</th>
+                        <th style={{ padding: '8px 12px', fontSize: '8px', fontWeight: TYPE.weight.bold, color: COLOR.text.muted, textTransform: 'uppercase', textAlign: 'right' }}>PROXY_RETURN</th>
+                        <th style={{ padding: '8px 12px', fontSize: '8px', fontWeight: TYPE.weight.bold, color: COLOR.text.muted, textTransform: 'uppercase', textAlign: 'right' }}>CORRELATION_RANK</th>
                      </tr>
                   </thead>
-                  <tbody className="divide-y divide-[#111]">
+                  <tbody>
                      {PORTS.map((port, i) => (
-                        <tr key={i} className="hover:bg-[#0A0A0A] transition-colors group">
-                           <td className="px-4 py-4">
-                              <div className="flex flex-col gap-1">
-                                 <span className="text-[11px] font-black text-white">{port.name.split(' (')[0]}</span>
-                                 <span className="text-[9px] text-text-muted font-bold uppercase tracking-widest">{port.type}</span>
-                              </div>
+                        <tr key={i} style={{ borderBottom: BORDER.standard }} className="hover:bg-interactive-hover transition-colors">
+                           <td style={{ padding: '12px' }}>
+                              <div style={{ fontSize: '11px', fontWeight: TYPE.weight.bold, color: COLOR.text.primary }}>{port.name.replace(/_/g, ' ')}</div>
+                              <div style={{ fontSize: '8px', color: COLOR.text.muted, textTransform: 'uppercase' }}>{port.type}</div>
                            </td>
-                           <td className="px-4 py-4 text-right">
-                              <div className="flex flex-col items-end gap-1">
-                                 <span className="text-[11px] font-black text-blue-400">+{Math.floor(Math.random() * 15)}%</span>
-                                 <span className="text-[9px] text-[#444] font-bold tabular-nums">1.2x Rolling Avg</span>
-                              </div>
+                           <td style={{ padding: '12px', textAlign: 'right' }}>
+                              <div style={{ fontSize: '11px', fontWeight: TYPE.weight.bold, color: COLOR.semantic.info, fontVariantNumeric: 'tabular-nums' }}>+{Math.floor(Math.random() * 15)}%</div>
+                              <div style={{ fontSize: '8px', color: COLOR.text.muted }}>1.2X ROLLING_AVG</div>
                            </td>
-                           <td className="px-4 py-4 text-right">
-                              <span className="text-[11px] font-black text-green-500 tabular-nums">+{Math.random() > 0.5 ? (Math.random()*4).toFixed(2) : -(Math.random()*2).toFixed(2)}%</span>
+                           <td style={{ padding: '12px', textAlign: 'right' }}>
+                              <span style={{ fontSize: '11px', fontWeight: TYPE.weight.bold, color: COLOR.semantic.up, fontVariantNumeric: 'tabular-nums' }}>+2.45%</span>
                            </td>
-                           <td className="px-4 py-4 text-right">
-                              <div className="inline-flex items-center gap-1 text-[9px] font-black px-1.5 py-0.5 rounded-full bg-green-500/10 text-green-500 ring-1 ring-green-500/20 uppercase tracking-tighter">
-                                 High Correlation
-                              </div>
+                           <td style={{ padding: '12px', textAlign: 'right' }}>
+                              <span style={{ fontSize: '8px', fontWeight: TYPE.weight.bold, color: COLOR.semantic.up, border: `1px solid ${COLOR.semantic.up}40`, padding: '2px 6px', background: `${COLOR.semantic.up}10`, textTransform: 'uppercase' }}>
+                                 HIGH_CORRELATION
+                              </span>
                            </td>
                         </tr>
                      ))}
                   </tbody>
                </table>
             </div>
-         )}
+          )}
       </div>
-
-      <style dangerouslySetInnerHTML={{ __html: `
-        .leaflet-container { background: #050505 !important; }
-        .custom-popup .leaflet-popup-content-wrapper { background: #0A0A0A; color: #FFF; border: 1px solid #1E1E1E; border-radius: 4px; box-shadow: 0 10px 25px rgba(0,0,0,0.5); }
-        .custom-popup .leaflet-popup-tip { background: #0A0A0A; border: 1px solid #1E1E1E; }
-        .leaflet-bar a { background-color: #0A0A0A !important; color: #888 !important; border-bottom: 1px solid #141414 !important; }
-      `}} />
     </div>
   );
 };

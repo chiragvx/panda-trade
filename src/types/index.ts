@@ -20,6 +20,28 @@ export interface SymbolData {
   lotSize?: number;
   expiry?: string;
   iv?: number;
+  instrument_key?: string; // Upstox specific key e.g. NSE_EQ|INE848E01016
+}
+
+export interface InstrumentData {
+  instrument_key: string;
+  exchange: string;
+  symbol: string;
+  name: string;
+  tick_size: number;
+  lot_size: number;
+  instrument_type: string;
+}
+
+export interface Holding {
+  isin: string;
+  symbol: string;
+  exchange: string;
+  quantity: number;
+  avg_price: number;
+  last_price: number;
+  pnl: number;
+  pnl_pct: number;
 }
 
 export interface OHLCV {

@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { useMockSymbols, useMockTicker } from '../../mock/hooks';
 import { useSelectionStore, useLayoutStore, useWatchlistStore } from '../../store/useStore';
+import { useUpstoxStore } from '../../store/useUpstoxStore';
 import { SymbolData } from '../../types';
 import { COLOR, TYPE, ROW_HEIGHT, BORDER } from '../../ds/tokens';
 import { Badge } from '../../ds/components/Badge';
@@ -59,6 +60,20 @@ const ColumnHeader: React.FC<{
   </div>
 );
 
+const COLUMN_WIDTHS: Record<string, number> = {
+  'SYMBOL': 0, // Flex
+  'LTP': 80,
+  'CHG': 68,
+  '%CHG': 68,
+  'BID': 72,
+  'ASK': 72,
+  'VOLUME': 72,
+  'DELIVERY%': 72,
+  '52W RANGE': 80,
+  'SPREAD': 64,
+  'OI CHG': 64
+};
+
 /* ─── ROW COMPONENT ─────────────────────────────────────────── */
 const WatchlistRow: React.FC<{ 
     symbol: SymbolData; 
@@ -69,7 +84,14 @@ const WatchlistRow: React.FC<{
 }> = ({ symbol, visibleColumns, isSelected, onContextMenu, onClick }) => {
   const { openOrderModal } = useLayoutStore();
   const { setSelectedSymbol } = useSelectionStore();
-  const price = useMockTicker(symbol.ticker);
+  const { prices } = useUpstoxStore();
+  
+  const mockPrice = useMockTicker(symbol.ticker);
+  
+  // Favor Upstox price if available for this symbol
+  const livePrice = symbol.instrument_key ? (prices[symbol.instrument_key]?.ltp) : null;
+  const price = livePrice !== undefined && livePrice !== null ? livePrice : mockPrice;
+  
   const flash = usePriceFlash(price);
   const [hovered, setHovered] = useState(false);
   const [spark] = useState(MOCK_SPARK);
@@ -81,11 +103,10 @@ const WatchlistRow: React.FC<{
       onContextMenu={e => onContextMenu(e, symbol)}
       onClick={onClick}
       style={{
-        display: 'flex', alignItems: 'center', height: ROW_HEIGHT.default,
+        display: 'flex', alignItems: 'center', height: ROW_HEIGHT.compact,
         borderBottom: BORDER.standard, cursor: 'default', position: 'relative',
         background: isSelected ? COLOR.interactive.selected : hovered ? COLOR.interactive.hover : 'transparent',
         borderLeft: isSelected ? `2px solid ${COLOR.semantic.info}` : hovered ? `2px solid ${COLOR.bg.border}` : '2px solid transparent',
-        transition: 'background 80ms linear, border-left 80ms linear',
         userSelect: 'none',
       }}
     >
@@ -93,7 +114,7 @@ const WatchlistRow: React.FC<{
         switch (col) {
           case 'SYMBOL':
             return (
-              <div key={col} style={{ flex: 1, display: 'flex', alignItems: 'center', gap: '5px', paddingLeft: '8px', minWidth: 0 }}>
+              <div key={col} style={{ flex: 1, display: 'flex', alignItems: 'center', gap: '5px', paddingLeft: '8px', minWidth: '120px' }}>
                 <span style={{ fontFamily: TYPE.family.mono, fontSize: TYPE.size.md, fontWeight: TYPE.weight.medium, color: COLOR.text.primary }}>
                   {symbol.ticker}
                 </span>
@@ -102,19 +123,19 @@ const WatchlistRow: React.FC<{
             );
           case 'LTP':
             return (
-              <div key={col} style={{ width: '72px', textAlign: 'right', paddingRight: '8px' }}>
-                <Price value={price} currency="" size="md" flash={flash} />
+              <div key={col} style={{ width: COLUMN_WIDTHS[col], textAlign: 'right', paddingRight: '12px', flexShrink: 0 }}>
+                <Price value={price} currency="" size="md" flash={flash} weight="extrabold" />
               </div>
             );
           case 'CHG':
             return (
-              <div key={col} style={{ width: '64px', textAlign: 'right', paddingRight: '8px' }}>
-                <Change value={symbol.change} format="absolute" size="sm" />
+              <div key={col} style={{ width: COLUMN_WIDTHS[col], textAlign: 'right', paddingRight: '8px', flexShrink: 0 }}>
+                <Change value={symbol.change} format="absolute" size="xs" weight="bold" />
               </div>
             );
           case '%CHG':
             return (
-              <div key={col} style={{ width: '64px', textAlign: 'right', paddingRight: '8px', position: 'relative' }}>
+              <div key={col} style={{ width: COLUMN_WIDTHS[col], textAlign: 'right', paddingRight: '8px', position: 'relative', flexShrink: 0 }}>
                  <AnimatePresence mode="wait">
                     {hovered ? (
                         <motion.div 
@@ -134,7 +155,7 @@ const WatchlistRow: React.FC<{
             );
           case 'DELIVERY%':
             return (
-              <div key={col} style={{ width: '64px', textAlign: 'right', paddingRight: '12px' }}>
+              <div key={col} style={{ width: COLUMN_WIDTHS[col], textAlign: 'right', paddingRight: '12px', flexShrink: 0 }}>
                  <span style={{ 
                     fontFamily: TYPE.family.mono, fontSize: TYPE.size.sm, 
                     color: (symbol.deliveryPct || 0) > 60 ? COLOR.semantic.up : (symbol.deliveryPct || 0) < 25 ? COLOR.semantic.down : COLOR.text.secondary
@@ -145,21 +166,41 @@ const WatchlistRow: React.FC<{
             );
           case '52W RANGE':
             return (
-              <div key={col} style={{ width: '72px', display: 'flex', alignItems: 'center', justifyContent: 'flex-end', paddingRight: '12px' }}>
+              <div key={col} style={{ width: COLUMN_WIDTHS[col], display: 'flex', alignItems: 'center', justifyContent: 'flex-end', paddingRight: '12px', flexShrink: 0 }}>
                 <RangeBar low={symbol.low52w || 0} high={symbol.high52w || 0} current={price} />
               </div>
             );
           case 'SPREAD':
               return (
-                <div key={col} style={{ width: '60px', textAlign: 'right', paddingRight: '8px' }}>
+                <div key={col} style={{ width: COLUMN_WIDTHS[col], textAlign: 'right', paddingRight: '8px', flexShrink: 0 }}>
                    <span style={{ fontFamily: TYPE.family.mono, fontSize: TYPE.size.xs, color: COLOR.text.muted }}>
                       {((symbol.ask || 0) - (symbol.bid || 0)).toFixed(2)}
                    </span>
                 </div>
               );
+          case 'BID':
+              return (
+                <div key={col} style={{ width: COLUMN_WIDTHS[col], textAlign: 'right', paddingRight: '8px', flexShrink: 0 }}>
+                   <Price value={symbol.bid || 0} size="sm" weight="bold" />
+                </div>
+              );
+          case 'ASK':
+              return (
+                <div key={col} style={{ width: COLUMN_WIDTHS[col], textAlign: 'right', paddingRight: '8px', flexShrink: 0 }}>
+                   <Price value={symbol.ask || 0} size="sm" weight="bold" />
+                </div>
+              );
+          case 'VOLUME':
+              return (
+                <div key={col} style={{ width: COLUMN_WIDTHS[col], textAlign: 'right', paddingRight: '8px', flexShrink: 0 }}>
+                   <span style={{ fontFamily: TYPE.family.mono, fontSize: TYPE.size.sm, color: COLOR.text.secondary }}>
+                      {((symbol.volume || 0) / 1000000).toFixed(2)}M
+                   </span>
+                </div>
+              );
           case 'OI CHG':
               return (
-                <div key={col} style={{ width: '60px', textAlign: 'right', paddingRight: '8px' }}>
+                <div key={col} style={{ width: COLUMN_WIDTHS[col], textAlign: 'right', paddingRight: '8px', flexShrink: 0 }}>
                    <Change value={symbol.oiChangePct || 0} format="percent" size="sm" />
                 </div>
               );
@@ -236,7 +277,7 @@ export const WatchlistWidget: React.FC = () => {
     }
   }, [selectedIndex, filtered, setSelectedSymbol, selectedSymbol]);
 
-  const allColumns = ['SYMBOL', 'LTP', 'CHG', '%CHG', 'DELIVERY%', '52W RANGE', 'SPREAD', 'OI CHG'];
+  const allColumns = ['SYMBOL', 'LTP', 'CHG', '%CHG', 'BID', 'ASK', 'VOLUME', 'DELIVERY%', '52W RANGE', 'SPREAD', 'OI CHG'];
 
   return (
     <div 
@@ -254,7 +295,7 @@ export const WatchlistWidget: React.FC = () => {
               borderBottom: activeTab === tab ? `1px solid ${COLOR.semantic.info}` : '1px solid transparent',
               fontFamily: TYPE.family.mono, fontSize: '10px', letterSpacing: '0.1em',
               color: activeTab === tab ? COLOR.text.primary : COLOR.text.muted,
-              cursor: 'pointer', transition: 'all 80ms linear',
+              cursor: 'pointer',
             }}
           >
             {tab}
@@ -281,7 +322,8 @@ export const WatchlistWidget: React.FC = () => {
         {visibleColumns.map(col => (
           <ColumnHeader 
             key={col} id={col} label={col} 
-            flex={col === 'SYMBOL'} width={col === 'LTP' ? 72 : col.includes('CHG') ? 64 : col === '52W RANGE' ? 72 : 64}
+            flex={col === 'SYMBOL'} 
+            width={COLUMN_WIDTHS[col] || 64}
             onContextMenu={e => { e.preventDefault(); setHeaderMenu({ x: e.clientX, y: e.clientY }); }}
           />
         ))}

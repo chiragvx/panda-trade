@@ -42,9 +42,12 @@ export const TYPE = {
     xl: '14px',
   },
   weight: {
-    regular: '400',
-    medium:  '500',
-    bold:    '600',
+    regular:   '400',
+    medium:    '500',
+    semibold:  '600',
+    bold:      '700',
+    extrabold: '800',
+    black:     '900',
   },
   lineHeight: {
     tight:    '1.2',

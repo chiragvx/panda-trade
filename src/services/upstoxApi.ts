@@ -33,9 +33,9 @@ export const upstoxApi = {
         return response.data;
     },
 
-    getOrderBook: async (token: string) => {
+    getOrders: async (token: string) => {
         const response = await axios.get(`${BASE_URL}/order/retrieve-all`, {
-           headers: {
+            headers: {
                 'Authorization': `Bearer ${token}`,
                 'Accept': 'application/json'
             }
@@ -76,6 +76,47 @@ export const upstoxApi = {
 
     getMarketDataFeedUrl: async (token: string) => {
         const response = await axios.get(`${V3_URL}/feed/market-data-feed/authorize`, {
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Accept': 'application/json'
+            }
+        });
+        return response.data;
+    },
+
+    getHistoricalData: async (token: string, instrumentKey: string, interval: string, fromDate: string, toDate: string) => {
+        const response = await axios.get(`${BASE_URL}/historical-candle/${instrumentKey}/${interval}/${toDate}/${fromDate}`, {
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Accept': 'application/json'
+            }
+        });
+        return response.data;
+    },
+
+    searchInstruments: async (token: string, symbol: string) => {
+        const response = await axios.get(`${BASE_URL}/instrument/search?symbol=${symbol}&exchange=NSE`, {
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Accept': 'application/json'
+            }
+        });
+        return response.data;
+    },
+
+    getFullQuote: async (token: string, instrumentKey: string) => {
+        const response = await axios.get(`${BASE_URL}/market-quote/quotes?symbol=${instrumentKey}`, {
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Accept': 'application/json'
+            }
+        });
+        return response.data;
+    },
+
+    getMarketQuotes: async (token: string, instrumentKeys: string[]) => {
+        const symbolList = instrumentKeys.join(',');
+        const response = await axios.get(`${BASE_URL}/market-quote/ltp?symbol=${symbolList}`, {
             headers: {
                 'Authorization': `Bearer ${token}`,
                 'Accept': 'application/json'

@@ -335,6 +335,56 @@ export const WIDGET_REGISTRY: Record<string, WidgetConfig> = {
     shortcut: '',
     singleton: true,
     category: 'Institutional Intel',
+  },
+  'nl-screener': {
+    id: 'nl-screener',
+    displayName: 'NL Stock Screener',
+    icon: 'Search',
+    shortcut: '',
+    singleton: true,
+    category: 'Institutional Intel',
+  },
+  'filing-reader': {
+    id: 'filing-reader',
+    displayName: 'Exchange Filings',
+    icon: 'FileText',
+    shortcut: '',
+    singleton: true,
+    category: 'Institutional Intel',
+  },
+  'port-monitor': {
+    id: 'port-monitor',
+    displayName: 'Satellite Port Monitor',
+    icon: 'Anchor',
+    shortcut: '',
+    singleton: true,
+    category: 'Institutional Intel',
+  },
+  'jet-tracker': {
+    id: 'jet-tracker',
+    displayName: 'Corporate Jet Tracker',
+    icon: 'Plane',
+    shortcut: '',
+    singleton: true,
+    category: 'Institutional Intel',
+  },
+  'accumulation-screener': {
+    id: 'accumulation-screener',
+    displayName: 'Accumulation Finder',
+    icon: 'Filter',
+    shortcut: '',
+    singleton: true,
+    category: 'Institutional Intel',
+  },
+
+  // NEW ACCOUNT WIDGETS
+  holdings: {
+    id: 'holdings',
+    displayName: 'Holdings (Live)',
+    icon: 'Briefcase',
+    shortcut: 'Alt+H',
+    singleton: true,
+    category: 'Account',
   }
 };
 

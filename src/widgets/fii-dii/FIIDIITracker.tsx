@@ -2,7 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { useNSEData } from '../../hooks/useNSEData';
 import { useMarketHours } from '../../hooks/useMarketHours';
 import { ComposedChart, Line, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, ReferenceLine } from 'recharts';
-import { TrendingUp, TrendingDown, Clock, AlertTriangle } from 'lucide-react';
+import { Clock, AlertTriangle } from 'lucide-react';
+import { COLOR, TYPE, BORDER, SPACE } from '../../ds/tokens';
 
 interface FIIDIIEntry {
   category: string;
@@ -14,9 +15,9 @@ interface FIIDIIEntry {
 
 const FIIDIITracker: React.FC = () => {
   const { isMarketOpen } = useMarketHours();
-  const { data, isLoading, error, isPlaceholderData } = useNSEData<FIIDIIEntry[]>('/api/fiidiiTradeReact', {
+  const { data, isLoading, error } = useNSEData<FIIDIIEntry[]>('/api/fiidiiTradeReact', {
     pollingInterval: 5 * 60 * 1000, 
-    enabled: true, // Should be true always to show last session data if closed
+    enabled: true,
   });
 
   const [flashAmber, setFlashAmber] = useState(false);
@@ -27,7 +28,6 @@ const FIIDIITracker: React.FC = () => {
       const fii = data.find(d => d.category === 'FII/FPI');
       if (fii) {
         if (lastFiiNet !== null && lastFiiNet > 0 && fii.netValue < 0) {
-          // Cross from positive to negative
           setFlashAmber(true);
           const timer = setTimeout(() => setFlashAmber(false), 5000);
           return () => clearTimeout(timer);
@@ -39,56 +39,59 @@ const FIIDIITracker: React.FC = () => {
 
   if (isLoading && !data) {
     return (
-      <div className="h-full flex items-center justify-center bg-[#0A0A0A] text-text-muted">
-        <Clock className="animate-pulse mr-2" size={16} />
-        Loading FII/DII...
+      <div style={{ height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', background: COLOR.bg.base, color: COLOR.text.muted, fontFamily: TYPE.family.mono }}>
+        <Clock className="animate-pulse" size={14} style={{ marginRight: '8px' }} />
+        POLLING_FII_DII...
       </div>
     );
   }
 
-  const fii = data?.find(d => d.category === 'FII/FPI') || { buyValue: 0, sellValue: 0, netValue: 0 };
-  const dii = data?.find(d => d.category === 'DII') || { buyValue: 0, sellValue: 0, netValue: 0 };
+  const fii = data?.find(d => d.category === 'FII/FPI') || { buyValue: 0, sellValue: 0, netValue: 0, date: '' };
+  const dii = data?.find(d => d.category === 'DII') || { buyValue: 0, sellValue: 0, netValue: 0, date: '' };
 
-  const formatCr = (val: number) => `₹${(val).toLocaleString('en-IN', { maximumFractionDigits: 0 })} cr`;
+  const formatCr = (val: number) => `₹${(val).toLocaleString('en-IN', { maximumFractionDigits: 0 })} CR`;
 
   const DataRow = ({ label, buy, sell, net }: any) => {
     const isNetPositive = net >= 0;
+    const netColor = isNetPositive ? COLOR.semantic.up : COLOR.semantic.down;
+    
     return (
-      <div className="flex flex-col gap-1 mb-4 p-2 rounded hover:bg-[#1A1A1A] transition-colors border border-transparent hover:border-[#333]">
-        <div className="flex justify-between items-center px-1">
-          <span className="text-[10px] font-bold text-text-muted tracking-widest">{label}</span>
-          <span className={`text-xs font-bold ${isNetPositive ? 'text-green-500' : 'text-red-500'} flex items-center gap-1`}>
-            {isNetPositive ? <TrendingUp size={12} /> : <TrendingDown size={12} />}
-            {formatCr(net)}
+      <div style={{ marginBottom: SPACE[3], borderLeft: `2px solid ${netColor}` }} className="p-2 hover:bg-bg-elevated transition-colors">
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
+          <span style={{ fontSize: '9px', fontWeight: TYPE.weight.bold, color: COLOR.text.secondary, textTransform: 'uppercase', letterSpacing: TYPE.letterSpacing.caps }}>{label}</span>
+          <span style={{ fontSize: TYPE.size.sm, fontWeight: TYPE.weight.bold, color: netColor, fontVariantNumeric: 'tabular-nums' }}>
+             {isNetPositive ? '+' : ''}{formatCr(net)}
           </span>
         </div>
-        <div className="grid grid-cols-2 gap-4 text-[10px] text-text-muted">
-          <div className="flex justify-between border-r border-[#222] pr-2">
-            <span>Buy</span>
-            <span className="text-text-primary">{formatCr(buy)}</span>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', fontSize: '10px' }}>
+          <div style={{ borderRight: BORDER.standard, paddingRight: '8px', display: 'flex', justifyContent: 'space-between' }}>
+            <span style={{ color: COLOR.text.muted }}>BUY</span>
+            <span style={{ color: COLOR.text.primary, fontVariantNumeric: 'tabular-nums' }}>{formatCr(buy)}</span>
           </div>
-          <div className="flex justify-between pl-2">
-            <span>Sell</span>
-            <span className="text-text-primary">{formatCr(sell)}</span>
+          <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+            <span style={{ color: COLOR.text.muted }}>SELL</span>
+            <span style={{ color: COLOR.text.primary, fontVariantNumeric: 'tabular-nums' }}>{formatCr(sell)}</span>
           </div>
         </div>
-        {/* Mini horizontal bar showing net direction */}
-        <div className="h-1 bg-[#1A1A1A] rounded-full overflow-hidden mt-2 relative">
+        {/* Flat Meter Bar */}
+        <div style={{ height: '2px', background: COLOR.bg.surface, marginTop: '8px', position: 'relative' }}>
            <div 
-             className={`absolute top-0 h-full ${isNetPositive ? 'bg-green-500' : 'bg-red-500'}`}
              style={{ 
+               position: 'absolute',
+               top: 0,
+               height: '100%',
+               background: netColor,
                width: `${Math.min(Math.abs(net) / (Math.max(buy, sell) || 1) * 100, 100)}%`,
                left: isNetPositive ? '50%' : 'auto',
                right: !isNetPositive ? '50%' : 'auto'
              }}
            />
-           <div className="absolute left-1/2 top-0 w-[1px] h-full bg-[#444]" />
+           <div style={{ position: 'absolute', left: '50%', top: '-2px', width: '1px', height: '6px', background: COLOR.text.muted }} />
         </div>
       </div>
     );
   };
 
-  // Mock chart data for now since we need intraday line
   const mockChartData = Array.from({ length: 40 }, (_, i) => ({
     time: `${9 + Math.floor(i / 6)}:${(i % 6) * 10}`,
     nifty: 24000 + (Math.sin(i / 5) * 200) + (i * 20),
@@ -96,46 +99,55 @@ const FIIDIITracker: React.FC = () => {
   }));
 
   return (
-    <div className={`p-4 flex flex-col h-full transition-colors duration-500 ${flashAmber ? 'bg-amber-500/10 shadow-[inset_0_0_20px_rgba(245,158,11,0.2)]' : 'bg-transparent'}`}>
-      <div className="flex justify-between items-start mb-4">
-        <h4 className="text-[10px] text-text-muted flex items-center gap-2">
-          {isMarketOpen ? <span className="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse"/> : <Clock size={12}/>}
-          {isMarketOpen ? 'LIVE MARKET' : 'PRIOR SESSION'} — {fii.date || 'DATELINE'}
+    <div style={{ 
+      padding: SPACE[4], 
+      display: 'flex', 
+      flexDirection: 'column', 
+      height: '100%', 
+      background: flashAmber ? `${COLOR.semantic.warning}10` : 'transparent',
+      border: flashAmber ? `1px solid ${COLOR.semantic.warning}` : 'none',
+      fontFamily: TYPE.family.mono,
+      transition: 'all 0.5s'
+    }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: SPACE[4] }}>
+        <h4 style={{ fontSize: '9px', color: COLOR.text.muted, textTransform: 'uppercase', letterSpacing: TYPE.letterSpacing.caps, margin: 0, display: 'flex', alignItems: 'center', gap: '6px' }}>
+          {isMarketOpen ? <span style={{ width: '6px', height: '6px', background: COLOR.semantic.up }}/> : <Clock size={10}/>}
+          {isMarketOpen ? 'LIVE MARKET' : 'PRIOR SESSION'} | {fii.date || 'DATELINE'}
         </h4>
         {error && (
-            <div className="text-[10px] text-accent-danger flex items-center gap-1">
-                <AlertTriangle size={10} />
-                <span>Stale — {new Date().toLocaleTimeString()}</span>
+            <div style={{ fontSize: '9px', color: COLOR.semantic.down, display: 'flex', alignItems: 'center', gap: '4px' }}>
+                <AlertTriangle size={8} />
+                STALE | {new Date().toLocaleTimeString()}
             </div>
         )}
       </div>
 
-      <DataRow label="FOREIGN INSTITUTIONS" buy={fii.buyValue} sell={fii.sellValue} net={fii.netValue} />
-      <DataRow label="DOMESTIC INSTITUTIONS" buy={dii.buyValue} sell={dii.sellValue} net={dii.netValue} />
+      <DataRow label="FOREIGN INSTITUTIONS (FII)" buy={fii.buyValue} sell={fii.sellValue} net={fii.netValue} />
+      <DataRow label="DOMESTIC INSTITUTIONS (DII)" buy={dii.buyValue} sell={dii.sellValue} net={dii.netValue} />
 
-      <div className="flex-1 mt-4 min-h-[120px]">
-        <ResponsiveContainer width="100%" height="100%">
+      <div style={{ flex: 1, marginTop: SPACE[4], minHeight: '120px' }}>
+        <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={0}>
           <ComposedChart data={mockChartData}>
-            <CartesianGrid strokeDasharray="3 3" stroke="#1A1A1A" vertical={false}/>
+            <CartesianGrid strokeDasharray="3 3" stroke={COLOR.bg.elevated} vertical={false}/>
             <XAxis dataKey="time" hide />
             <YAxis yAxisId="left" hide orientation="left" />
             <YAxis yAxisId="right" hide orientation="right" />
             <Tooltip 
-              contentStyle={{ backgroundColor: '#0A0A0A', border: '1px solid #1A1A1A', fontSize: '10px' }}
-              labelStyle={{ color: '#888' }}
-              itemStyle={{ padding: '2px 0' }}
+              contentStyle={{ backgroundColor: COLOR.bg.surface, border: BORDER.standard, fontSize: '10px', borderRadius: 0, padding: '4px 8px' }}
+              labelStyle={{ color: COLOR.text.muted, marginBottom: '2px', fontWeight: 'bold' }}
+              itemStyle={{ padding: 0 }}
             />
-            <Bar yAxisId="right" dataKey="fiiNet" fill="#3B82F6" opacity={0.3} radius={[2, 2, 0, 0]} />
+            <Bar yAxisId="right" dataKey="fiiNet" fill={COLOR.semantic.info} opacity={0.3} isAnimationActive={false} />
             <Line 
               yAxisId="left" 
               type="monotone" 
               dataKey="nifty" 
-              stroke="#FFF" 
-              strokeWidth={1.5} 
+              stroke={COLOR.text.primary} 
+              strokeWidth={1} 
               dot={false} 
-              activeDot={{ r: 4 }}
+              isAnimationActive={false}
             />
-            <ReferenceLine yAxisId="right" y={0} stroke="#444" strokeWidth={0.5} />
+            <ReferenceLine yAxisId="right" y={0} stroke={COLOR.text.muted} strokeWidth={0.5} />
           </ComposedChart>
         </ResponsiveContainer>
       </div>

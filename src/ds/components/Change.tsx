@@ -8,6 +8,7 @@ interface ChangeProps {
   format?: 'absolute' | 'percent' | 'both';
   decimals?: number;
   size?: keyof typeof TYPE.size;
+  weight?: keyof typeof TYPE.weight;
   className?: string;
 }
 
@@ -18,6 +19,7 @@ export const Change: React.FC<ChangeProps> = ({
   format = 'absolute',
   decimals = 2,
   size = 'md',
+  weight = 'medium',
   className = '',
 }) => {
   const isUp = value > 0;
@@ -39,7 +41,7 @@ export const Change: React.FC<ChangeProps> = ({
         color,
         fontFamily: TYPE.family.mono,
         fontSize: TYPE.size[size],
-        fontWeight: TYPE.weight.medium,
+        fontWeight: TYPE.weight[weight],
         letterSpacing: TYPE.letterSpacing.tight,
         whiteSpace: 'nowrap',
       }}

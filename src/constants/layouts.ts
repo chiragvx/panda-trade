@@ -34,9 +34,9 @@ export const DEFAULT_LAYOUT: IJsonModel = {
   }
 };
 
-export const INTRADAY_LAYOUT: IJsonModel = DEFAULT_LAYOUT;
+export const EXECUTION_LAYOUT: IJsonModel = DEFAULT_LAYOUT;
 
-export const RESEARCH_LAYOUT: IJsonModel = {
+export const ANALYSIS_LAYOUT: IJsonModel = {
     global: GLOBAL_CONFIG,
     layout: {
         type: "row",
@@ -55,7 +55,7 @@ export const RESEARCH_LAYOUT: IJsonModel = {
     }
 };
 
-export const FO_LAYOUT: IJsonModel = {
+export const DERIVATIVES_LAYOUT: IJsonModel = {
     global: GLOBAL_CONFIG,
     layout: {
         type: "row",
