@@ -9,7 +9,6 @@ export interface WidgetConfig {
   minSize?:     { width: number; height: number };
   singleton: boolean;          // false = multiple instances allowed
   category: 'Market Data' | 'Analytics' | 'Charts & Analytics' | 'Options' | 'Account' | 'Graphs' | 'Tools' | 'Scalping' | 'Take a Break' | 'Institutional Intel';
-  mockDataKey?: string;
 }
 
 export type WidgetMap = Record<string, WidgetConfig>;

@@ -1,13 +1,17 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { Trophy, RefreshCw, Zap } from 'lucide-react';
-import { MOCK_SYMBOLS } from '../../mock/symbols';
+import { useWatchlistStore } from '../../store/useStore';
+import { useUpstoxStore } from '../../store/useUpstoxStore';
+import { getTickerFromInstrumentKey } from '../../utils/liveSymbols';
 
 const GRID_SIZE = 20;
 const INITIAL_SPEED = 150;
 
 export const SnakeGame: React.FC = () => {
+    const { instrumentKeys } = useWatchlistStore();
+    const { prices } = useUpstoxStore();
     const [snake, setSnake] = useState([{ x: 10, y: 10 }]);
-    const [food, setFood] = useState({ x: 5, y: 5, symbol: 'HIFIF' });
+    const [food, setFood] = useState({ x: 5, y: 5, symbol: '---' });
     const [direction, setDirection] = useState({ x: 0, y: -1 });
     const [gameOver, setGameOver] = useState(false);
     const [score, setScore] = useState(0);
@@ -17,9 +21,14 @@ export const SnakeGame: React.FC = () => {
     const generateFood = useCallback(() => {
         const x = Math.floor(Math.random() * GRID_SIZE);
         const y = Math.floor(Math.random() * GRID_SIZE);
-        const symbol = MOCK_SYMBOLS[Math.floor(Math.random() * MOCK_SYMBOLS.length)].ticker;
+        const tickers = instrumentKeys.length > 0
+            ? instrumentKeys.map(getTickerFromInstrumentKey)
+            : Object.keys(prices).map(getTickerFromInstrumentKey);
+        const symbol = tickers.length > 0
+            ? tickers[Math.floor(Math.random() * tickers.length)]
+            : '---';
         setFood({ x, y, symbol });
-    }, []);
+    }, [instrumentKeys, prices]);
 
     const moveSnake = useCallback(() => {
         if (gameOver) return;

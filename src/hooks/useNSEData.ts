@@ -9,7 +9,7 @@ export interface NSEDataOptions {
 }
 
 export const useNSEData = <T>(endpoint: string, options: NSEDataOptions = {}) => {
-  const { pollingInterval = 0, enabled = true } = options;
+  const { pollingInterval = 0, enabled = false } = options;
 
   // Add jitter to avoid simultaneous hits
   const jitter = Math.floor(Math.random() * 5000);

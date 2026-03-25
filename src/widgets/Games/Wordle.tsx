@@ -1,37 +1,54 @@
-import React, { useState, useEffect, useCallback } from 'react';
-import { useSelectionStore } from '../../store/useStore';
-import { MOCK_SYMBOLS } from '../../mock/symbols';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import { useWatchlistStore } from '../../store/useStore';
+import { useUpstoxStore } from '../../store/useUpstoxStore';
+import { getTickerFromInstrumentKey } from '../../utils/liveSymbols';
 import { CheckCircle, AlertCircle, RefreshCw } from 'lucide-react';
 
 const MAX_GUESSES = 6;
 const WORD_LENGTH = 5;
 
-const symbolsForWordle = MOCK_SYMBOLS
-    .map(s => s.ticker)
-    .filter(t => t.length === WORD_LENGTH);
-
 export const WordleGame: React.FC = () => {
+    const { instrumentKeys } = useWatchlistStore();
+    const { prices } = useUpstoxStore();
     const [targetWord, setTargetWord] = useState('');
     const [guesses, setGuesses] = useState<string[]>([]);
     const [currentGuess, setCurrentGuess] = useState('');
     const [gameOver, setGameOver] = useState(false);
     const [win, setWin] = useState(false);
 
+    const symbolsForWordle = useMemo(() => {
+        const fromKeys = instrumentKeys
+            .map(getTickerFromInstrumentKey)
+            .filter(t => t.length === WORD_LENGTH);
+        if (fromKeys.length > 0) return fromKeys;
+        return Object.keys(prices)
+            .map(getTickerFromInstrumentKey)
+            .filter(t => t.length === WORD_LENGTH);
+    }, [instrumentKeys, prices]);
+
     const initGame = useCallback(() => {
+        if (symbolsForWordle.length === 0) {
+            setTargetWord('');
+            setGuesses([]);
+            setCurrentGuess('');
+            setGameOver(false);
+            setWin(false);
+            return;
+        }
         const symbol = symbolsForWordle[Math.floor(Math.random() * symbolsForWordle.length)].toUpperCase();
         setTargetWord(symbol);
         setGuesses([]);
         setCurrentGuess('');
         setGameOver(false);
         setWin(false);
-    }, []);
+    }, [symbolsForWordle]);
 
     useEffect(() => {
         initGame();
     }, [initGame]);
 
     const handleKeyDown = useCallback((e: KeyboardEvent) => {
-        if (gameOver || win) return;
+        if (gameOver || win || targetWord.length === 0) return;
 
         if (e.key === 'Enter') {
             if (currentGuess.length === WORD_LENGTH) {
@@ -120,7 +137,9 @@ export const WordleGame: React.FC = () => {
                 </div>
             )}
             
-            <p className="mt-6 text-[9px] text-text-muted font-black uppercase tracking-[0.3em] font-mono"> NSE Tickers Only | {targetWord.length > 0 ? 'MOCK_FEED_ACTIVE' : 'INITIALIZING...'}</p>
+            <p className="mt-6 text-[9px] text-text-muted font-black uppercase tracking-[0.3em] font-mono">
+              NSE Tickers Only | {targetWord.length > 0 ? 'LIVE_LIST_ACTIVE' : 'NO_DATA_AVAILABLE'}
+            </p>
         </div>
     );
 };

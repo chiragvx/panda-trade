@@ -13,8 +13,8 @@ interface GlobalState {
 }
 
 export const useGlobalStore = create<GlobalState>((set) => ({
-  activeSymbol: "HDFCBANK",
-  watchlist: ["HDFCBANK", "RELIANCE", "INFY", "TCS"],
+  activeSymbol: "",
+  watchlist: [],
   positions: [],
   workspace: "intraday",
   setActiveSymbol: (symbol) => set({ activeSymbol: symbol }),

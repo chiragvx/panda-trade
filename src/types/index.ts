@@ -1,7 +1,7 @@
 export interface SymbolData {
   ticker: string;          // "IRFC"
   name: string;
-  exchange: "NSE" | "BSE";
+  exchange: string;
   ltp: number;             // Last traded price
   change: number;          // Absolute change
   changePct: number;       // % change

@@ -39,9 +39,9 @@ export const useKeyboardShortcuts = () => {
         case '/':
           e.preventDefault();
           // Logic to focus NL screener - could use a global ref or state
-          setWorkspace('ECOSYSTEM');
+          setWorkspace('ANALYSIS');
           setTimeout(() => {
-             const nlInput = document.querySelector('input[placeholder*="Type your screen query"]') as HTMLInputElement;
+             const nlInput = document.querySelector('input[placeholder*="TYPE_QUERY"]') as HTMLInputElement;
              nlInput?.focus();
           }, 100);
           break;

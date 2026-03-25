@@ -1,7 +1,6 @@
 import { useState } from 'react';
 
-// Use a placeholder key or environment variable
-const ANTHROPIC_API_KEY = import.meta.env.VITE_ANTHROPIC_API_KEY || 'REPLACE_WITH_YOUR_KEY';
+const ANTHROPIC_API_KEY = import.meta.env.VITE_ANTHROPIC_API_KEY || '';
 
 export const useAnthropicAPI = () => {
   const [loading, setLoading] = useState(false);

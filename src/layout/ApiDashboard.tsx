@@ -1,9 +1,11 @@
 import React from 'react';
 import UpstoxConnect from '../widgets/upstox/UpstoxConnect';
+import { useUpstoxStore } from '../store/useUpstoxStore';
 import { COLOR, BORDER, TYPE } from '../ds/tokens';
 import { ShieldCheck, Zap } from 'lucide-react';
 
 export const ApiDashboard: React.FC = () => {
+  const { status } = useUpstoxStore();
   return (
     <div style={{ 
       height: '100%', width: '100%', background: COLOR.bg.base,
@@ -40,15 +42,17 @@ export const ApiDashboard: React.FC = () => {
         <div style={{ marginTop: '12px', display: 'flex', gap: '20px' }}>
           <div style={{ flex: 1 }}>
              <span style={{ display: 'block', fontSize: '10px', color: COLOR.text.muted, fontWeight: 'bold' }}>LATENCY</span>
-             <span style={{ fontSize: '13px', color: COLOR.semantic.up, fontWeight: '900' }}>14ms</span>
+             <span style={{ fontSize: '13px', color: COLOR.text.primary, fontWeight: '900' }}>0ms</span>
           </div>
           <div style={{ flex: 1 }}>
              <span style={{ display: 'block', fontSize: '10px', color: COLOR.text.muted, fontWeight: 'bold' }}>UPTIME</span>
-             <span style={{ fontSize: '13px', color: COLOR.text.primary, fontWeight: '900' }}>99.98%</span>
+             <span style={{ fontSize: '13px', color: COLOR.text.primary, fontWeight: '900' }}>0%</span>
           </div>
           <div style={{ flex: 1 }}>
              <span style={{ display: 'block', fontSize: '10px', color: COLOR.text.muted, fontWeight: 'bold' }}>STATUS</span>
-             <span style={{ fontSize: '13px', color: COLOR.semantic.up, fontWeight: '900' }}>OPERATIONAL</span>
+             <span style={{ fontSize: '13px', color: status === 'connected' ? COLOR.semantic.up : COLOR.text.primary, fontWeight: '900' }}>
+               {status.toUpperCase()}
+             </span>
           </div>
         </div>
       </div>

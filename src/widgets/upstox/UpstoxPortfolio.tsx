@@ -2,11 +2,17 @@ import React, { useEffect, useState } from 'react';
 import { useUpstoxStore } from '../../store/useUpstoxStore';
 import { upstoxApi } from '../../services/upstoxApi';
 import { upstoxWebSocket } from '../../services/upstoxWebSocket';
-import { Wallet, RefreshCw, AlertCircle, XCircle } from 'lucide-react';
+import { Wallet, RefreshCw, AlertCircle, XCircle, ShoppingCart } from 'lucide-react';
 import { COLOR, TYPE, BORDER, SPACE } from '../../ds/tokens';
+import { useSelectionStore, useLayoutStore } from '../../store/useStore';
+import { buildSymbolFromFeed } from '../../utils/liveSymbols';
+import { Button } from '../../ds/components/Button';
 
 const UpstoxPortfolio: React.FC = () => {
-    const { accessToken, status, prices } = useUpstoxStore();
+    const { accessToken, status, prices, instrumentMeta } = useUpstoxStore();
+    const { setSelectedSymbol } = useSelectionStore();
+    const { openOrderModal } = useLayoutStore();
+    const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
     const [funds, setFunds] = useState<any>(null);
     const [positions, setPositions] = useState<any[]>([]);
     const [holdings, setHoldings] = useState<any[]>([]);
@@ -64,7 +70,7 @@ const UpstoxPortfolio: React.FC = () => {
     return (
         <div style={{ height: '100%', display: 'flex', flexDirection: 'column', background: COLOR.bg.base, overflow: 'hidden', fontFamily: TYPE.family.mono }}>
             
-            {/* Connection Status Banner (replacing giant placeholder) */}
+            {/* Connection Status Banner */}
             {status !== 'connected' && (
                 <div style={{ 
                     padding: '2px 8px', background: '#450a0a', borderBottom: BORDER.standard,
@@ -189,7 +195,22 @@ const UpstoxPortfolio: React.FC = () => {
                                     : item.quantity * ltp;
                                 
                                 return (
-                                    <tr key={idx} style={{ borderBottom: BORDER.standard }} className="hover:bg-bg-elevated transition-colors">
+                                    <tr 
+                                        key={idx} 
+                                        onMouseEnter={() => setHoveredIndex(idx)}
+                                        onMouseLeave={() => setHoveredIndex(null)}
+                                        onClick={() => {
+                                            const meta = instrumentMeta[item.instrument_token] || {
+                                                ticker: item.trading_symbol,
+                                                name: item.trading_symbol,
+                                                exchange: item.exchange as any
+                                            };
+                                            const symbol = buildSymbolFromFeed(item.instrument_token, prices[item.instrument_token], meta);
+                                            setSelectedSymbol(symbol);
+                                        }}
+                                        style={{ borderBottom: BORDER.standard, position: 'relative', cursor: 'pointer' }} 
+                                        className="hover:bg-bg-elevated transition-colors"
+                                    >
                                         <td style={{ padding: '8px 12px' }}>
                                             <span style={{ display: 'block', fontSize: TYPE.size.md, fontWeight: TYPE.weight.bold, color: COLOR.text.primary }}>{item.trading_symbol}</span>
                                             <span style={{ display: 'block', fontSize: '9px', color: COLOR.text.muted, textTransform: 'uppercase' }}>{item.product || item.exchange}</span>
@@ -202,9 +223,49 @@ const UpstoxPortfolio: React.FC = () => {
                                             fontVariantNumeric: 'tabular-nums', 
                                             fontSize: TYPE.size.md, 
                                             fontWeight: TYPE.weight.bold,
-                                            color: activeTab === 'positions' ? (pnlOrValue >= 0 ? COLOR.semantic.up : COLOR.semantic.down) : COLOR.text.primary
+                                            color: activeTab === 'positions' ? (pnlOrValue >= 0 ? COLOR.semantic.up : COLOR.semantic.down) : COLOR.text.primary,
+                                            position: 'relative'
                                         }}>
                                             {activeTab === 'positions' && pnlOrValue >= 0 ? '+' : ''}{pnlOrValue.toLocaleString('en-IN', { maximumFractionDigits: 0 })}
+                                            
+                                            {hoveredIndex === idx && (
+                                                <div style={{
+                                                    position: 'absolute',
+                                                    right: 0,
+                                                    top: 0,
+                                                    bottom: 0,
+                                                    display: 'flex',
+                                                    alignItems: 'center',
+                                                    gap: '4px',
+                                                    padding: '0 8px',
+                                                    background: 'inherit',
+                                                    borderLeft: `1px solid ${COLOR.bg.border}`,
+                                                    zIndex: 10
+                                                }}>
+                                                    <Button variant="buy" size="xs" onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        const meta = instrumentMeta[item.instrument_token] || {
+                                                            ticker: item.trading_symbol,
+                                                            name: item.trading_symbol,
+                                                            exchange: item.exchange as any
+                                                        };
+                                                        const symbol = buildSymbolFromFeed(item.instrument_token, prices[item.instrument_token], meta);
+                                                        setSelectedSymbol(symbol);
+                                                        openOrderModal('BUY');
+                                                    }}>B</Button>
+                                                    <Button variant="sell" size="xs" onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        const meta = instrumentMeta[item.instrument_token] || {
+                                                            ticker: item.trading_symbol,
+                                                            name: item.trading_symbol,
+                                                            exchange: item.exchange as any
+                                                        };
+                                                        const symbol = buildSymbolFromFeed(item.instrument_token, prices[item.instrument_token], meta);
+                                                        setSelectedSymbol(symbol);
+                                                        openOrderModal('SELL');
+                                                    }}>S</Button>
+                                                </div>
+                                            )}
                                         </td>
                                     </tr>
                                 );

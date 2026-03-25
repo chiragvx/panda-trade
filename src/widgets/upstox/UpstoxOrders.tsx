@@ -1,11 +1,17 @@
 import React, { useEffect, useState } from 'react';
 import { useUpstoxStore } from '../../store/useUpstoxStore';
 import { upstoxApi } from '../../services/upstoxApi';
-import { ShoppingBag, RefreshCw, AlertCircle } from 'lucide-react';
+import { ShoppingBag, RefreshCw, AlertCircle, ShoppingCart } from 'lucide-react';
 import { COLOR, TYPE, BORDER, SPACE } from '../../ds/tokens';
+import { useSelectionStore, useLayoutStore } from '../../store/useStore';
+import { buildSymbolFromFeed } from '../../utils/liveSymbols';
+import { Button } from '../../ds/components/Button';
 
 const UpstoxOrders: React.FC = () => {
-    const { accessToken, status } = useUpstoxStore();
+    const { accessToken, status, prices, instrumentMeta } = useUpstoxStore();
+    const { setSelectedSymbol } = useSelectionStore();
+    const { openOrderModal } = useLayoutStore();
+    const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
     const [orders, setOrders] = useState<any[]>([]);
     const [loading, setLoading] = useState(false);
 
@@ -90,7 +96,22 @@ const UpstoxOrders: React.FC = () => {
                             </tr>
                         ) : (
                             orders.map((order, idx) => (
-                                <tr key={idx} style={{ borderBottom: BORDER.standard }} className="hover:bg-bg-elevated transition-colors">
+                                <tr 
+                                    key={idx} 
+                                    onMouseEnter={() => setHoveredIndex(idx)}
+                                    onMouseLeave={() => setHoveredIndex(null)}
+                                    onClick={() => {
+                                        const meta = instrumentMeta[order.instrument_token] || {
+                                            ticker: order.trading_symbol,
+                                            name: order.trading_symbol,
+                                            exchange: order.exchange as any
+                                        };
+                                        const symbol = buildSymbolFromFeed(order.instrument_token, prices[order.instrument_token], meta);
+                                        setSelectedSymbol(symbol);
+                                    }}
+                                    style={{ borderBottom: BORDER.standard, position: 'relative', cursor: 'pointer' }} 
+                                    className="hover:bg-bg-elevated transition-colors"
+                                >
                                     <td style={{ padding: '8px 12px', color: COLOR.text.muted, fontSize: '10px', fontVariantNumeric: 'tabular-nums' }}>
                                         {order.order_timestamp?.split(' ')[1] || '--:--:--'}
                                     </td>
@@ -110,8 +131,54 @@ const UpstoxOrders: React.FC = () => {
                                     <td style={{ padding: '8px 12px', textAlign: 'right', fontVariantNumeric: 'tabular-nums' }}>
                                         {order.price || order.average_price || '--'}
                                     </td>
-                                    <td style={{ padding: '8px 12px', textAlign: 'right', fontSize: '10px', fontWeight: TYPE.weight.bold, color: getStatusColor(order.status) }}>
+                                    <td style={{ 
+                                        padding: '8px 12px', 
+                                        textAlign: 'right', 
+                                        fontSize: '10px', 
+                                        fontWeight: TYPE.weight.bold, 
+                                        color: getStatusColor(order.status),
+                                        position: 'relative'
+                                    }}>
                                         {order.status.toUpperCase()}
+
+                                        {hoveredIndex === idx && (
+                                            <div style={{
+                                                position: 'absolute',
+                                                right: 0,
+                                                top: 0,
+                                                bottom: 0,
+                                                display: 'flex',
+                                                alignItems: 'center',
+                                                gap: '4px',
+                                                padding: '0 8px',
+                                                background: 'inherit',
+                                                borderLeft: `1px solid ${COLOR.bg.border}`,
+                                                zIndex: 10
+                                            }}>
+                                                <Button variant="buy" size="xs" onClick={(e) => {
+                                                    e.stopPropagation();
+                                                    const meta = instrumentMeta[order.instrument_token] || {
+                                                        ticker: order.trading_symbol,
+                                                        name: order.trading_symbol,
+                                                        exchange: order.exchange as any
+                                                    };
+                                                    const symbol = buildSymbolFromFeed(order.instrument_token, prices[order.instrument_token], meta);
+                                                    setSelectedSymbol(symbol);
+                                                    openOrderModal('BUY');
+                                                }}>B</Button>
+                                                <Button variant="sell" size="xs" onClick={(e) => {
+                                                    e.stopPropagation();
+                                                    const meta = instrumentMeta[order.instrument_token] || {
+                                                        ticker: order.trading_symbol,
+                                                        name: order.trading_symbol,
+                                                        exchange: order.exchange as any
+                                                    };
+                                                    const symbol = buildSymbolFromFeed(order.instrument_token, prices[order.instrument_token], meta);
+                                                    setSelectedSymbol(symbol);
+                                                    openOrderModal('SELL');
+                                                }}>S</Button>
+                                            </div>
+                                        )}
                                     </td>
                                 </tr>
                             ))

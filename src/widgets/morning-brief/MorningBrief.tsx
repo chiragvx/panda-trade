@@ -21,23 +21,7 @@ const MorningBrief: React.FC = () => {
 
   useEffect(() => {
     if (!brief && !loading) {
-      setBrief(`**GLOBAL_TONE**
-Risk-on sentiment prevails as US tech indices hit record highs. Easing yield pressure supports emerging market flows despite minor FII selling.
-
-**NIFTY_OUTLOOK**
-Positive start expected with GIFT Nifty pointing to 24,560 (+110 pts). Key support at 24,420; resistance at 24,680. Bias remains bullish above yesterday's low.
-
-**WATCHLIST_HIGHLIGHTS**
-- **HDFCBANK**: Dividend announcement could trigger 2% move; watch 1,510 level.
-- **INFY**: Major deal win announcement over weekend provides strong gap-up potential.
-
-**TRADE_IDEA**
-Long **INFY** on break above 1,625. Target 1,680. SL 1,595. Focus on first 15-min volume confirmation.
-
-**KEY_EVENTS**
-- Weekly Expiry (NIFTY/BANKNIFTY)
-- USD CPI Data at 6:30pm IST`);
-      setTimestamp("09:00:14 IST");
+      setTimestamp('');
     }
   }, [brief, loading]);
 
@@ -99,11 +83,11 @@ Long **INFY** on break above 1,625. Target 1,680. SL 1,595. Focus on first 15-mi
                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: SPACE[4] }}>
                   <div>
                       <div style={{ fontSize: '8px', color: COLOR.text.muted, textTransform: 'uppercase', marginBottom: '2px' }}>CONVICTION_ASSET</div>
-                      <div style={{ fontSize: TYPE.size.md, fontWeight: TYPE.weight.bold, color: COLOR.text.primary }}>{brief.includes('INFY') ? 'INFY' : 'NIFTY'} <span style={{ color: COLOR.semantic.up }}>LONG</span></div>
+                      <div style={{ fontSize: TYPE.size.md, fontWeight: TYPE.weight.bold, color: COLOR.text.primary }}>N/A <span style={{ color: COLOR.semantic.up }}>LONG</span></div>
                   </div>
                   <div style={{ textAlign: 'right' }}>
                       <div style={{ fontSize: '8px', color: COLOR.text.muted, textTransform: 'uppercase', marginBottom: '2px' }}>TARGET_EXIT</div>
-                      <div style={{ fontSize: TYPE.size.md, fontWeight: TYPE.weight.bold, color: COLOR.semantic.info }}>{brief.includes('1,680') ? '1,680.00' : 'TBD'}</div>
+                      <div style={{ fontSize: TYPE.size.md, fontWeight: TYPE.weight.bold, color: COLOR.semantic.info }}>N/A</div>
                   </div>
                </div>
                <div style={{ marginTop: SPACE[3], display: 'flex', gap: '2px', background: COLOR.bg.border }}>

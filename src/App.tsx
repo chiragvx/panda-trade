@@ -10,10 +10,9 @@ import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import UpstoxCallback from './components/UpstoxCallback';
 import { useLayoutStore } from './store/useStore';
 import { useKeyboardShortcuts } from './hooks/useKeyboardShortcuts';
+import { useUpstoxBridge } from './hooks/useUpstoxBridge';
 import { EXECUTION_LAYOUT, ANALYSIS_LAYOUT, DERIVATIVES_LAYOUT } from './constants/layouts';
 import { ApiDashboard } from './layout/ApiDashboard';
-import { marketDataWS } from './services/MarketDataWebSocket';
-import { useUpstoxStore } from './store/useUpstoxStore';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -27,6 +26,7 @@ const queryClient = new QueryClient({
 const App: React.FC = () => {
   const { workspace } = useLayoutStore();
   useKeyboardShortcuts();
+  useUpstoxBridge();
   
   const [model, setModel] = useState<Model>(() => {
     const saved = localStorage.getItem('opentrader_layout');

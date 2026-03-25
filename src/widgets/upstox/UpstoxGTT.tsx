@@ -15,7 +15,6 @@ const UpstoxGTT: React.FC = () => {
     }, [accessToken, status]);
 
     const fetchGTT = async () => {
-        // GTT API placeholder
         return;
     };
 

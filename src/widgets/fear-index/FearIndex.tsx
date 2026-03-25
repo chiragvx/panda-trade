@@ -1,5 +1,6 @@
 import React, { useMemo } from 'react';
 import { AreaChart, Area, ResponsiveContainer } from 'recharts';
+import { useUpstoxStore } from '../../store/useUpstoxStore';
 import { COLOR, TYPE, BORDER, SPACE } from '../../ds/tokens';
 
 interface FearInputs {
@@ -12,142 +13,121 @@ interface FearInputs {
 }
 
 const FearIndex: React.FC = () => {
-    // Mocking API inputs
-    const inputs: FearInputs = {
-        indiaVIX: 14.5,
-        cboeVIX: 18.2,
-        yieldSpread: -0.2,
-        btcChange24h: -2.5,
-        goldChange7d: 1.2,
-        usdInrChange: 0.1,
-    };
+  const { prices } = useUpstoxStore();
 
-    const normaliseValue = (val: number, min: number, max: number, inverse = false) => {
-        const n = ((val - min) / (max - min)) * 100;
-        const clamped = Math.max(0, Math.min(100, n));
-        return inverse ? 100 - clamped : clamped;
-    };
+  const inputs: FearInputs = {
+    indiaVIX: Number(prices['NSE_INDEX|India VIX']?.ltp ?? 0),
+    cboeVIX: 0,
+    yieldSpread: 0,
+    btcChange24h: 0,
+    goldChange7d: 0,
+    usdInrChange: 0,
+  };
 
-    const components = useMemo(() => ({
-        indiaVIX: normaliseValue(inputs.indiaVIX, 10, 40, true),
-        cboeVIX: normaliseValue(inputs.cboeVIX, 10, 40, true),
-        yieldCurve: normaliseValue(inputs.yieldSpread, -1, 2, false),
-        btcMomentum: normaliseValue(inputs.btcChange24h, -10, 10, false),
-        goldRatio: normaliseValue(inputs.goldChange7d, -3, 3, true),
-        usdInr: normaliseValue(inputs.usdInrChange, -1, 1, true)
-    }), [inputs]);
+  const normaliseValue = (val: number, min: number, max: number, inverse = false) => {
+    const n = ((val - min) / (max - min)) * 100;
+    const clamped = Math.max(0, Math.min(100, n));
+    return inverse ? 100 - clamped : clamped;
+  };
 
-    const score = Object.values(components).reduce((a, b) => a + b) / 6;
+  const components = useMemo(
+    () => ({
+      indiaVIX: normaliseValue(inputs.indiaVIX, 10, 40, true),
+      cboeVIX: normaliseValue(inputs.cboeVIX, 10, 40, true),
+      yieldCurve: normaliseValue(inputs.yieldSpread, -1, 2, false),
+      btcMomentum: normaliseValue(inputs.btcChange24h, -10, 10, false),
+      goldRatio: normaliseValue(inputs.goldChange7d, -3, 3, true),
+      usdInr: normaliseValue(inputs.usdInrChange, -1, 1, true),
+    }),
+    [inputs]
+  );
 
-    const getStatus = (s: number) => {
-        if (s < 30) return { label: 'EXTREME FEAR', color: COLOR.semantic.down };
-        if (s < 45) return { label: 'FEAR', color: COLOR.semantic.down };
-        if (s < 60) return { label: 'NEUTRAL', color: COLOR.semantic.warning };
-        if (s < 80) return { label: 'GREED', color: COLOR.semantic.up };
-        return { label: 'EXTREME GREED', color: COLOR.semantic.up };
-    };
+  const score = Object.values(components).reduce((a, b) => a + b, 0) / 6;
 
-    const status = getStatus(score);
+  const getStatus = (s: number) => {
+    if (s < 30) return { label: 'EXTREME FEAR', color: COLOR.semantic.down };
+    if (s < 45) return { label: 'FEAR', color: COLOR.semantic.down };
+    if (s < 60) return { label: 'NEUTRAL', color: COLOR.semantic.warning };
+    if (s < 80) return { label: 'GREED', color: COLOR.semantic.up };
+    return { label: 'EXTREME GREED', color: COLOR.semantic.up };
+  };
 
-    const mockHistory = Array.from({ length: 7 }, (_, i) => ({
-        val: score + (Math.random() * 10 - 5)
-    }));
+  const status = getStatus(score);
+  const history = Array.from({ length: 7 }, () => ({ val: score }));
 
-    return (
-        <div style={{ height: '100%', display: 'flex', flexDirection: 'column', padding: SPACE[4], background: COLOR.bg.base, overflowY: 'auto', fontFamily: TYPE.family.mono }}>
-            
-            {/* Gauge Segment */}
-            <div style={{ position: 'relative', width: '100%', aspectRatio: '16/9', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                <svg viewBox="0 0 100 55" style={{ width: '80%', overflow: 'visible' }}>
-                    <path 
-                        d="M10 50 A 40 40 0 0 1 90 50" 
-                        fill="none" 
-                        stroke={COLOR.bg.elevated} 
-                        strokeWidth="10" 
-                    />
-                    <path 
-                        d="M10 50 A 40 40 0 0 1 90 50" 
-                        fill="none" 
-                        stroke={status.color} 
-                        strokeWidth="10" 
-                        strokeDasharray={`${(score / 100) * 125.6} 125.6`}
-                        style={{ transition: 'stroke-dasharray 1s ease-out' }}
-                    />
-                    <g 
-                        style={{ 
-                            transform: `rotate(${(score / 100) * 180 - 180}deg)`,
-                            transformOrigin: '50px 50px',
-                            transition: 'transform 1s ease-out'
-                        }}
-                    >
-                        <line x1="50" y1="50" x2="15" y2="50" stroke={COLOR.text.primary} strokeWidth="1.5" />
-                        <circle cx="50" cy="50" r="2" fill={COLOR.text.primary} />
-                    </g>
-                </svg>
-                
-                <div style={{ position: 'absolute', top: '45%', textAlign: 'center', left: '50%', transform: 'translateX(-50%)' }}>
-                    <div style={{ fontSize: '24px', fontWeight: TYPE.weight.bold, color: COLOR.text.primary, fontVariantNumeric: 'tabular-nums', margin: 0, lineHeight: 1 }}>
-                        {Math.round(score)}
-                    </div>
-                    <div style={{ 
-                        fontSize: '9px', 
-                        fontWeight: TYPE.weight.bold, 
-                        color: status.color, 
-                        border: `1px solid ${status.color}40`,
-                        background: COLOR.bg.surface,
-                        padding: '2px 8px',
-                        textTransform: 'uppercase',
-                        marginTop: '4px',
-                        letterSpacing: TYPE.letterSpacing.caps
-                    }}>
-                        {status.label}
-                    </div>
-                </div>
-            </div>
+  return (
+    <div style={{ height: '100%', display: 'flex', flexDirection: 'column', padding: SPACE[4], background: COLOR.bg.base, overflowY: 'auto', fontFamily: TYPE.family.mono }}>
+      <div style={{ position: 'relative', width: '100%', aspectRatio: '16/9', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <svg viewBox="0 0 100 55" style={{ width: '80%', overflow: 'visible' }}>
+          <path d="M10 50 A 40 40 0 0 1 90 50" fill="none" stroke={COLOR.bg.elevated} strokeWidth="10" />
+          <path d="M10 50 A 40 40 0 0 1 90 50" fill="none" stroke={status.color} strokeWidth="10" strokeDasharray={`${(score / 100) * 125.6} 125.6`} style={{ transition: 'stroke-dasharray 1s ease-out' }} />
+          <g
+            style={{
+              transform: `rotate(${(score / 100) * 180 - 180}deg)`,
+              transformOrigin: '50px 50px',
+              transition: 'transform 1s ease-out',
+            }}
+          >
+            <line x1="50" y1="50" x2="15" y2="50" stroke={COLOR.text.primary} strokeWidth="1.5" />
+            <circle cx="50" cy="50" r="2" fill={COLOR.text.primary} />
+          </g>
+        </svg>
 
-            {/* Inputs Grid */}
-            <div style={{ display: 'flex', flexDirection: 'column', gap: SPACE[2], marginTop: SPACE[6] }}>
-                {Object.entries(components).map(([key, val]) => (
-                    <div key={key} style={{ padding: '6px 8px', borderLeft: `2px solid ${getStatus(val).color}`, background: COLOR.bg.surface }}>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px' }}>
-                            <span style={{ fontSize: '9px', fontWeight: TYPE.weight.bold, color: COLOR.text.muted, textTransform: 'uppercase' }}>{key.replace(/([A-Z])/g, ' $1')}</span>
-                            <span style={{ fontSize: '10px', fontWeight: TYPE.weight.bold, color: COLOR.text.primary }}>{Math.round(val)}%</span>
-                        </div>
-                        <div style={{ height: '2px', background: COLOR.bg.elevated, width: '100%' }}>
-                            <div 
-                                style={{ 
-                                    height: '100%', 
-                                    background: getStatus(val).color,
-                                    width: `${val}%`,
-                                    transition: 'width 1s ease-out'
-                                }}
-                            />
-                        </div>
-                    </div>
-                ))}
-            </div>
-
-            {/* Historical Trend */}
-            <div style={{ marginTop: 'auto', paddingTop: SPACE[4], borderTop: BORDER.standard, height: '48px', position: 'relative' }}>
-                <div style={{ position: 'absolute', top: '-4px', right: 0, fontSize: '8px', fontWeight: TYPE.weight.bold, color: COLOR.text.muted, background: COLOR.bg.base, padding: '0 4px', textTransform: 'uppercase' }}>
-                    LAST_7D_TREND
-                </div>
-                <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={0}>
-                    <AreaChart data={mockHistory}>
-                        <Area 
-                            type="stepAfter" 
-                            dataKey="val" 
-                            stroke={status.color} 
-                            strokeWidth={1} 
-                            fill={status.color} 
-                            fillOpacity={0.05} 
-                            isAnimationActive={false}
-                        />
-                    </AreaChart>
-                </ResponsiveContainer>
-            </div>
+        <div style={{ position: 'absolute', top: '45%', textAlign: 'center', left: '50%', transform: 'translateX(-50%)' }}>
+          <div style={{ fontSize: '24px', fontWeight: TYPE.weight.bold, color: COLOR.text.primary, fontVariantNumeric: 'tabular-nums', margin: 0, lineHeight: 1 }}>
+            {Math.round(score)}
+          </div>
+          <div
+            style={{
+              fontSize: '9px',
+              fontWeight: TYPE.weight.bold,
+              color: status.color,
+              border: `1px solid ${status.color}40`,
+              background: COLOR.bg.surface,
+              padding: '2px 8px',
+              textTransform: 'uppercase',
+              marginTop: '4px',
+              letterSpacing: TYPE.letterSpacing.caps,
+            }}
+          >
+            {status.label}
+          </div>
         </div>
-    );
+      </div>
+
+      <div style={{ display: 'flex', flexDirection: 'column', gap: SPACE[2], marginTop: SPACE[6] }}>
+        {Object.entries(components).map(([key, val]) => (
+          <div key={key} style={{ padding: '6px 8px', borderLeft: `2px solid ${getStatus(val).color}`, background: COLOR.bg.surface }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px' }}>
+              <span style={{ fontSize: '9px', fontWeight: TYPE.weight.bold, color: COLOR.text.muted, textTransform: 'uppercase' }}>{key.replace(/([A-Z])/g, ' $1')}</span>
+              <span style={{ fontSize: '10px', fontWeight: TYPE.weight.bold, color: COLOR.text.primary }}>{Math.round(val)}%</span>
+            </div>
+            <div style={{ height: '2px', background: COLOR.bg.elevated, width: '100%' }}>
+              <div
+                style={{
+                  height: '100%',
+                  background: getStatus(val).color,
+                  width: `${val}%`,
+                  transition: 'width 1s ease-out',
+                }}
+              />
+            </div>
+          </div>
+        ))}
+      </div>
+
+      <div style={{ marginTop: 'auto', paddingTop: SPACE[4], borderTop: BORDER.standard, height: '48px', position: 'relative' }}>
+        <div style={{ position: 'absolute', top: '-4px', right: 0, fontSize: '8px', fontWeight: TYPE.weight.bold, color: COLOR.text.muted, background: COLOR.bg.base, padding: '0 4px', textTransform: 'uppercase' }}>
+          LAST_7D_TREND
+        </div>
+        <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={0}>
+          <AreaChart data={history}>
+            <Area type="stepAfter" dataKey="val" stroke={status.color} strokeWidth={1} fill={status.color} fillOpacity={0.05} isAnimationActive={false} />
+          </AreaChart>
+        </ResponsiveContainer>
+      </div>
+    </div>
+  );
 };
 
 export default FearIndex;

@@ -32,7 +32,7 @@ export const GenericStub: React.FC<{ name: string; category: string }> = ({ name
         </div>
         <div style={{ display: 'flex', justifyContent: 'space-between' }}>
           <span style={{ fontFamily: TYPE.family.mono, fontSize: TYPE.size.xs, color: COLOR.text.muted }}>STATUS</span>
-          <span style={{ fontFamily: TYPE.family.mono, fontSize: TYPE.size.xs, color: COLOR.semantic.up }}>MOCK</span>
+          <span style={{ fontFamily: TYPE.family.mono, fontSize: TYPE.size.xs, color: COLOR.text.secondary }}>NO LIVE DATA</span>
         </div>
         <div style={{ height: '1px', background: COLOR.bg.border }} />
         <span style={{ fontFamily: TYPE.family.mono, fontSize: TYPE.size.xs, color: COLOR.text.muted, textAlign: 'center' }}>

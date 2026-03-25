@@ -32,7 +32,7 @@ const UpstoxCallback: React.FC = () => {
             const data = await upstoxApi.exchangeCodeForToken(code, apiKey, apiSecret, redirectUri);
             
             if (data.access_token) {
-                setToken(data.access_token, 86400); // 1 day expiry as per Upstox
+                setToken(data.access_token, Number(data.expires_in || 86400));
                 setStatus('success');
                 setTimeout(() => navigate('/'), 1500);
             } else {

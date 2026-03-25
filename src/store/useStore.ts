@@ -1,6 +1,5 @@
 import { create } from 'zustand';
 import { SymbolData } from '../types';
-import { MOCK_SYMBOLS } from '../mock/symbols';
 
 interface SelectionStore {
   selectedSymbol: SymbolData | null;
@@ -62,7 +61,13 @@ export const useWatchlistStore = create<WatchlistStore>()(
     (set) => ({
       visibleColumns: ['SYMBOL', 'LTP', 'CHG', '%CHG', 'BID', 'ASK', 'VOLUME', 'DELIVERY%'],
       activeTab: 'ALL',
-      instrumentKeys: ['NSE_EQ|INE002A01018', 'NSE_EQ|INE467B01029', 'NSE_EQ|INE040A01034'], // Reliance, TCS, HDFC as defaults
+      instrumentKeys: [
+        'NSE_INDEX|Nifty 50',
+        'NSE_INDEX|Nifty Bank',
+        'NSE_INDEX|Nifty Fin Service',
+        'NSE_INDEX|India VIX',
+        'BSE_INDEX|SENSEX',
+      ],
       setColumns: (cols) => set({ visibleColumns: cols }),
       toggleColumn: (col) => set((state) => ({
         visibleColumns: state.visibleColumns.includes(col)

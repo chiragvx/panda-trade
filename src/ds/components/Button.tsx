@@ -8,6 +8,8 @@ interface ButtonProps {
   onClick?: (e: React.MouseEvent) => void;
   children: React.ReactNode;
   title?: string;
+  style?: React.CSSProperties;
+  className?: string;
 }
 
 const SIZE_STYLES = {
@@ -39,6 +41,8 @@ export const Button: React.FC<ButtonProps> = ({
   onClick,
   children,
   title,
+  style,
+  className,
 }) => {
   const [hovered, setHovered] = React.useState(false);
 
@@ -93,7 +97,9 @@ export const Button: React.FC<ButtonProps> = ({
         opacity: disabled ? 0.4 : 1,
         cursor: disabled ? 'not-allowed' : 'pointer',
         transition: 'background 80ms linear, color 80ms linear, border-color 80ms linear',
+        ...style,
       }}
+      className={className}
     >
       {children}
     </button>
