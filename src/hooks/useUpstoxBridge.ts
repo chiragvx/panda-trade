@@ -33,8 +33,7 @@ export const useUpstoxBridge = () => {
   const positions = useUpstoxStore((s) => s.positions);
   const holdings = useUpstoxStore((s) => s.holdings);
 
-  const instrumentKeys = useWatchlistStore((s) => s.instrumentKeys);
-  const setWatchlistKeys = useWatchlistStore((s) => s.setKeys);
+  const watchlists = useWatchlistStore((s) => s.watchlists);
   const selectedInstrumentKey = useSelectionStore((s) => s.selectedSymbol?.instrument_key || '');
 
   const refreshLockRef = useRef(false);
@@ -80,19 +79,22 @@ export const useUpstoxBridge = () => {
     [holdings, positions]
   );
 
+  const allWatchlistKeys = useMemo(() => watchlists.flatMap(w => w.keys), [watchlists]);
+
   const fullModeKeys = useMemo(() => uniqueKeys([selectedInstrumentKey]), [selectedInstrumentKey]);
 
   const ltpcModeKeys = useMemo(() => {
-    const merged = uniqueKeys([...CORE_INDEX_KEYS, ...instrumentKeys, ...accountInstrumentKeys]);
+    const merged = uniqueKeys([...CORE_INDEX_KEYS, ...allWatchlistKeys, ...accountInstrumentKeys]);
     const fullSet = new Set(fullModeKeys);
     return merged.filter((key) => !fullSet.has(key));
-  }, [accountInstrumentKeys, fullModeKeys, instrumentKeys]);
+  }, [accountInstrumentKeys, fullModeKeys, allWatchlistKeys]);
 
   useEffect(() => {
-    if (instrumentKeys.length === 0) {
-      setWatchlistKeys(CORE_INDEX_KEYS);
+    // Basic initialization if somehow wiped
+    if (watchlists.length === 0) {
+      useWatchlistStore.getState().createWatchlist('Default');
     }
-  }, [instrumentKeys.length, setWatchlistKeys]);
+  }, [watchlists.length]);
 
   useEffect(() => {
     checkTokenValidity();

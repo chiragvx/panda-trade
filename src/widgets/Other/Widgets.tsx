@@ -6,6 +6,10 @@ import { Change } from '../../ds/components/Change';
 import { Button } from '../../ds/components/Button';
 import { Badge } from '../../ds/components/Badge';
 import { buildSymbolFromFeed } from '../../utils/liveSymbols';
+import { useToastStore } from '../../components/ToastContainer';
+import { useContextMenuStore, ContextMenuOption } from '../../store/useContextMenuStore';
+import { upstoxApi } from '../../services/upstoxApi';
+import { Info, X, Edit2, Play, Pause, ChevronUp, ChevronDown, RefreshCcw, Trash2 } from 'lucide-react';
 
 const toNumber = (value: unknown, fallback = 0) => {
   const parsed = Number(value);
@@ -238,8 +242,184 @@ export const PositionsWidget: React.FC = () => {
   );
 };
 
+const ORDERS_COL_WIDTHS: Record<string, number> = {
+  'TIME': 60,
+  'SYMBOL': 130,
+  'SIDE': 40,
+  'QTY': 60,
+  'PRICE': 80,
+  'STATUS': 150
+};
+
+const OrdersRow: React.FC<{ order: any }> = ({ order }) => {
+  const [hovered, setHovered] = useState(false);
+  const { openModifyModal, openOrderDetails, openOrderModal } = useLayoutStore();
+  const { setSelectedSymbol } = useSelectionStore();
+  const { openContextMenu } = useContextMenuStore();
+  const { accessToken } = useUpstoxStore();
+  const { addToast } = useToastStore();
+
+  const handleCancel = async (e?: React.MouseEvent) => {
+    if (e) e.stopPropagation();
+    if (!accessToken) return;
+    try {
+      const res = await upstoxApi.cancelOrder(accessToken, order.id);
+      if (res.status === 'success') {
+        addToast(`CANCELLED ORDER: ${order.id}`, 'info');
+      } else {
+        addToast(`CANCEL FAILED: ${res.errors?.[0]?.message}`, 'error');
+      }
+    } catch (err: any) {
+        addToast(`ERROR: ${err.response?.data?.errors?.[0]?.message || 'Service unavailable'}`, 'error');
+    }
+  };
+
+  const isPending = order.status === 'PENDING' || order.status === 'OPEN' || order.status === 'PUT_ORDER_REQ_RECEIVED';
+
+  const handleRightClick = (e: React.MouseEvent) => {
+    e.preventDefault();
+    const options: ContextMenuOption[] = [
+        { 
+            label: 'VIEW DETAILS', 
+            icon: <Info size={14} />, 
+            variant: 'muted' as const,
+            onClick: () => { openOrderDetails(order); } 
+        },
+        { 
+            label: 'ORDER AGAIN', 
+            icon: <RefreshCcw size={14} />, 
+            variant: 'primary' as const,
+            onClick: () => { 
+                setSelectedSymbol({ ticker: order.symbol, instrument_key: order.instrument_key } as any);
+                setTimeout(() => openOrderModal(order.side as any), 0);
+            } 
+        }
+    ];
+
+    if (isPending) {
+        options.unshift({ 
+            label: 'CANCEL ORDER', 
+            icon: <X size={14} />, 
+            variant: 'danger' as const,
+            onClick: () => { handleCancel(); } 
+        });
+    }
+
+    openContextMenu(e.clientX, e.clientY, options);
+  };
+
+  return (
+    <div
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
+      onContextMenu={handleRightClick}
+      style={{
+        display: 'flex',
+        alignItems: 'center',
+        height: ROW_HEIGHT.default,
+        borderBottom: BORDER.standard,
+        position: 'relative',
+        background: hovered ? COLOR.interactive.hover : 'transparent',
+        transition: 'background 80ms linear',
+        minWidth: 'fit-content'
+      }}
+    >
+      <div style={{ width: 60, minWidth: 60, paddingLeft: '12px', fontFamily: TYPE.family.mono, fontSize: '10px', color: COLOR.text.muted }}>
+        {order.time}
+      </div>
+      <div style={{ 
+        width: 130, 
+        minWidth: 130, 
+        padding: '0 12px', 
+        fontFamily: TYPE.family.mono, 
+        fontSize: TYPE.size.sm, 
+        fontWeight: 'bold', 
+        color: COLOR.text.primary, 
+        position: 'sticky', 
+        left: 0, 
+        zIndex: 10,
+        background: hovered ? COLOR.interactive.hover : '#000000',
+        borderRight: '1px solid #111111'
+      }}>
+        {order.symbol}
+      </div>
+      <div style={{ width: 40, minWidth: 40, textAlign: 'center', fontFamily: TYPE.family.mono, fontSize: '11px', fontWeight: 'bold', color: order.side === 'BUY' ? COLOR.semantic.up : COLOR.semantic.down }}>
+        {order.side === 'BUY' ? 'B' : 'S'}
+      </div>
+      <div style={{ width: 60, minWidth: 60, textAlign: 'right', paddingRight: '12px', fontFamily: TYPE.family.mono, fontSize: TYPE.size.sm, color: COLOR.text.secondary }}>
+        {order.quantity}
+      </div>
+      <div style={{ width: 80, minWidth: 80, textAlign: 'right', paddingRight: '12px', fontFamily: TYPE.family.mono, fontSize: TYPE.size.sm, color: COLOR.text.primary }}>
+        {Number(order.price || 0).toFixed(2)}
+      </div>
+      <div style={{ width: 150, minWidth: 150, textAlign: 'right', paddingRight: '12px' }}>
+        <Badge label={order.status} variant={order.statusVariant} />
+      </div>
+      
+      {/* Spacer to prevent content being buried under sticky right buttons */}
+      <div style={{ width: 100, minWidth: 100 }} />
+
+      {hovered && (
+        <div style={{ 
+            position: 'sticky', 
+            right: 0, 
+            height: '100%',
+            width: 100,
+            zIndex: 30, 
+            background: COLOR.interactive.hover, 
+            display: 'flex', 
+            alignItems: 'center', 
+            justifyContent: 'center',
+            gap: '4px', 
+            borderLeft: `1px solid #333333`
+        }}>
+          {isPending && (
+            <>
+              <Button size="sm" variant="filled" onClick={(e) => { e.stopPropagation(); openModifyModal(order); }} style={{ height: '22px', border: 'none', background: 'transparent' }} title="Modify"><Edit2 size={14} color="#FFF" /></Button>
+              <Button size="sm" variant="danger" onClick={handleCancel} style={{ height: '22px', border: 'none', background: 'transparent' }} title="Cancel"><X size={14} color={COLOR.semantic.down} /></Button>
+            </>
+          )}
+          <Button size="sm" variant="ghost" onClick={(e) => { e.stopPropagation(); openOrderDetails(order); }} style={{ height: '22px', color: '#888' }}><Info size={14} /></Button>
+        </div>
+      )}
+    </div>
+  );
+};
 export const OrdersWidget: React.FC = () => {
   const orders = useUpstoxStore((s) => s.orders);
+  const { accessToken } = useUpstoxStore();
+  const { addToast } = useToastStore();
+  const headerRef = React.useRef<HTMLDivElement>(null);
+  const contentRef = React.useRef<HTMLDivElement>(null);
+
+  const handleCancelAll = async () => {
+      const pendingIds = orders
+        .filter((o: any) => ['OPEN', 'PENDING', 'PUT_ORDER_REQ_RECEIVED'].includes(o.status?.toUpperCase()))
+        .map((o: any) => o.order_id);
+
+      if (pendingIds.length === 0) {
+          addToast('NO PENDING ORDERS TO CANCEL', 'info');
+          return;
+      }
+
+      if (window.confirm(`Are you sure you want to CANCEL ALL ${pendingIds.length} pending orders?`)) {
+          addToast(`CANCELING ALL ${pendingIds.length} ORDERS...`, 'info');
+          for (const id of pendingIds) {
+              try {
+                await upstoxApi.cancelOrder(accessToken!, id);
+              } catch (e) {
+                console.error('Bulk cancel error:', e);
+              }
+          }
+          addToast('BULK CANCEL COMMAND SENT', 'success');
+      }
+  };
+
+  const syncScroll = () => {
+    if (contentRef.current && headerRef.current) {
+        headerRef.current.scrollLeft = contentRef.current.scrollLeft;
+    }
+  };
 
   const normalizedOrders = useMemo(
     () =>
@@ -267,40 +447,86 @@ export const OrdersWidget: React.FC = () => {
               .split(' ')
               .filter(Boolean)
               .pop() || '--:--:--',
+          raw: o
         };
       }),
     [orders]
   );
 
+  const cols = ['TIME', 'SYMBOL', 'SIDE', 'QTY', 'PRICE', 'STATUS'];
+
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100%', background: COLOR.bg.surface }}>
-      <div style={{ display: 'flex', height: ROW_HEIGHT.header, background: COLOR.bg.surface, borderBottom: BORDER.standard, flexShrink: 0 }}>
-        <ColHdr label="TIME" w={52} />
-        <ColHdr label="SYMBOL" flex />
-        <ColHdr label="SIDE" w={28} align="right" />
-        <ColHdr label="QTY" w={44} align="right" />
-        <ColHdr label="PRICE" w={64} align="right" />
-        <ColHdr label="STATUS" w={72} align="right" />
+      {/* Action Toolbar */}
+      <div style={{ height: '32px', display: 'flex', alignItems: 'center', justifyContent: 'flex-end', padding: '0 12px', borderBottom: BORDER.standard, flexShrink: 0 }}>
+        <button 
+            onClick={handleCancelAll}
+            style={{ 
+                background: 'none', 
+                border: '1px solid #f43f5e', 
+                color: '#f43f5e', 
+                fontSize: '9px', 
+                fontWeight: 'bold', 
+                padding: '4px 10px', 
+                cursor: 'pointer',
+                borderRadius: '2px',
+                textTransform: 'uppercase',
+                transition: 'all 0.1s linear'
+            }}
+            onMouseOver={(e) => { e.currentTarget.style.background = '#f43f5e22'; }}
+            onMouseOut={(e) => { e.currentTarget.style.background = 'none'; }}
+        >
+            CANCEL ALL PENDING
+        </button>
       </div>
-      <div style={{ flex: 1, overflowY: 'auto' }}>
-        {normalizedOrders.length === 0 ? (
-          <div style={{ padding: '20px', textAlign: 'center', color: COLOR.text.muted, fontSize: TYPE.size.sm, fontFamily: TYPE.family.mono }}>NO ORDERS</div>
-        ) : (
-          normalizedOrders.map((o) => (
-            <div key={o.id} style={{ display: 'flex', alignItems: 'center', height: ROW_HEIGHT.default, borderBottom: BORDER.standard }}>
-              <span style={{ width: '52px', paddingLeft: '8px', fontFamily: TYPE.family.mono, fontSize: TYPE.size.xs, color: COLOR.text.muted }}>
-                {o.time}
-              </span>
-              <span style={{ flex: 1, fontFamily: TYPE.family.mono, fontSize: TYPE.size.sm, fontWeight: TYPE.weight.medium, color: COLOR.text.primary, textTransform: 'uppercase' }}>{o.symbol}</span>
-              <span style={{ width: '28px', textAlign: 'center', fontFamily: TYPE.family.mono, fontSize: TYPE.size.sm, fontWeight: TYPE.weight.bold, color: o.side === 'BUY' ? COLOR.semantic.up : COLOR.semantic.down }}>{o.side === 'BUY' ? 'B' : 'S'}</span>
-              <span style={{ width: '44px', textAlign: 'right', paddingRight: '6px', fontFamily: TYPE.family.mono, fontSize: TYPE.size.sm, color: COLOR.text.secondary }}>{o.quantity}</span>
-              <span style={{ width: '64px', textAlign: 'right', paddingRight: '6px', fontFamily: TYPE.family.mono, fontSize: TYPE.size.sm, color: COLOR.text.primary }}>{Number(o.price || 0).toFixed(2)}</span>
-              <div style={{ width: '72px', textAlign: 'right', paddingRight: '6px' }}>
-                <Badge label={o.status} variant={o.statusVariant} />
-              </div>
+
+      <div 
+        ref={headerRef}
+        style={{ display: 'flex', height: ROW_HEIGHT.header, background: COLOR.bg.surface, borderBottom: BORDER.standard, flexShrink: 0, overflow: 'hidden' }}
+      >
+        {cols.map(c => (
+            <div 
+                key={c} 
+                style={{ 
+                    width: ORDERS_COL_WIDTHS[c], 
+                    minWidth: ORDERS_COL_WIDTHS[c], 
+                    display: 'flex', 
+                    alignItems: 'center', 
+                    justifyContent: c === 'SYMBOL' ? 'flex-start' : 'flex-end',
+                    fontFamily: TYPE.family.mono,
+                    fontSize: '9px',
+                    fontWeight: '900',
+                    color: COLOR.text.muted,
+                    letterSpacing: '0.1em',
+                    padding: '0 12px',
+                    position: c === 'SYMBOL' ? 'sticky' : 'static',
+                    left: c === 'SYMBOL' ? 0 : 'auto',
+                    zIndex: c === 'SYMBOL' ? 20 : 1,
+                    background: '#000000',
+                    borderRight: '1px solid #111111'
+                }}
+            >
+                {c}
             </div>
-          ))
-        )}
+        ))}
+        {/* Spacer for Actions column */}
+        <div style={{ width: 100, minWidth: 100, flexShrink: 0, background: '#000000' }} />
+      </div>
+      <div 
+        ref={contentRef}
+        onScroll={syncScroll}
+        style={{ flex: 1, overflow: 'auto' }}
+        className="custom-scrollbar"
+      >
+        <div style={{ minWidth: 'fit-content' }}>
+            {normalizedOrders.length === 0 ? (
+                <div style={{ padding: '40px', textAlign: 'center', color: COLOR.text.muted, fontSize: TYPE.size.sm, fontFamily: TYPE.family.mono }}>NO ORDERS</div>
+            ) : (
+                normalizedOrders.map((o) => (
+                    <OrdersRow key={o.id} order={o} />
+                ))
+            )}
+        </div>
       </div>
     </div>
   );

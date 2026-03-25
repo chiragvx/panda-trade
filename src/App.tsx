@@ -5,12 +5,14 @@ import { LayoutManager } from './LayoutManager';
 import { OrderEntryModal } from './components/OrderEntry/OrderEntryModal';
 import { ToastContainer } from './components/ToastContainer';
 import { CommandPalette } from './components/CommandPalette/CommandPalette';
+import { ContextMenu } from './ds/components/ContextMenu';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import UpstoxCallback from './components/UpstoxCallback';
 import { useLayoutStore } from './store/useStore';
 import { useKeyboardShortcuts } from './hooks/useKeyboardShortcuts';
 import { useUpstoxBridge } from './hooks/useUpstoxBridge';
+import { DVDEasterEgg } from './components/EasterEgg/DVDVideo';
 import { 
   CASUAL_LAYOUT, 
   OPTIONS_TRADER_LAYOUT, 
@@ -33,6 +35,29 @@ const queryClient = new QueryClient({
 
 const App: React.FC = () => {
   const { workspace } = useLayoutStore();
+  const [isIdle, setIsIdle] = useState(false);
+  const idleTimerRef = useRef<NodeJS.Timeout | null>(null);
+
+  const resetIdleTimer = useCallback(() => {
+    setIsIdle(false);
+    if (idleTimerRef.current) clearTimeout(idleTimerRef.current);
+    
+    idleTimerRef.current = setTimeout(() => {
+      setIsIdle(true);
+    }, 30000); // 30 seconds
+  }, []);
+
+  useEffect(() => {
+    const events = ['mousemove', 'mousedown', 'keydown', 'touchstart'];
+    events.forEach(evt => window.addEventListener(evt, resetIdleTimer));
+    resetIdleTimer();
+
+    return () => {
+      events.forEach(evt => window.removeEventListener(evt, resetIdleTimer));
+      if (idleTimerRef.current) clearTimeout(idleTimerRef.current);
+    };
+  }, [resetIdleTimer]);
+
   useKeyboardShortcuts();
   useUpstoxBridge();
   
@@ -87,16 +112,39 @@ const App: React.FC = () => {
   }, [workspace, loadLayout]);
 
   useEffect(() => {
+    const handleGlobalContextMenu = (e: MouseEvent) => {
+      // Check if we already handled this via our custom logic
+      // Most of our custom ones already call preventDefault, 
+      // but this catch-all ensures the browser menu never appears.
+      e.preventDefault();
+    };
+    window.addEventListener('contextmenu', handleGlobalContextMenu);
+    return () => window.removeEventListener('contextmenu', handleGlobalContextMenu);
+  }, []);
+
+  useEffect(() => {
     (window as any).loadLayout = loadLayout;
     (window as any).addNodeToLayout = (componentId: string) => {
       let targetId = (window as any).activeTabsetId || undefined;
-      
       model.doAction(Actions.addNode(
-        { type: "tab", name: componentId.charAt(0).toUpperCase() + componentId.slice(1), component: componentId },
+        { type: "tab", name: componentId.toUpperCase(), component: componentId },
         targetId,
         DockLocation.CENTER,
-        -1
+        -1,
+        true // Select the tab
       ));
+    };
+
+    (window as any).replaceTab = (componentId: string) => {
+      const activeId = (window as any).activeTabId;
+      if (activeId) {
+        model.doAction(Actions.updateNodeAttributes(activeId, { 
+          component: componentId, 
+          name: componentId.toUpperCase() 
+        }));
+      } else {
+        (window as any).addNodeToLayout(componentId);
+      }
     };
   }, [loadLayout, model]);
 
@@ -119,9 +167,11 @@ const App: React.FC = () => {
                 </main>
 
                 <OrderEntryModal />
+                <ContextMenu />
                 <ToastContainer />
                 <CommandPalette />
                 
+                {isIdle && <DVDEasterEgg />}
                 <div className="fixed top-0 left-0 w-full h-[1px] bg-border z-[10000] pointer-events-none opacity-20" />
               </>
             } />

@@ -14,13 +14,13 @@ export const CommandPalette: React.FC = () => {
 
   const { setSelectedSymbol } = useSelectionStore();
   const { setWorkspace } = useLayoutStore();
-  const { instrumentKeys } = useWatchlistStore();
+  const { watchlists } = useWatchlistStore();
   const { prices, instrumentMeta } = useUpstoxStore();
 
-  const symbols = useMemo(
-    () => instrumentKeys.map((key) => buildSymbolFromFeed(key, prices[key], instrumentMeta[key])),
-    [instrumentKeys, prices, instrumentMeta]
-  );
+  const symbols = useMemo(() => {
+    const allKeys = Array.from(new Set(watchlists.flatMap(w => w.keys)));
+    return allKeys.map((key) => buildSymbolFromFeed(key, prices[key], instrumentMeta[key]));
+  }, [watchlists, prices, instrumentMeta]);
 
   const parseCommand = (input: string) => {
     const parts = input.toUpperCase().trim().split(/\s+/);
@@ -28,10 +28,15 @@ export const CommandPalette: React.FC = () => {
     const symbol = symbols.find((s) => s.ticker === first);
 
     if (parts[1] === '<GO>' || parts[1] === 'GO') {
-      if (first === 'EXECUTION' || first === 'EXEC') setWorkspace('EXECUTION');
-      if (first === 'ANALYSIS' || first === 'ANA') setWorkspace('ANALYSIS');
-      if (first === 'DERIVATIVES' || first === 'DER') setWorkspace('DERIVATIVES');
-      if (first === 'API') setWorkspace('API');
+      const target = first.toUpperCase();
+      if (target === 'CASUAL') setWorkspace('CASUAL');
+      if (target === 'OPTIONS' || target === 'OPT' || target === 'DERIVATIVES') setWorkspace('OPTIONS');
+      if (target === 'RESEARCH' || target === 'RES' || target === 'ANALYSIS') setWorkspace('RESEARCH');
+      if (target === 'PM' || target === 'PORTFOLIO') setWorkspace('PM');
+      if (target === 'QUANT' || target === 'QNT') setWorkspace('QUANT');
+      if (target === 'CHART' || target === 'CHT') setWorkspace('CHART');
+      if (target === 'PSYCHO') setWorkspace('PSYCHO');
+      if (target === 'API') setWorkspace('API');
       setIsOpen(false);
       return true;
     }

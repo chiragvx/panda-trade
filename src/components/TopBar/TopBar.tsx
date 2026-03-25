@@ -8,7 +8,7 @@ import { COLOR, TYPE, BORDER } from '../../ds/tokens';
 import { Change } from '../../ds/components/Change';
 import { Layout as LayoutIcon, Zap, Activity, Clock, ShieldAlert } from 'lucide-react';
 import { WorkspaceSelector } from './WorkspaceSelector';
-import logoSvg from '../../assets/logo.svg';
+import logoSvg from '../../../svg/Pandatrade.svg';
 
 interface TopBarProps {
   model: Model;
@@ -95,7 +95,7 @@ export const TopBar: React.FC<TopBarProps> = ({ model }) => {
   return (
     <header
       style={{
-        height: '72px',
+        height: '80px',
         display: 'flex',
         flexDirection: 'column',
         background: COLOR.bg.elevated,
@@ -159,9 +159,9 @@ export const TopBar: React.FC<TopBarProps> = ({ model }) => {
         </div>
       </div>
 
-      <div style={{ height: '32px', display: 'flex', alignItems: 'stretch' }}>
+      <div style={{ height: '40px', display: 'flex', alignItems: 'stretch' }}>
         <div style={{ ...cell, background: 'transparent', gap: '6px', borderRight: 'none', padding: '0 16px' }}>
-          <img src={logoSvg} alt="OpenTrader" style={{ height: '16px', objectFit: 'contain', opacity: 1 }} />
+          <img src={logoSvg} alt="PandaTrade" style={{ height: '17px', objectFit: 'contain', opacity: 1 }} />
         </div>
 
         <div style={{ display: 'flex', alignItems: 'center', padding: '0 12px' }}>
@@ -236,10 +236,21 @@ export const TopBar: React.FC<TopBarProps> = ({ model }) => {
           <span style={{ fontSize: '11px', fontWeight: 'bold', color: COLOR.text.primary, marginRight: '8px' }}>
             ₹{margin.toLocaleString('en-IN', { maximumFractionDigits: 0 })}
           </span>
-          <div style={{ display: 'flex', gap: '2px' }}>
-            <button onClick={() => openOrderModal('BUY')} style={{ background: COLOR.semantic.up, border: 'none', color: 'black', fontSize: '9px', fontWeight: 'bold', padding: '1px 4px', cursor: 'pointer' }}>B</button>
-            <button onClick={() => openOrderModal('SELL')} style={{ background: COLOR.semantic.down, border: 'none', color: 'white', fontSize: '9px', fontWeight: 'bold', padding: '1px 4px', cursor: 'pointer' }}>S</button>
-          </div>
+          <button 
+            onClick={() => window.open('https://pro.upstox.com/funds/securities/wallet', '_blank')}
+            style={{ 
+              background: 'transparent', 
+              border: `1px solid ${COLOR.semantic.info}`, 
+              color: COLOR.semantic.info, 
+              fontSize: '8px', 
+              fontWeight: 'bold', 
+              padding: '2px 6px', 
+              cursor: 'pointer',
+              fontFamily: TYPE.family.mono
+            }}
+          >
+            ADD_FUNDS
+          </button>
         </div>
 
         <div style={{ ...cell, borderRight: 'none', padding: '0 8px' }}>

@@ -45,6 +45,7 @@ import {
   CorpActionsStub, 
   FundamentalsStub 
 } from './widgets/Other/Stubs';
+import { Plus, Lock, Unlock, Settings2, RotateCcw, ChevronDown } from 'lucide-react';
 import { OptionChainWidget } from './widgets/OptionChain/OptionChainWidget';
 
 import FIIDIITracker from './widgets/fii-dii/FIIDIITracker';
@@ -61,6 +62,8 @@ import AccumulationScreener from './widgets/accumulation-screener/AccumulationSc
 import { SnakeGame } from './widgets/Games/Snake';
 import { Minesweeper } from './widgets/Games/Minesweeper';
 import { WordleGame } from './widgets/Games/Wordle';
+import { HeatmapWidget } from './widgets/Heatmap/HeatmapWidget';
+import { FundamentalsWidget } from './widgets/Other/FundamentalsWidget';
 
 import { useLayoutStore } from './store/useStore';
 
@@ -86,7 +89,7 @@ const renderWidget = (id: string, node: TabNode) => {
         case 'indices': return <IndicesStub />;
         case 'depth': return <MarketDepthWidget />;
         case 'etf': return <ETFStub />;
-        case 'heatmap': return <HeatmapStub />;
+        case 'heatmap': return <HeatmapWidget />;
         case 'ticker-tape': return <TickerTapeStub />;
         case 'oi-graph': return <OIGraphStub />;
         case 'iv-chart': return <IVChartStub />;
@@ -104,7 +107,7 @@ const renderWidget = (id: string, node: TabNode) => {
         case 'time-sales': return <TimeSalesStub />;
         case 'live-scanner': return <LiveScannerStub />;
         case 'corp-actions': return <CorpActionsStub />;
-        case 'fundamentals': return <FundamentalsStub />;
+        case 'fundamentals': return <FundamentalsWidget />;
         
         // Intelligence Widgets
         case 'fii-dii': return <FIIDIITracker />;
@@ -145,17 +148,29 @@ export const LayoutManager: React.FC<LayoutManagerProps> = ({ model }) => {
   useEffect(() => {
     (window as any).addNodeToLayout = (componentId: string, nodeName?: string) => {
       let targetId = (window as any).activeTabsetId || undefined;
-      
       model.doAction(Actions.addNode(
         { 
           type: "tab", 
-          name: nodeName || componentId.charAt(0).toUpperCase() + componentId.slice(1).replace(/-/g, ' '), 
+          name: nodeName || componentId.toUpperCase().replace(/-/g, ' '), 
           component: componentId 
         },
         targetId,
         DockLocation.CENTER,
-        -1
+        -1,
+        true // Select
       ));
+    };
+
+    (window as any).replaceTab = (componentId: string, nodeName?: string) => {
+      const activeId = (window as any).activeTabId;
+      if (activeId) {
+        model.doAction(Actions.updateNodeAttributes(activeId, { 
+          component: componentId, 
+          name: nodeName || componentId.toUpperCase().replace(/-/g, ' ')
+        }));
+      } else {
+        (window as any).addNodeToLayout(componentId, nodeName);
+      }
     };
   }, [model]);
 
@@ -180,7 +195,10 @@ export const LayoutManager: React.FC<LayoutManagerProps> = ({ model }) => {
     );
   };
 
-  const onAction = (action: Action) => {
+  const onAction = (action: any) => {
+    if (action.type === Actions.SELECT_TAB) {
+      (window as any).activeTabId = action.data.tabNode;
+    }
     if (action.type === Actions.MOVE_NODE) {
       const fromNodeId = action.data.fromNode;
       const toNodeId = action.data.toNode;
@@ -205,13 +223,12 @@ export const LayoutManager: React.FC<LayoutManagerProps> = ({ model }) => {
                 key="add-widget-btn"
                 style={{
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  height: '28px', padding: '0 8px', cursor: 'pointer', flexShrink: 0,
-                  color: COLOR.text.muted, borderLeft: BORDER.standard,
-                  fontFamily: TYPE.family.mono, fontSize: TYPE.size.xs, letterSpacing: TYPE.letterSpacing.caps,
-                  transition: 'color 80ms linear, background 80ms linear',
+                  height: '28px', width: '32px', cursor: 'pointer', flexShrink: 0,
+                  color: '#FFFFFF', borderLeft: BORDER.standard,
+                  transition: 'color 80ms linear, background 120ms linear',
                 }}
-                onMouseEnter={e => { (e.currentTarget as HTMLElement).style.color = COLOR.semantic.info; (e.currentTarget as HTMLElement).style.background = COLOR.interactive.hover; }}
-                onMouseLeave={e => { (e.currentTarget as HTMLElement).style.color = COLOR.text.muted; (e.currentTarget as HTMLElement).style.background = 'transparent'; }}
+                onMouseEnter={e => { (e.currentTarget as HTMLElement).style.color = '#FF7722'; (e.currentTarget as HTMLElement).style.background = '#111111'; }}
+                onMouseLeave={e => { (e.currentTarget as HTMLElement).style.color = '#FFFFFF'; (e.currentTarget as HTMLElement).style.background = 'transparent'; }}
                 onClick={(e) => {
                     e.stopPropagation();
                     (window as any).activeTabsetId = id;
@@ -220,7 +237,7 @@ export const LayoutManager: React.FC<LayoutManagerProps> = ({ model }) => {
                 }}
                 title="Add Module"
             >
-                +
+                <Plus size={16} strokeWidth={3} />
             </div>
         );
 
@@ -229,20 +246,20 @@ export const LayoutManager: React.FC<LayoutManagerProps> = ({ model }) => {
                 key="pin-button"
                 style={{
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  height: '28px', padding: '0 8px', cursor: 'pointer', flexShrink: 0,
-                  color: isPinned ? COLOR.semantic.info : COLOR.text.muted,
-                  borderLeft: BORDER.standard, fontFamily: TYPE.family.mono, fontSize: '9px',
-                  transition: 'color 80ms linear',
+                  height: '28px', width: '32px', cursor: 'pointer', flexShrink: 0,
+                  color: isPinned ? '#FF7722' : '#FFFFFF',
+                  borderLeft: BORDER.standard,
+                  transition: 'color 80ms linear, background 120ms linear',
                 }}
-                onMouseEnter={e => { (e.currentTarget as HTMLElement).style.color = COLOR.semantic.info; }}
-                onMouseLeave={e => { (e.currentTarget as HTMLElement).style.color = isPinned ? COLOR.semantic.info : COLOR.text.muted; }}
+                onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = '#111111'; }}
+                onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = 'transparent'; }}
                 onClick={(e) => {
                     e.stopPropagation();
                     togglePin(id);
                 }}
                 title={isPinned ? 'Unlock Tabset' : 'Lock Tabset'}
             >
-                {isPinned ? '◆' : '◇'}
+                {isPinned ? <Lock size={14} /> : <Unlock size={14} />}
             </div>
         );
     }

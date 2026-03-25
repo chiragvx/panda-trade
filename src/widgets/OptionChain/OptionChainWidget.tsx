@@ -3,7 +3,7 @@ import { useUpstoxStore } from '../../store/useUpstoxStore';
 import { useSelectionStore, useLayoutStore } from '../../store/useStore';
 import { upstoxApi } from '../../services/upstoxApi';
 import { upstoxSearch, UpstoxSearchResult } from '../../services/upstoxSearch';
-import { COLOR, TYPE, BORDER } from '../../ds/tokens';
+import { COLOR, TYPE, BORDER, ROW_HEIGHT } from '../../ds/tokens';
 import { Price } from '../../ds/components/Price';
 import { Change } from '../../ds/components/Change';
 import { Button } from '../../ds/components/Button';
@@ -299,7 +299,7 @@ export const OptionChainWidget: React.FC = () => {
           ) : chain.length === 0 ? (
             <div style={{ padding: '40px', textAlign: 'center', color: COLOR.text.muted }}>NO DATA AVAILABLE FOR {selectedSymbol?.ticker} @ {selectedExpiry}</div>
           ) : chain.map(row => (
-            <div key={row.strike} style={{ display: 'flex', height: '32px', borderBottom: '1px solid rgba(255,255,255,0.03)' }}>
+            <div key={row.strike} style={{ display: 'flex', height: ROW_HEIGHT.compact, borderBottom: '1px solid rgba(255,255,255,0.03)' }}>
               <div ref={ceBodyRef} onScroll={e => syncScroll(e, [ceHeaderRef])} style={{ flex: 1, display: 'flex', overflowX: 'auto', scrollbarWidth: 'none', direction: 'rtl' }} className="no-scrollbar">
                 <div style={{ display: 'flex', direction: 'ltr' }}>
                   {ceCols.map(c => renderCell(row.ce, c, 'CE'))}

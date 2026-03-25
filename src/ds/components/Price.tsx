@@ -7,6 +7,7 @@ interface PriceProps {
   decimals?: number;
   size?: keyof typeof TYPE.size;
   weight?: keyof typeof TYPE.weight;
+  color?: string;
   flash?: 'up' | 'down' | null;
 }
 
@@ -16,6 +17,7 @@ export const Price: React.FC<PriceProps> = ({
   decimals = 2,
   size = 'lg',
   weight = 'medium',
+  color = COLOR.text.primary,
   flash,
 }) => (
   <span
@@ -27,7 +29,7 @@ export const Price: React.FC<PriceProps> = ({
         {currency}
       </span>
     )}
-    <span style={{ color: COLOR.text.primary, fontSize: TYPE.size[size], fontWeight: TYPE.weight[weight] }}>
+    <span style={{ color: color, fontSize: TYPE.size[size], fontWeight: TYPE.weight[weight] }}>
       {value.toLocaleString('en-IN', { minimumFractionDigits: decimals, maximumFractionDigits: decimals })}
     </span>
   </span>

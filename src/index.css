@@ -29,10 +29,11 @@
 
   --font-mono: "JetBrains Mono", "Fira Code", "Consolas", monospace;
 
-  --row-compact:  22px;
-  --row-default:  26px;
-  --row-relaxed:  30px;
-  --row-header:   24px;
+  --row-compact:  36px;
+  --row-default:  44px;
+  --row-relaxed:  52px;
+  --row-header:   36px;
+  --space-standard: 8px;
 }
 
 /* ─── BASE RESET ─────────────────────────────────────────────────────────── */
@@ -128,7 +129,8 @@
 .flexlayout__tab {
   background: #000000 !important;
   border: none !important;
-  padding: 0 !important;
+  padding: var(--space-standard) !important;
+  overflow: hidden !important;
 }
 
 .flexlayout__splitter {
@@ -161,6 +163,41 @@
 
 .flexlayout__tabset_tabbar_inner_tab_container {
   padding: 0 !important;
+}
+
+/* ─── WINDOW CONTROL ICONS ──────────────────────────────────────────────── */
+.flexlayout__tabset_header_button {
+  background-color: transparent !important;
+  opacity: 1 !important;
+  color: #FFFFFF !important;
+  width: 32px !important;
+  height: 28px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  transition: background 120ms linear !important;
+}
+
+.flexlayout__tabset_header_button:hover {
+  background-color: #111111 !important;
+}
+
+/* Force white on native SVGs */
+.flexlayout__tabset_header_button > div,
+.flexlayout__tabset_header_button svg {
+  filter: brightness(0) invert(1) !important;
+  width: 14px !important;
+  height: 14px !important;
+}
+
+/* Close button on tabs */
+.flexlayout__tab_button_trailing {
+  color: #FFFFFF !important;
+  opacity: 0.6 !important;
+}
+
+.flexlayout__tab_button:hover .flexlayout__tab_button_trailing {
+  opacity: 1 !important;
 }
 
 /* Tab insert animation */

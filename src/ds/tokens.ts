@@ -72,13 +72,14 @@ export const SPACE = {
   4:   '16px',
   5:   '20px',
   6:   '24px',
+  standard: '8px',
 } as const;
 
 export const ROW_HEIGHT = {
-  compact: '22px',
-  default: '26px',
-  relaxed: '30px',
-  header:  '24px',
+  compact: '36px',
+  default: '44px',
+  relaxed: '52px',
+  header:  '36px',
 } as const;
 
 export const BORDER = {

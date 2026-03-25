@@ -153,6 +153,24 @@ export const upstoxApi = {
     return response.data;
   },
 
+  modifyOrder: async (token: string, orderData: any) => {
+    const response = await api.put(`${BASE_URL}/order/modify`, orderData, {
+      headers: {
+        ...authHeaders(token),
+        'Content-Type': 'application/json',
+      },
+    });
+    return response.data;
+  },
+
+  cancelOrder: async (token: string, orderId: string) => {
+    const response = await api.delete(`${BASE_URL}/order/cancel`, {
+      headers: authHeaders(token),
+      params: { order_id: orderId },
+    });
+    return response.data;
+  },
+
   placeGTT: async (token: string, gttData: any) => {
     const response = await api.post(`${BASE_URL}/gtt/place`, gttData, {
       headers: {

@@ -4,11 +4,12 @@ import { useUpstoxStore } from '../../store/useUpstoxStore';
 import { buildSymbolFromFeed } from '../../utils/liveSymbols';
 
 export const WatchlistPanel: React.FC = () => {
-  const { instrumentKeys } = useWatchlistStore();
+  const { watchlists, activeWatchlistId } = useWatchlistStore();
   const { prices, instrumentMeta } = useUpstoxStore();
   const { selectedSymbol, setSelectedSymbol } = useSelectionStore();
 
-  const symbols = instrumentKeys.map((key) => buildSymbolFromFeed(key, prices[key], instrumentMeta[key]));
+  const activeWatchlist = watchlists.find(w => w.id === activeWatchlistId) || watchlists[0];
+  const symbols = (activeWatchlist?.keys || []).map((key) => buildSymbolFromFeed(key, prices[key], instrumentMeta[key]));
 
   return (
     <div className="flex flex-col h-full bg-bg-secondary w-[320px] border-r border-border shrink-0 select-none">
