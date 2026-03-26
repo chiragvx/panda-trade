@@ -64,6 +64,7 @@ import { Minesweeper } from './widgets/Games/Minesweeper';
 import { WordleGame } from './widgets/Games/Wordle';
 import { HeatmapWidget } from './widgets/Heatmap/HeatmapWidget';
 import { FundamentalsWidget } from './widgets/Other/FundamentalsWidget';
+import { OSINTWidget } from './widgets/Other/OSINTWidget';
 
 import { useLayoutStore } from './store/useStore';
 
@@ -108,6 +109,7 @@ const renderWidget = (id: string, node: TabNode) => {
         case 'live-scanner': return <LiveScannerStub />;
         case 'corp-actions': return <CorpActionsStub />;
         case 'fundamentals': return <FundamentalsWidget />;
+        case 'osint': return <OSINTWidget />;
         
         // Intelligence Widgets
         case 'fii-dii': return <FIIDIITracker />;
