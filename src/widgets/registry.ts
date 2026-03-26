@@ -376,14 +376,6 @@ export const WIDGET_REGISTRY: Record<string, WidgetConfig> = {
     singleton: true,
     category: 'Institutional Intel',
   },
-  'osint': {
-    id: 'osint',
-    displayName: 'OSINT Command Center',
-    icon: 'Globe',
-    shortcut: 'Alt+I',
-    singleton: true,
-    category: 'Institutional Intel',
-  },
 
   // NEW ACCOUNT WIDGETS
   holdings: {
