@@ -36,3 +36,12 @@ Thumbs.db
 
 # Vite
 .vite/
+
+# Private and Temporary
+prd/
+errors.txt
+*.tsbuildinfo
+*.mjs
+*.js
+!tailwind.config.js
+!vite.config.js
