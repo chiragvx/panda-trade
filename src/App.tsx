@@ -13,14 +13,14 @@ import { useLayoutStore } from './store/useStore';
 import { useKeyboardShortcuts } from './hooks/useKeyboardShortcuts';
 import { useUpstoxBridge } from './hooks/useUpstoxBridge';
 import { DVDEasterEgg } from './components/EasterEgg/DVDVideo';
-import { 
-  CASUAL_LAYOUT, 
-  OPTIONS_TRADER_LAYOUT, 
-  RESEARCH_LAYOUT, 
-  PORTFOLIO_MANAGER_LAYOUT, 
-  QUANT_LAYOUT, 
-  CHART_TRADER_LAYOUT, 
-  PSYCHO_LAYOUT 
+import {
+  CASUAL_LAYOUT,
+  OPTIONS_TRADER_LAYOUT,
+  RESEARCH_LAYOUT,
+  PORTFOLIO_MANAGER_LAYOUT,
+  QUANT_LAYOUT,
+  CHART_TRADER_LAYOUT,
+  PSYCHO_LAYOUT
 } from './constants/layouts';
 import { ApiDashboard } from './layout/ApiDashboard';
 
@@ -41,7 +41,7 @@ const App: React.FC = () => {
   const resetIdleTimer = useCallback(() => {
     setIsIdle(false);
     if (idleTimerRef.current) clearTimeout(idleTimerRef.current);
-    
+
     idleTimerRef.current = setTimeout(() => {
       setIsIdle(true);
     }, 30000); // 30 seconds
@@ -60,12 +60,12 @@ const App: React.FC = () => {
 
   useKeyboardShortcuts();
   useUpstoxBridge();
-  
+
   const [model, setModel] = useState<Model>(() => {
     const savedWs = localStorage.getItem('opentrader_workspace') || 'CASUAL';
     const savedLayout = localStorage.getItem(`opentrader_layout_${savedWs}`);
     if (savedLayout) return Model.fromJson(JSON.parse(savedLayout));
-    
+
     // Fallback to constants
     const mapping: Record<string, IJsonModel> = { 'CASUAL': CASUAL_LAYOUT, 'OPTIONS': OPTIONS_TRADER_LAYOUT, 'RESEARCH': RESEARCH_LAYOUT, 'PM': PORTFOLIO_MANAGER_LAYOUT, 'QUANT': QUANT_LAYOUT, 'CHART': CHART_TRADER_LAYOUT, 'PSYCHO': PSYCHO_LAYOUT };
     return Model.fromJson(mapping[savedWs] || CASUAL_LAYOUT);
@@ -76,16 +76,16 @@ const App: React.FC = () => {
   const loadLayout = useCallback((preset: IJsonModel) => {
     const layoutEl = document.querySelector('.flexlayout__layout');
     layoutEl?.classList.add('is-transitioning');
-    
+
     setIsTransitioning(true);
     setTimeout(() => {
-        const newModel = Model.fromJson(preset);
-        setModel(newModel);
-        setIsTransitioning(false);
-        
-        setTimeout(() => {
-            layoutEl?.classList.remove('is-transitioning');
-        }, 350);
+      const newModel = Model.fromJson(preset);
+      setModel(newModel);
+      setIsTransitioning(false);
+
+      setTimeout(() => {
+        layoutEl?.classList.remove('is-transitioning');
+      }, 350);
     }, 200);
   }, []);
 
@@ -94,7 +94,7 @@ const App: React.FC = () => {
   /* Workspace listener */
   useEffect(() => {
     localStorage.setItem('opentrader_workspace', workspace);
-    
+
     if (workspace === 'CUSTOM') {
       const saved = localStorage.getItem('opentrader_custom_layout');
       if (saved) loadLayout(JSON.parse(saved));
@@ -138,9 +138,9 @@ const App: React.FC = () => {
     (window as any).replaceTab = (componentId: string) => {
       const activeId = (window as any).activeTabId;
       if (activeId) {
-        model.doAction(Actions.updateNodeAttributes(activeId, { 
-          component: componentId, 
-          name: componentId.toUpperCase() 
+        model.doAction(Actions.updateNodeAttributes(activeId, {
+          component: componentId,
+          name: componentId.toUpperCase()
         }));
       } else {
         (window as any).addNodeToLayout(componentId);
@@ -170,7 +170,7 @@ const App: React.FC = () => {
                 <ContextMenu />
                 <ToastContainer />
                 <CommandPalette />
-                
+
                 {isIdle && <DVDEasterEgg />}
                 <div className="fixed top-0 left-0 w-full h-[1px] bg-border z-[10000] pointer-events-none opacity-20" />
               </>
