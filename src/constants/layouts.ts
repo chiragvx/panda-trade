@@ -48,7 +48,7 @@ export const RESEARCH_LAYOUT: IJsonModel = {
         children: [
             { type: "tabset", weight: 25, children: [{ type: "tab", name: "Fundamentals", component: "fundamentals" }, { type: "tab", name: "Technicals", component: "technicals" }] },
             { type: "tabset", weight: 50, children: [{ type: "tab", name: "Multi-Chart", component: "chart" }] },
-            { type: "tabset", weight: 25, children: [{ type: "tab", name: "Macro News", component: "news" }, { type: "tab", name: "Filing Reader", component: "filing-reader" }] }
+            { type: "tabset", weight: 25, children: [{ type: "tab", name: "Macro News", component: "news" }, { type: "tab", name: "Corporate Actions", component: "corporate-actions" }] }
         ]
     }
 };
@@ -60,8 +60,8 @@ export const PORTFOLIO_MANAGER_LAYOUT: IJsonModel = {
         type: "row",
         children: [
             { type: "tabset", weight: 30, children: [{ type: "tab", name: "Holdings", component: "holdings" }] },
-            { type: "tabset", weight: 40, children: [{ type: "tab", name: "Risk Monitor", component: "port-monitor" }, { type: "tab", name: "Positions", component: "positions" }] },
-            { type: "tabset", weight: 30, children: [{ type: "tab", name: "P&L Heatmap", component: "heatmap" }] }
+            { type: "tabset", weight: 40, children: [{ type: "tab", name: "Risk Monitor", component: "marine-map" }, { type: "tab", name: "Positions", component: "positions" }] },
+            { type: "tabset", weight: 30, children: [{ type: "tab", name: "P&L Heatmap", component: "holdings-heatmap" }] }
         ]
     }
 };
@@ -74,7 +74,7 @@ export const QUANT_LAYOUT: IJsonModel = {
         children: [
             { type: "tabset", weight: 25, children: [{ type: "tab", name: "OI Analytics", component: "oi-graph" }, { type: "tab", name: "IV Chart", component: "iv-chart" }] },
             { type: "tabset", weight: 50, children: [{ type: "tab", name: "Skew Analysis", component: "volatility-skew" }, { type: "tab", name: "Chart", component: "chart" }] },
-            { type: "tabset", weight: 25, children: [{ type: "tab", name: "Scalper Pro", component: "scalper" }] }
+            { type: "tabset", weight: 25, children: [{ type: "tab", name: "Technicals", component: "technicals" }] }
         ]
     }
 };
@@ -89,8 +89,8 @@ export const CHART_TRADER_LAYOUT: IJsonModel = {
             { 
               type: "column", weight: 30, 
               children: [
-                { type: "tabset", weight: 50, children: [{ type: "tab", name: "Market Depth", component: "depth" }] },
-                { type: "tabset", weight: 50, children: [{ type: "tab", name: "Price Ladder", component: "priceLadder" }] }
+                { type: "tabset", weight: 50, children: [{ type: "tab", name: "Options Chain", component: "options-chain" }] },
+                { type: "tabset", weight: 50, children: [{ type: "tab", name: "OI Graph", component: "oi-graph" }] }
               ] 
             }
         ]
@@ -106,17 +106,16 @@ export const PSYCHO_LAYOUT: IJsonModel = {
             { 
               type: "column", weight: 20, 
               children: [
-                { type: "tabset", weight: 50, children: [{ type: "tab", name: "Ticker Tape", component: "ticker-tape" }] },
-                { type: "tabset", weight: 50, children: [{ type: "tab", name: "Fear Index", component: "fear-index" }] }
+                { type: "tabset", weight: 50, children: [{ type: "tab", name: "Fear & Greed", component: "fear-greed-index" }] }
               ] 
             },
             { type: "tabset", weight: 50, children: [{ type: "tab", name: "Psycho Chart", component: "chart" }, { type: "tab", name: "Live Chain", component: "options-chain" }] },
             { 
               type: "column", weight: 30, 
               children: [
-                { type: "tabset", weight: 33, children: [{ type: "tab", name: "FII/DII", component: "fii-dii" }] },
+                { type: "tabset", weight: 33, children: [{ type: "tab", name: "FII/DII", component: "fii-dii-activity" }] },
                 { type: "tabset", weight: 33, children: [{ type: "tab", name: "Blocks", component: "block-deals" }] },
-                { type: "tabset", weight: 34, children: [{ type: "tab", name: "Scanner", component: "live-scanner" }] }
+                { type: "tabset", weight: 34, children: [{ type: "tab", name: "Screener", component: "stock-screener" }] }
               ] 
             }
         ]

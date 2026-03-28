@@ -76,18 +76,18 @@ const renderWidget = (id: string, node: TabNode) => {
         case 'basket': return <BasketWidget />;
         case 'orderEntry': return <OrderEntryWidget node={node} />;
         case 'indices': return <IndicesStub />;
-        case 'etf': return <ETFStub />;
-        case 'heatmap': return <HeatmapWidget />;
+        case 'etf-scanner': return <ETFStub />;
+        case 'holdings-heatmap': return <HeatmapWidget />;
         case 'oi-graph': return <OIGraphStub />;
         case 'iv-chart': return <IVChartStub />;
         case 'volatility-skew': return <VolatilitySkewStub />;
         case 'technicals': return <TechnicalsStub />;
-        case 'vwap': return <VWapStub />;
+        case 'vwap-indicator': return <VWapStub />;
         case 'options-chain': return <OptionChainWidget />;
         case 'straddle-chain': return <StraddleChainStub />;
         case 'futures-chain': return <FuturesChainStub />;
         case 'notifications': return <NotificationsStub />;
-        case 'corp-actions': return <CorpActionsStub />;
+        case 'corporate-actions': return <CorpActionsStub />;
         case 'fundamentals': return <FundamentalsWidget />;
         case 'vol-surface-3d': return (
             <React.Suspense fallback={<div className="h-full w-full bg-black flex items-center justify-center text-[10px] text-muted-foreground">LOADING 3D ENGINE...</div>}>
@@ -96,15 +96,15 @@ const renderWidget = (id: string, node: TabNode) => {
         );
         
         // Intelligence Widgets
-        case 'fii-dii': return <FIIDIITracker />;
+        case 'fii-dii-activity': return <FIIDIITracker />;
         case 'block-deals': return <BlockDealFeed />;
-        case 'fear-index': return <FearIndex />;
+        case 'fear-greed-index': return <FearIndex />;
         case 'max-pain': return <MaxPainCalculator />;
-        case 'nl-screener': return <NLScreener />;
+        case 'stock-screener': return <NLScreener />;
         case 'filing-reader': return <FilingReader />;
-        case 'port-monitor': return <PortMonitor />;
-        case 'jet-tracker': return <JetTracker />;
-        case 'accumulation-screener': return <AccumulationScreener />;
+        case 'marine-map': return <PortMonitor />;
+        case 'flight-map': return <JetTracker />;
+        case 'accumulation-finder': return <AccumulationScreener />;
 
         case 'snake': return <SnakeGame />;
         case 'minesweeper': return <Minesweeper />;

@@ -26,16 +26,16 @@ export const WIDGET_REGISTRY: Record<string, WidgetConfig> = {
     singleton: true,
     category: 'Market Data',
   },
-  etf: {
-    id: 'etf',
+  'etf-scanner': {
+    id: 'etf-scanner',
     displayName: 'ETF Scanner',
     icon: 'Search',
     shortcut: '',
     singleton: true,
     category: 'Market Data',
   },
-  heatmap: {
-    id: 'heatmap',
+  'holdings-heatmap': {
+    id: 'holdings-heatmap',
     displayName: 'Holdings Heatmap',
     icon: 'Grid',
     shortcut: '',
@@ -92,8 +92,8 @@ export const WIDGET_REGISTRY: Record<string, WidgetConfig> = {
     singleton: false,
     category: 'Charts & Analytics',
   },
-  vwap: {
-    id: 'vwap',
+  'vwap-indicator': {
+    id: 'vwap-indicator',
     displayName: 'VWap Indicator',
     icon: 'Orbit',
     shortcut: '',
@@ -179,8 +179,8 @@ export const WIDGET_REGISTRY: Record<string, WidgetConfig> = {
     singleton: true,
     category: 'Tools',
   },
-  'corp-actions': {
-    id: 'corp-actions',
+  'corporate-actions': {
+    id: 'corporate-actions',
     displayName: 'Corporate Actions',
     icon: 'Briefcase',
     shortcut: '',
@@ -223,8 +223,8 @@ export const WIDGET_REGISTRY: Record<string, WidgetConfig> = {
   },
 
   // INSTITUTIONAL INTEL (Ecosystem Pack 2)
-  'fii-dii': {
-    id: 'fii-dii',
+  'fii-dii-activity': {
+    id: 'fii-dii-activity',
     displayName: 'FII/DII Activity',
     icon: 'TrendingUp',
     shortcut: '',
@@ -239,8 +239,8 @@ export const WIDGET_REGISTRY: Record<string, WidgetConfig> = {
     singleton: true,
     category: 'Institutional Intel',
   },
-  'fear-index': {
-    id: 'fear-index',
+  'fear-greed-index': {
+    id: 'fear-greed-index',
     displayName: 'Fear & Greed Index',
     icon: 'Activity',
     shortcut: '',
@@ -255,8 +255,8 @@ export const WIDGET_REGISTRY: Record<string, WidgetConfig> = {
     singleton: true,
     category: 'Institutional Intel',
   },
-  'nl-screener': {
-    id: 'nl-screener',
+  'stock-screener': {
+    id: 'stock-screener',
     displayName: 'Stock Screener',
     icon: 'Search',
     shortcut: '',
@@ -265,30 +265,30 @@ export const WIDGET_REGISTRY: Record<string, WidgetConfig> = {
   },
   'filing-reader': {
     id: 'filing-reader',
-    displayName: 'Exchange Filings',
+    displayName: 'Filing Reader',
     icon: 'FileText',
     shortcut: '',
     singleton: true,
     category: 'Institutional Intel',
   },
-  'port-monitor': {
-    id: 'port-monitor',
+  'marine-map': {
+    id: 'marine-map',
     displayName: 'Marine Map',
     icon: 'Anchor',
     shortcut: '',
     singleton: true,
     category: 'Institutional Intel',
   },
-  'jet-tracker': {
-    id: 'jet-tracker',
+  'flight-map': {
+    id: 'flight-map',
     displayName: 'Flight Map',
     icon: 'Plane',
     shortcut: '',
     singleton: true,
     category: 'Institutional Intel',
   },
-  'accumulation-screener': {
-    id: 'accumulation-screener',
+  'accumulation-finder': {
+    id: 'accumulation-finder',
     displayName: 'Accumulation Finder',
     icon: 'Filter',
     shortcut: '',

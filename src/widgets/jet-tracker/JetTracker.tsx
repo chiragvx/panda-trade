@@ -39,7 +39,7 @@ const classifyAircraft = (callsign: string): 'MILITARY' | 'CIVILIAN' | 'OTHER' =
 };
 
 const getPlaneIcon = (course: number, category: string) => {
-  let color = COLOR.text.muted;
+  let color: string = COLOR.text.muted;
   if (category === 'MILITARY') color = COLOR.semantic.down; // Red for military
   if (category === 'CIVILIAN') color = COLOR.semantic.info; // Cyan/Blue for civilian
   if (category === 'OTHER') color = COLOR.semantic.warning; // Orange for other/private
@@ -297,7 +297,7 @@ const FilterBtn: React.FC<{ label: string, icon: React.ReactNode, active: boolea
 );
 
 const FlightRow: React.FC<{ flight: AircraftState, active: boolean, onClick: () => void }> = ({ flight, active, onClick }) => {
-    let accent = COLOR.text.muted;
+    let accent: string = COLOR.text.muted;
     if (flight.category === 'MILITARY') accent = COLOR.semantic.down;
     if (flight.category === 'CIVILIAN') accent = COLOR.semantic.info;
     if (flight.category === 'OTHER') accent = COLOR.semantic.warning;
@@ -332,7 +332,7 @@ const FlightRow: React.FC<{ flight: AircraftState, active: boolean, onClick: () 
 };
 
 const PopupContent: React.FC<{ flight: AircraftState }> = ({ flight }) => {
-    let accent = COLOR.text.muted;
+    let accent: string = COLOR.text.muted;
     if (flight.category === 'MILITARY') accent = COLOR.semantic.down;
     if (flight.category === 'CIVILIAN') accent = COLOR.semantic.info;
     if (flight.category === 'OTHER') accent = COLOR.semantic.warning;
