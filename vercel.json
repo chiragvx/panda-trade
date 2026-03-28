@@ -1,5 +1,12 @@
 {
   "rewrites": [
-    { "source": "/(.*)", "destination": "/index.html" }
+    {
+      "source": "/api/proxy/nasa-firms",
+      "destination": "https://firms.modaps.eosdis.nasa.gov/data/active_fire/viirs-snpp-nrt/csv/VNP14IMGTDL_NRT_Global_24h.csv"
+    },
+    {
+      "source": "/(.*)",
+      "destination": "/index.html"
+    }
   ]
 }

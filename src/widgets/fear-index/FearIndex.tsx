@@ -1,59 +1,49 @@
 import React, { useMemo } from 'react';
 import { AreaChart, Area, ResponsiveContainer } from 'recharts';
 import { useUpstoxStore } from '../../store/useUpstoxStore';
+import { useFearGreedData } from './useFearGreedData';
 import { COLOR, TYPE, BORDER, SPACE } from '../../ds/tokens';
-
-interface FearInputs {
-  indiaVIX: number;
-  cboeVIX: number;
-  yieldSpread: number;
-  btcChange24h: number;
-  goldChange7d: number;
-  usdInrChange: number;
-}
+import { Loader2, AlertCircle } from 'lucide-react';
 
 const FearIndex: React.FC = () => {
-  const { prices } = useUpstoxStore();
-
-  const inputs: FearInputs = {
-    indiaVIX: Number(prices['NSE_INDEX|India VIX']?.ltp ?? 0),
-    cboeVIX: 0,
-    yieldSpread: 0,
-    btcChange24h: 0,
-    goldChange7d: 0,
-    usdInrChange: 0,
-  };
-
-  const normaliseValue = (val: number, min: number, max: number, inverse = false) => {
-    const n = ((val - min) / (max - min)) * 100;
-    const clamped = Math.max(0, Math.min(100, n));
-    return inverse ? 100 - clamped : clamped;
-  };
-
-  const components = useMemo(
-    () => ({
-      indiaVIX: normaliseValue(inputs.indiaVIX, 10, 40, true),
-      cboeVIX: normaliseValue(inputs.cboeVIX, 10, 40, true),
-      yieldCurve: normaliseValue(inputs.yieldSpread, -1, 2, false),
-      btcMomentum: normaliseValue(inputs.btcChange24h, -10, 10, false),
-      goldRatio: normaliseValue(inputs.goldChange7d, -3, 3, true),
-      usdInr: normaliseValue(inputs.usdInrChange, -1, 1, true),
-    }),
-    [inputs]
-  );
-
-  const score = Object.values(components).reduce((a, b) => a + b, 0) / 6;
+  const { score, components, loading, error } = useFearGreedData();
 
   const getStatus = (s: number) => {
-    if (s < 30) return { label: 'EXTREME FEAR', color: COLOR.semantic.down };
-    if (s < 45) return { label: 'FEAR', color: COLOR.semantic.down };
+    if (s < 20) return { label: 'EXTREME FEAR', color: COLOR.semantic.down };
+    if (s < 40) return { label: 'FEAR', color: '#ff7700' };
     if (s < 60) return { label: 'NEUTRAL', color: COLOR.semantic.warning };
-    if (s < 80) return { label: 'GREED', color: COLOR.semantic.up };
+    if (s < 80) return { label: 'GREED', color: '#88ff00' };
     return { label: 'EXTREME GREED', color: COLOR.semantic.up };
   };
 
   const status = getStatus(score);
   const history = Array.from({ length: 7 }, () => ({ val: score }));
+
+  if (loading) {
+    return (
+      <div style={{ height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', background: COLOR.bg.base }}>
+        <Loader2 className="animate-spin" size={24} color={COLOR.text.muted} />
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+        <div style={{ height: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', background: COLOR.bg.base, padding: '20px', textAlign: 'center' }}>
+          <AlertCircle size={32} color={COLOR.semantic.down} style={{ marginBottom: '12px' }} />
+          <div style={{ fontSize: '11px', fontWeight: 'bold', color: COLOR.text.primary, marginBottom: '4px' }}>CALCULATION_ERROR</div>
+          <div style={{ fontSize: '9px', color: COLOR.text.muted }}>{error}</div>
+        </div>
+    );
+  }
+
+  const componentLabels: Record<string, string> = {
+    volatility: 'India VIX Relative Scale',
+    marketMomentum: 'Nifty 50 SMA Momentum',
+    riskAppetite: 'Midcap vs Largecap Ratio',
+    optionsSentiment: 'Nifty Put-Call Ratio (PCR)',
+    safeHaven: 'Gold vs Equity flows'
+  };
 
   return (
     <div style={{ height: '100%', display: 'flex', flexDirection: 'column', padding: SPACE[4], background: COLOR.bg.base, overflowY: 'auto', fontFamily: TYPE.family.mono }}>
@@ -63,12 +53,12 @@ const FearIndex: React.FC = () => {
           <path d="M10 50 A 40 40 0 0 1 90 50" fill="none" stroke={status.color} strokeWidth="10" strokeDasharray={`${(score / 100) * 125.6} 125.6`} style={{ transition: 'stroke-dasharray 1s ease-out' }} />
           <g
             style={{
-              transform: `rotate(${(score / 100) * 180 - 180}deg)`,
+              transform: `rotate(${(score / 100) * 180}deg)`,
               transformOrigin: '50px 50px',
               transition: 'transform 1s ease-out',
             }}
           >
-            <line x1="50" y1="50" x2="15" y2="50" stroke={COLOR.text.primary} strokeWidth="1.5" />
+            <line x1="50" y1="50" x2="10" y2="50" stroke={COLOR.text.primary} strokeWidth="1.5" />
             <circle cx="50" cy="50" r="2" fill={COLOR.text.primary} />
           </g>
         </svg>
@@ -88,6 +78,7 @@ const FearIndex: React.FC = () => {
               textTransform: 'uppercase',
               marginTop: '4px',
               letterSpacing: TYPE.letterSpacing.caps,
+              borderRadius: '2px'
             }}
           >
             {status.label}
@@ -99,7 +90,7 @@ const FearIndex: React.FC = () => {
         {Object.entries(components).map(([key, val]) => (
           <div key={key} style={{ padding: '6px 8px', borderLeft: `2px solid ${getStatus(val).color}`, background: COLOR.bg.surface }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px' }}>
-              <span style={{ fontSize: '9px', fontWeight: TYPE.weight.bold, color: COLOR.text.muted, textTransform: 'uppercase' }}>{key.replace(/([A-Z])/g, ' $1')}</span>
+              <span style={{ fontSize: '9px', fontWeight: TYPE.weight.bold, color: COLOR.text.muted, textTransform: 'uppercase' }}>{componentLabels[key] || key}</span>
               <span style={{ fontSize: '10px', fontWeight: TYPE.weight.bold, color: COLOR.text.primary }}>{Math.round(val)}%</span>
             </div>
             <div style={{ height: '2px', background: COLOR.bg.elevated, width: '100%' }}>
@@ -116,13 +107,13 @@ const FearIndex: React.FC = () => {
         ))}
       </div>
 
-      <div style={{ marginTop: 'auto', paddingTop: SPACE[4], borderTop: BORDER.standard, height: '48px', position: 'relative' }}>
+      <div style={{ marginTop: 'auto', paddingTop: SPACE[4], borderTop: BORDER.standard, height: '48px', minHeight: '48px', position: 'relative', overflow: 'hidden' }}>
         <div style={{ position: 'absolute', top: '-4px', right: 0, fontSize: '8px', fontWeight: TYPE.weight.bold, color: COLOR.text.muted, background: COLOR.bg.base, padding: '0 4px', textTransform: 'uppercase' }}>
-          LAST_7D_TREND
+          LAST_7D_AVERAGE
         </div>
-        <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={0}>
+        <ResponsiveContainer width="100%" height="100%" debounce={1} minWidth={100} minHeight={30} aspect={4}>
           <AreaChart data={history}>
-            <Area type="stepAfter" dataKey="val" stroke={status.color} strokeWidth={1} fill={status.color} fillOpacity={0.05} isAnimationActive={false} />
+            <Area type="stepAfter" dataKey="val" stroke={status.color} strokeWidth={1} fill={status.color} fillOpacity={0.05} baseValue="dataMin" isAnimationActive={false} />
           </AreaChart>
         </ResponsiveContainer>
       </div>

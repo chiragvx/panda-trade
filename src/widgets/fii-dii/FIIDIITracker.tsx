@@ -129,15 +129,15 @@ const FIIDIITracker: React.FC = () => {
                     <DataRow label="FOREIGN INSTITUTIONS (FII)" buy={fii.buyValue} sell={fii.sellValue} net={fii.netValue} />
                     <DataRow label="DOMESTIC INSTITUTIONS (DII)" buy={dii.buyValue} sell={dii.sellValue} net={dii.netValue} />
 
-                    <div style={{ flex: 1, marginTop: SPACE[4], minHeight: '120px', background: COLOR.bg.surface, border: BORDER.standard, padding: '8px' }}>
-                        <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={0}>
+                    <div style={{ flex: 1, marginTop: SPACE[4], minHeight: '130px', background: COLOR.bg.base, border: BORDER.standard, padding: '8px' }}>
+                        <ResponsiveContainer width="100%" height="100%" minWidth={100} minHeight={100} aspect={2.5}>
                             <ComposedChart data={chartData}>
                                 <CartesianGrid strokeDasharray="3 3" stroke={COLOR.bg.elevated} vertical={false} />
                                 <XAxis dataKey="time" hide />
                                 <YAxis yAxisId="left" hide orientation="left" />
                                 <YAxis yAxisId="right" hide orientation="right" />
                                 <Tooltip
-                                    contentStyle={{ backgroundColor: COLOR.bg.surface, border: BORDER.standard, fontSize: '10px', borderRadius: 0, padding: '4px 8px', fontFamily: TYPE.family.mono }}
+                                    contentStyle={{ backgroundColor: COLOR.bg.surface, border: BORDER.standard, fontSize: '10px', borderRadius: 0, padding: '4px 8px', fontFamily: TYPE.family.mono, zIndex: 1000 }}
                                     labelStyle={{ color: COLOR.text.muted, marginBottom: '2px', fontWeight: 'bold' }}
                                     itemStyle={{ padding: 0 }}
                                 />

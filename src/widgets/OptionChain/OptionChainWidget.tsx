@@ -137,14 +137,21 @@ export const OptionChainWidget: React.FC = () => {
   };
 
   useEffect(() => {
+    if (!accessToken) return;
+    
     if (selectedSymbol?.instrument_key) {
       const isOption = selectedSymbol.exchange === 'NFO' || isIsin(selectedSymbol.instrument_key);
       if (!isOption && selectedSymbol.instrument_key !== currentRootKey) {
         setCurrentRootKey(selectedSymbol.instrument_key);
         loadOptionChain(selectedSymbol.instrument_key);
       }
+    } else if (!currentRootKey) {
+        // Default to Nifty 50 on initial load if nothing selected
+        const defaultKey = 'NSE_INDEX|Nifty 50';
+        setCurrentRootKey(defaultKey);
+        loadOptionChain(defaultKey);
     }
-  }, [selectedSymbol?.instrument_key, accessToken]);
+  }, [selectedSymbol?.instrument_key, accessToken, currentRootKey]);
 
   const handleExpiryChange = (newExpiry: string) => { 
     setSelectedExpiry(newExpiry); 

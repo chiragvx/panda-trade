@@ -7,12 +7,13 @@ import { useUpstoxStore } from '../../store/useUpstoxStore';
 const PROVIDERS = [
     { id: 'upstox-01', name: 'Upstox', type: 'BROKER', icon: <Zap size={16} />, color: COLOR.semantic.info },
     { id: 'aisstream-01', name: 'AISStream', type: 'DATA_FEED', icon: <Anchor size={16} />, color: COLOR.semantic.info },
+    { id: 'nasa-01', name: 'NASA FIRMS', type: 'DATA_FEED', icon: <Activity size={16} />, color: COLOR.semantic.down },
     { id: 'opensky', name: 'OpenSky Network', type: 'DATA_FEED', icon: <Activity size={16} />, color: COLOR.semantic.info },
     { id: 'custom', name: 'Custom Backend', type: 'GENERIC', icon: <Server size={16} />, color: COLOR.text.muted },
 ];
 
 export const GenericConnect: React.FC<{ onClose: () => void }> = ({ onClose }) => {
-    const { addConnection, setAisStreamApiKey } = useSettingsStore();
+    const { addConnection, setAisStreamApiKey, setNasaApiKey } = useSettingsStore();
     const { setCredentials } = useUpstoxStore();
 
     const [step, setStep] = useState<1 | 2>(1);
@@ -43,6 +44,8 @@ export const GenericConnect: React.FC<{ onClose: () => void }> = ({ onClose }) =
             setCredentials(formData.apiKey, formData.apiSecret);
         } else if (selectedProvider.id === 'aisstream-01') {
             setAisStreamApiKey(formData.apiKey);
+        } else if (selectedProvider.id === 'nasa-01') {
+            setNasaApiKey(formData.apiKey);
         }
 
         // Add to dashboard
@@ -103,7 +106,12 @@ export const GenericConnect: React.FC<{ onClose: () => void }> = ({ onClose }) =
                             style={inputStyle}
                         />
                     </div>
-                    {selectedProvider?.id !== 'aisstream-01' && (
+                    {selectedProvider?.id === 'nasa-01' && (
+                        <div style={{ fontSize: '9px', color: '#888', marginTop: '-12px', paddingLeft: '2px' }}>
+                            <a href="https://firms.modaps.eosdis.nasa.gov/api/data_availability/" target="_blank" rel="noreferrer" style={{ color: COLOR.semantic.info, textDecoration: 'none' }}>Get your free MAP KEY here ↗</a>
+                        </div>
+                    )}
+                    {selectedProvider?.id !== 'aisstream-01' && selectedProvider?.id !== 'nasa-01' && (
                         <div>
                             <label style={labelStyle}>API_SECRET / AUTH_TOKEN</label>
                             <input 

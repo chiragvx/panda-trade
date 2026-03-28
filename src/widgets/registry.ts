@@ -287,6 +287,14 @@ export const WIDGET_REGISTRY: Record<string, WidgetConfig> = {
     singleton: true,
     category: 'Institutional Intel',
   },
+  'fire-map': {
+    id: 'fire-map',
+    displayName: 'Thermal Fire Map',
+    icon: 'Flame',
+    shortcut: '',
+    singleton: true,
+    category: 'Institutional Intel',
+  },
   'accumulation-finder': {
     id: 'accumulation-finder',
     displayName: 'Accumulation Finder',

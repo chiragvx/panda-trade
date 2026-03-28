@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import { Search, RotateCcw, Plus, AlertCircle, ChevronDown, Zap, Anchor, ShieldCheck, ShieldAlert, Key, Globe, MoreVertical, ExternalLink, Settings2, Power, Trash2 } from 'lucide-react';
+import { Search, RotateCcw, Plus, AlertCircle, ChevronDown, Zap, Anchor, ShieldCheck, ShieldAlert, Key, Globe, MoreVertical, ExternalLink, Settings2, Power, Trash2, Activity } from 'lucide-react';
 import { useUpstoxStore } from '../store/useUpstoxStore';
 import { useSettingsStore } from '../store/useSettingsStore';
 import { COLOR, BORDER, TYPE, SPACE } from '../ds/tokens';
@@ -48,8 +48,18 @@ export const ApiDashboard: React.FC = () => {
             icon: <Anchor size={18} />,
             status: aisStreamApiKey ? 'connected' : 'disconnected',
             lastActivity: aisStreamApiKey ? 'Live Now' : 'Never'
+        },
+        {
+            id: 'nasa-01',
+            type: 'DATA_FEED',
+            provider: 'NASA',
+            displayName: 'NASA FIRMS Protocol',
+            description: 'Global live thermal anomaly and fire scanner via VIIRS S-NPP.',
+            icon: <Activity size={18} />,
+            status: useSettingsStore.getState().nasaApiKey ? 'connected' : 'disconnected',
+            lastActivity: useSettingsStore.getState().nasaApiKey ? 'Live Now' : 'Never'
         }
-    ], [upstoxStatus, upstoxKey, aisStreamApiKey]);
+    ], [upstoxStatus, upstoxKey, aisStreamApiKey, useSettingsStore.getState().nasaApiKey]);
 
     // Derived list based on what user has "added"
     const connections = useMemo(() => 
@@ -62,6 +72,8 @@ export const ApiDashboard: React.FC = () => {
         removeConnection(id);
         if (provider === 'AISSTREAM') {
             setAisStreamApiKey('');
+        } else if (provider === 'NASA') {
+            useSettingsStore.getState().setNasaApiKey('');
         }
     };
 

@@ -46,6 +46,7 @@ import NLScreener from './widgets/nl-screener/NLScreener';
 import FilingReader from './widgets/filing-reader/FilingReader';
 import PortMonitor from './widgets/port-monitor/PortMonitor';
 import JetTracker from './widgets/jet-tracker/JetTracker';
+import FireMap from './widgets/fire-map/FireMap';
 import AccumulationScreener from './widgets/accumulation-screener/AccumulationScreener';
 
 import { SnakeGame } from './widgets/Games/Snake';
@@ -104,6 +105,7 @@ const renderWidget = (id: string, node: TabNode) => {
         case 'filing-reader': return <FilingReader />;
         case 'marine-map': return <PortMonitor />;
         case 'flight-map': return <JetTracker />;
+        case 'fire-map': return <FireMap />;
         case 'accumulation-finder': return <AccumulationScreener />;
 
         case 'snake': return <SnakeGame />;

@@ -4,6 +4,8 @@ import { persist } from 'zustand/middleware';
 interface SettingsState {
   aisStreamApiKey: string;
   setAisStreamApiKey: (key: string) => void;
+  nasaApiKey: string;
+  setNasaApiKey: (key: string) => void;
   // List of connection IDs that the user has "added" to their dashboard
   enabledConnections: string[]; 
   addConnection: (id: string) => void;
@@ -15,8 +17,10 @@ export const useSettingsStore = create<SettingsState>()(
     (set) => ({
       aisStreamApiKey: '',
       setAisStreamApiKey: (aisStreamApiKey) => set({ aisStreamApiKey }),
+      nasaApiKey: '',
+      setNasaApiKey: (nasaApiKey) => set({ nasaApiKey }),
       // Upstox is default and non-removable, but we can list it
-      enabledConnections: ['upstox-01', 'aisstream-01'], 
+      enabledConnections: ['upstox-01', 'aisstream-01', 'nasa-01'], 
       addConnection: (id) => set((state) => ({
         enabledConnections: state.enabledConnections.includes(id) 
           ? state.enabledConnections 
