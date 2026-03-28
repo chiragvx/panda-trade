@@ -8,7 +8,8 @@ const GRID_SIZE = 20;
 const INITIAL_SPEED = 150;
 
 export const SnakeGame: React.FC = () => {
-    const { instrumentKeys } = useWatchlistStore();
+    const { watchlists, activeWatchlistId } = useWatchlistStore();
+    const instrumentKeys = watchlists.find(w => w.id === activeWatchlistId)?.keys || [];
     const { prices } = useUpstoxStore();
     const [snake, setSnake] = useState([{ x: 10, y: 10 }]);
     const [food, setFood] = useState({ x: 5, y: 5, symbol: '---' });

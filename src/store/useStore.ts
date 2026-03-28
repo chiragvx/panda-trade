@@ -11,7 +11,7 @@ export const useSelectionStore = create<SelectionStore>((set) => ({
   setSelectedSymbol: (symbol) => set({ selectedSymbol: symbol }),
 }));
 
-export type WorkspaceType = 'CASUAL' | 'OPTIONS' | 'RESEARCH' | 'PM' | 'QUANT' | 'CHART' | 'PSYCHO' | 'CUSTOM' | 'API';
+export type WorkspaceType = 'CASUAL' | 'OPTIONS' | 'RESEARCH' | 'PM' | 'QUANT' | 'CHART' | 'PSYCHO' | 'CUSTOM' | 'API' | 'ANALYSIS';
 
 interface LayoutStore {
   pinnedTabsets: Record<string, boolean>;

@@ -8,7 +8,8 @@ const MAX_GUESSES = 6;
 const WORD_LENGTH = 5;
 
 export const WordleGame: React.FC = () => {
-    const { instrumentKeys } = useWatchlistStore();
+    const { watchlists, activeWatchlistId } = useWatchlistStore();
+    const instrumentKeys = watchlists.find(w => w.id === activeWatchlistId)?.keys || [];
     const { prices } = useUpstoxStore();
     const [targetWord, setTargetWord] = useState('');
     const [guesses, setGuesses] = useState<string[]>([]);
@@ -19,11 +20,11 @@ export const WordleGame: React.FC = () => {
     const symbolsForWordle = useMemo(() => {
         const fromKeys = instrumentKeys
             .map(getTickerFromInstrumentKey)
-            .filter(t => t.length === WORD_LENGTH);
+            .filter((t: string) => t.length === WORD_LENGTH);
         if (fromKeys.length > 0) return fromKeys;
         return Object.keys(prices)
             .map(getTickerFromInstrumentKey)
-            .filter(t => t.length === WORD_LENGTH);
+            .filter((t: string) => t.length === WORD_LENGTH);
     }, [instrumentKeys, prices]);
 
     const initGame = useCallback(() => {

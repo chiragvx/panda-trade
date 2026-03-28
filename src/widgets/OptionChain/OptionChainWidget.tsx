@@ -73,7 +73,7 @@ export const OptionChainWidget: React.FC = () => {
   const ceBodyRef = useRef<HTMLDivElement>(null);
   const peBodyRef = useRef<HTMLDivElement>(null);
 
-  const syncScroll = (e: React.UIEvent<HTMLDivElement>, others: React.RefObject<HTMLDivElement>[]) => {
+  const syncScroll = (e: React.UIEvent<HTMLDivElement>, others: React.RefObject<HTMLDivElement | null>[]) => {
     const scrollLeft = (e.target as HTMLDivElement).scrollLeft;
     others.forEach(ref => {
       if (ref.current && ref.current !== e.target) ref.current.scrollLeft = scrollLeft;

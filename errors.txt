@@ -1,0 +1,16 @@
+﻿src/hooks/useKeyboardShortcuts.ts(42,24): error TS2345: Argument of type '"ANALYSIS"' is not assignable to parameter of type 'WorkspaceType'.
+src/widgets/Games/Snake.tsx(11,13): error TS2339: Property 'instrumentKeys' does not exist on type 'WatchlistStore'.
+src/widgets/Games/Wordle.tsx(11,13): error TS2339: Property 'instrumentKeys' does not exist on type 'WatchlistStore'.
+src/widgets/Games/Wordle.tsx(22,21): error TS7006: Parameter 't' implicitly has an 'any' type.
+src/widgets/OptionChain/OptionChainWidget.tsx(271,64): error TS2322: Type 'RefObject<HTMLDivElement | null>' is not assignable to type 'RefObject<HTMLDivElement>'.
+  Type 'HTMLDivElement | null' is not assignable to type 'HTMLDivElement'.
+    Type 'null' is not assignable to type 'HTMLDivElement'.
+src/widgets/OptionChain/OptionChainWidget.tsx(277,64): error TS2322: Type 'RefObject<HTMLDivElement | null>' is not assignable to type 'RefObject<HTMLDivElement>'.
+  Type 'HTMLDivElement | null' is not assignable to type 'HTMLDivElement'.
+    Type 'null' is not assignable to type 'HTMLDivElement'.
+src/widgets/OptionChain/OptionChainWidget.tsx(304,66): error TS2322: Type 'RefObject<HTMLDivElement | null>' is not assignable to type 'RefObject<HTMLDivElement>'.
+  Type 'HTMLDivElement | null' is not assignable to type 'HTMLDivElement'.
+    Type 'null' is not assignable to type 'HTMLDivElement'.
+src/widgets/OptionChain/OptionChainWidget.tsx(312,66): error TS2322: Type 'RefObject<HTMLDivElement | null>' is not assignable to type 'RefObject<HTMLDivElement>'.
+  Type 'HTMLDivElement | null' is not assignable to type 'HTMLDivElement'.
+    Type 'null' is not assignable to type 'HTMLDivElement'.
