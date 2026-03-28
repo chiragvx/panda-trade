@@ -112,7 +112,7 @@ export const upstoxApi = {
   },
 
   getFunds: async (token: string) =>
-    guardedRequest(`funds:${token.slice(-8)}`, 2500, async () => {
+    guardedRequest(`funds:${token.slice(-8)}`, 10000, async () => {
       const response = await api.get(`${BASE_URL}/user/get-funds-and-margin`, {
         headers: authHeaders(token),
       });

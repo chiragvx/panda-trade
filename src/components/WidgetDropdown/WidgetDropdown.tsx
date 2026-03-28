@@ -16,7 +16,7 @@ interface WidgetDropdownProps {
   anchorEl: HTMLElement | null;
 }
 
-const CATEGORIES = ['All', 'Market Data', 'Account', 'Institutional Intel', 'Charts & Analytics', 'Options', 'Scalping', 'Tools', 'Take a Break'];
+const CATEGORIES = ['All', 'Market Data', 'Account', 'Institutional Intel', 'Charts & Analytics', 'Options', 'Tools', 'Take a Break'];
 
 export const WidgetDropdown: React.FC<WidgetDropdownProps> = ({ isOpen, onOpenChange, anchorEl }) => {
   const [search, setSearch] = useState('');
@@ -104,10 +104,10 @@ export const WidgetDropdown: React.FC<WidgetDropdownProps> = ({ isOpen, onOpenCh
                 </div>
 
                 {/* Categories */}
-                <div style={{ display: 'flex', borderBottom: BORDER.standard, overflowX: 'auto', background: COLOR.bg.surface }}>
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '2px', borderBottom: BORDER.standard, background: COLOR.bg.surface, padding: '2px 4px' }}>
                   {CATEGORIES.map(cat => (
                     <button key={cat} onClick={() => setActiveCategory(cat)} style={{
-                      padding: '6px 12px', background: 'transparent', border: 'none',
+                      padding: '8px 12px', background: 'transparent', border: 'none',
                       borderBottom: activeCategory === cat ? `2px solid ${COLOR.semantic.info}` : '2px solid transparent',
                       fontFamily: TYPE.family.mono, fontSize: '9px', textTransform: 'uppercase', cursor: 'pointer',
                       color: activeCategory === cat ? COLOR.text.primary : COLOR.text.muted,

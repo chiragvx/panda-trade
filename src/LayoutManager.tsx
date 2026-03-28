@@ -12,36 +12,26 @@ import { WatchlistWidget } from './widgets/Watchlist/WatchlistWidget';
 import { ChartWidget } from './widgets/Chart/ChartWidget';
 import { NewsWidget } from './widgets/News/NewsWidget';
 import { OrderEntryWidget } from './widgets/OrderEntry/OrderEntryWidget';
-import { MarketDepthWidget } from './widgets/MarketDepth/MarketDepthWidget';
 import { 
-  MoversWidget, 
   TrendingWidget, 
   PositionsWidget, 
   OrdersWidget, 
   PortfolioWidget, 
-  BasketWidget, 
-  PriceLadderWidget 
+  BasketWidget 
 } from './widgets/Other/Widgets';
 import UpstoxHoldings from './widgets/upstox/UpstoxHoldings';
 import { 
   IndicesStub, 
   ETFStub, 
   HeatmapStub, 
-  TickerTapeStub, 
   OIGraphStub, 
   IVChartStub, 
   VolatilitySkewStub, 
   TechnicalsStub, 
-  CandlePatternsStub, 
   VWapStub, 
   StraddleChainStub, 
   FuturesChainStub, 
-  OptionScalperStub, 
-  SuperOrdersStub, 
   NotificationsStub, 
-  ScalperStub, 
-  TimeSalesStub, 
-  LiveScannerStub, 
   CorpActionsStub, 
   FundamentalsStub 
 } from './widgets/Other/Stubs';
@@ -52,7 +42,6 @@ import FIIDIITracker from './widgets/fii-dii/FIIDIITracker';
 import BlockDealFeed from './widgets/block-deals/BlockDealFeed';
 import FearIndex from './widgets/fear-index/FearIndex';
 import MaxPainCalculator from './widgets/max-pain/MaxPainCalculator';
-import MorningBrief from './widgets/morning-brief/MorningBrief';
 import NLScreener from './widgets/nl-screener/NLScreener';
 import FilingReader from './widgets/filing-reader/FilingReader';
 import PortMonitor from './widgets/port-monitor/PortMonitor';
@@ -79,7 +68,6 @@ const renderWidget = (id: string, node: TabNode) => {
         case 'watchlist': return <WatchlistWidget />;
         case 'chart': return <ChartWidget />;
         case 'news': return <NewsWidget />;
-        case 'movers': return <MoversWidget />;
         case 'trending': return <TrendingWidget />;
         case 'positions': return <PositionsWidget />;
         case 'orders': return <OrdersWidget />;
@@ -87,27 +75,18 @@ const renderWidget = (id: string, node: TabNode) => {
         case 'holdings': return <UpstoxHoldings />;
         case 'basket': return <BasketWidget />;
         case 'orderEntry': return <OrderEntryWidget node={node} />;
-        case 'priceLadder': return <PriceLadderWidget />;
         case 'indices': return <IndicesStub />;
-        case 'depth': return <MarketDepthWidget />;
         case 'etf': return <ETFStub />;
         case 'heatmap': return <HeatmapWidget />;
-        case 'ticker-tape': return <TickerTapeStub />;
         case 'oi-graph': return <OIGraphStub />;
         case 'iv-chart': return <IVChartStub />;
         case 'volatility-skew': return <VolatilitySkewStub />;
         case 'technicals': return <TechnicalsStub />;
-        case 'candle-patterns': return <CandlePatternsStub />;
         case 'vwap': return <VWapStub />;
         case 'options-chain': return <OptionChainWidget />;
         case 'straddle-chain': return <StraddleChainStub />;
         case 'futures-chain': return <FuturesChainStub />;
-        case 'option-scalper': return <OptionScalperStub />;
-        case 'super-orders': return <SuperOrdersStub />;
         case 'notifications': return <NotificationsStub />;
-        case 'scalper': return <ScalperStub />;
-        case 'time-sales': return <TimeSalesStub />;
-        case 'live-scanner': return <LiveScannerStub />;
         case 'corp-actions': return <CorpActionsStub />;
         case 'fundamentals': return <FundamentalsWidget />;
         case 'vol-surface-3d': return (
@@ -121,7 +100,6 @@ const renderWidget = (id: string, node: TabNode) => {
         case 'block-deals': return <BlockDealFeed />;
         case 'fear-index': return <FearIndex />;
         case 'max-pain': return <MaxPainCalculator />;
-        case 'morning-brief': return <MorningBrief />;
         case 'nl-screener': return <NLScreener />;
         case 'filing-reader': return <FilingReader />;
         case 'port-monitor': return <PortMonitor />;

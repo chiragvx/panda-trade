@@ -23,9 +23,10 @@ export const useVolSurfaceData = (symbolKey: string) => {
     if (!accessToken || !symbolKey) return;
     try {
       const res = await upstoxApi.getExpiries(accessToken, symbolKey);
-      if (res.status === 'success' && res.data?.expiry_date) {
-        setExpiries(res.data.expiry_date);
-        return res.data.expiry_date;
+      if (res.status === 'success') {
+        const dates = Array.isArray(res.data) ? res.data : res.data?.expiry_date || [];
+        setExpiries(dates);
+        return dates;
       }
     } catch (err) {
       console.error('Failed to fetch expiries:', err);
@@ -48,21 +49,22 @@ export const useVolSurfaceData = (symbolKey: string) => {
       chains.forEach((res) => {
         if (res.status !== 'success' || !res.data || !Array.isArray(res.data)) return;
         
-        const data = res.data;
-        data.forEach((opt: any) => {
-          const strike = Number(opt.strike_price);
-          const expiryDate = new Date(opt.expiry).getTime();
+        res.data.forEach((row: any) => {
+          const strike = Number(row.strike_price);
+          const expiryDate = new Date(row.expiry).getTime();
           const tte = (expiryDate - now) / (1000 * 60 * 60 * 24 * 365); // TTE in years
 
-          if (tte < 0) return; // Stale data
+          if (tte < 0) return; 
 
           // CE side
-          if (opt.option_type === 'CE') {
-            const iv = Number(opt.greeks?.iv || 0);
-            points.push({ strike, expiry: opt.expiry, tte, iv, type: 'CE' });
-          } else {
-            const iv = Number(opt.greeks?.iv || 0);
-            points.push({ strike, expiry: opt.expiry, tte, iv, type: 'PE' });
+          if (row.call_options) {
+            const iv = Number(row.call_options.option_greeks?.iv || 0);
+            points.push({ strike, expiry: row.expiry, tte, iv, type: 'CE' });
+          }
+          // PE side
+          if (row.put_options) {
+            const iv = Number(row.put_options.option_greeks?.iv || 0);
+            points.push({ strike, expiry: row.expiry, tte, iv, type: 'PE' });
           }
         });
       });

@@ -10,14 +10,6 @@ export const WIDGET_REGISTRY: Record<string, WidgetConfig> = {
     singleton: false,
     category: 'Market Data',
   },
-  movers: {
-    id: 'movers',
-    displayName: 'Movers',
-    icon: 'Zap',
-    shortcut: '',
-    singleton: true,
-    category: 'Market Data',
-  },
   trending: {
     id: 'trending',
     displayName: 'Trending',
@@ -34,14 +26,6 @@ export const WIDGET_REGISTRY: Record<string, WidgetConfig> = {
     singleton: true,
     category: 'Market Data',
   },
-  depth: {
-    id: 'depth',
-    displayName: 'Level 2 Depth',
-    icon: 'Layers',
-    shortcut: 'F6',
-    singleton: false,
-    category: 'Market Data',
-  },
   etf: {
     id: 'etf',
     displayName: 'ETF Scanner',
@@ -52,16 +36,8 @@ export const WIDGET_REGISTRY: Record<string, WidgetConfig> = {
   },
   heatmap: {
     id: 'heatmap',
-    displayName: 'Heatmap',
+    displayName: 'Holdings Heatmap',
     icon: 'Grid',
-    shortcut: '',
-    singleton: true,
-    category: 'Market Data',
-  },
-  'ticker-tape': {
-    id: 'ticker-tape',
-    displayName: 'Ticker Tape',
-    icon: 'Repeat',
     shortcut: '',
     singleton: true,
     category: 'Market Data',
@@ -116,14 +92,6 @@ export const WIDGET_REGISTRY: Record<string, WidgetConfig> = {
     singleton: false,
     category: 'Charts & Analytics',
   },
-  'candle-patterns': {
-    id: 'candle-patterns',
-    displayName: 'Candlestick Patterns',
-    icon: 'Sparkles',
-    shortcut: '',
-    singleton: true,
-    category: 'Charts & Analytics',
-  },
   vwap: {
     id: 'vwap',
     displayName: 'VWap Indicator',
@@ -158,14 +126,6 @@ export const WIDGET_REGISTRY: Record<string, WidgetConfig> = {
     singleton: false,
     category: 'Options',
   },
-  'option-scalper': {
-    id: 'option-scalper',
-    displayName: 'Option Scalper',
-    icon: 'MousePointer2',
-    shortcut: '',
-    singleton: false,
-    category: 'Options',
-  },
 
   // ACCOUNT
   portfolio: {
@@ -192,14 +152,6 @@ export const WIDGET_REGISTRY: Record<string, WidgetConfig> = {
     singleton: true,
     category: 'Account',
   },
-  'super-orders': {
-    id: 'super-orders',
-    displayName: 'Super Orders',
-    icon: 'Zap',
-    shortcut: '',
-    singleton: true,
-    category: 'Account',
-  },
   notifications: {
     id: 'notifications',
     displayName: 'Notifications',
@@ -217,45 +169,12 @@ export const WIDGET_REGISTRY: Record<string, WidgetConfig> = {
     category: 'Account',
   },
 
-  // SCALPING
-  scalper: {
-    id: 'scalper',
-    displayName: 'Scalper',
-    icon: 'Target',
-    shortcut: '',
-    singleton: false,
-    category: 'Scalping',
-  },
-  'price-ladder': {
-    id: 'price-ladder',
-    displayName: 'Price Ladder',
-    icon: 'MoveVertical',
-    shortcut: 'Alt+L',
-    singleton: false,
-    category: 'Scalping',
-  },
-  'time-sales': {
-    id: 'time-sales',
-    displayName: 'Time & Sales',
-    icon: 'Clock',
-    shortcut: 'F7',
-    singleton: false,
-    category: 'Scalping',
-  },
 
   // TOOLS
   news: {
     id: 'news',
     displayName: 'News',
     icon: 'Newspaper',
-    shortcut: '',
-    singleton: true,
-    category: 'Tools',
-  },
-  'live-scanner': {
-    id: 'live-scanner',
-    displayName: 'Live Scanner',
-    icon: 'Radar',
     shortcut: '',
     singleton: true,
     category: 'Tools',
@@ -306,7 +225,7 @@ export const WIDGET_REGISTRY: Record<string, WidgetConfig> = {
   // INSTITUTIONAL INTEL (Ecosystem Pack 2)
   'fii-dii': {
     id: 'fii-dii',
-    displayName: 'FII/DII Live Tracker',
+    displayName: 'FII/DII Activity',
     icon: 'TrendingUp',
     shortcut: '',
     singleton: true,
@@ -314,7 +233,7 @@ export const WIDGET_REGISTRY: Record<string, WidgetConfig> = {
   },
   'block-deals': {
     id: 'block-deals',
-    displayName: 'Block Deal Feed',
+    displayName: 'Block Deals',
     icon: 'Zap',
     shortcut: '',
     singleton: true,
@@ -322,7 +241,7 @@ export const WIDGET_REGISTRY: Record<string, WidgetConfig> = {
   },
   'fear-index': {
     id: 'fear-index',
-    displayName: 'Fear Composite',
+    displayName: 'Fear & Greed Index',
     icon: 'Activity',
     shortcut: '',
     singleton: true,
@@ -330,23 +249,15 @@ export const WIDGET_REGISTRY: Record<string, WidgetConfig> = {
   },
   'max-pain': {
     id: 'max-pain',
-    displayName: 'Options Max Pain',
+    displayName: 'Max Pain',
     icon: 'Target',
-    shortcut: '',
-    singleton: true,
-    category: 'Institutional Intel',
-  },
-  'morning-brief': {
-    id: 'morning-brief',
-    displayName: 'AI Morning Brief',
-    icon: 'Sparkles',
     shortcut: '',
     singleton: true,
     category: 'Institutional Intel',
   },
   'nl-screener': {
     id: 'nl-screener',
-    displayName: 'NL Stock Screener',
+    displayName: 'Stock Screener',
     icon: 'Search',
     shortcut: '',
     singleton: true,
@@ -362,7 +273,7 @@ export const WIDGET_REGISTRY: Record<string, WidgetConfig> = {
   },
   'port-monitor': {
     id: 'port-monitor',
-    displayName: 'Satellite Port Monitor',
+    displayName: 'Marine Map',
     icon: 'Anchor',
     shortcut: '',
     singleton: true,
@@ -370,7 +281,7 @@ export const WIDGET_REGISTRY: Record<string, WidgetConfig> = {
   },
   'jet-tracker': {
     id: 'jet-tracker',
-    displayName: 'Corporate Jet Tracker',
+    displayName: 'Flight Map',
     icon: 'Plane',
     shortcut: '',
     singleton: true,
@@ -388,7 +299,7 @@ export const WIDGET_REGISTRY: Record<string, WidgetConfig> = {
   // NEW ACCOUNT WIDGETS
   holdings: {
     id: 'holdings',
-    displayName: 'Holdings (Live)',
+    displayName: 'Holdings',
     icon: 'Briefcase',
     shortcut: 'Alt+H',
     singleton: true,

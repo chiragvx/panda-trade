@@ -4,7 +4,7 @@ import { useUpstoxStore } from '../store/useUpstoxStore';
 import { upstoxApi } from '../services/upstoxApi';
 import { upstoxWebSocket } from '../services/upstoxWebSocket';
 
-const ACCOUNT_REFRESH_INTERVAL_MS = 30000;
+const ACCOUNT_REFRESH_INTERVAL_MS = 60000;
 const TOKEN_VALIDITY_CHECK_MS = 60000;
 
 const CORE_INDEX_KEYS = [

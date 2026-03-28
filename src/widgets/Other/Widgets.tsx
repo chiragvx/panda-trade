@@ -80,73 +80,6 @@ const ColHdr: React.FC<{ label: string; w?: number; flex?: boolean; align?: 'lef
   </span>
 );
 
-export const MoversWidget: React.FC = () => {
-  const { prices, instrumentMeta } = useUpstoxStore();
-  const { openOrderModal } = useLayoutStore();
-  const { setSelectedSymbol } = useSelectionStore();
-  const [tab, setTab] = useState<'GAINERS' | 'LOSERS' | 'VOLUME'>('GAINERS');
-
-  const symbols = useMemo(
-    () => Object.keys(prices).map((key) => buildSymbolFromFeed(key, prices[key], instrumentMeta[key])),
-    [prices, instrumentMeta]
-  );
-
-  const gainers = useMemo(() => symbols.filter((s) => s.changePct > 0).sort((a, b) => b.changePct - a.changePct), [symbols]);
-  const losers = useMemo(() => symbols.filter((s) => s.changePct < 0).sort((a, b) => a.changePct - b.changePct), [symbols]);
-  const byActivity = useMemo(() => [...symbols].sort((a, b) => Math.abs(b.changePct) - Math.abs(a.changePct)), [symbols]);
-
-  const active = tab === 'GAINERS' ? gainers : tab === 'LOSERS' ? losers : byActivity;
-
-  return (
-    <div style={{ display: 'flex', flexDirection: 'column', height: '100%', background: COLOR.bg.surface }}>
-      <div style={{ display: 'flex', borderBottom: BORDER.standard, flexShrink: 0, height: ROW_HEIGHT.header }}>
-        {(['GAINERS', 'LOSERS', 'VOLUME'] as const).map((t) => (
-          <button
-            key={t}
-            onClick={() => setTab(t)}
-            style={{
-              flex: 1,
-              background: 'transparent',
-              border: 'none',
-              borderBottom: tab === t ? `1px solid ${COLOR.semantic.info}` : '1px solid transparent',
-              fontFamily: TYPE.family.mono,
-              fontSize: TYPE.size.xs,
-              letterSpacing: TYPE.letterSpacing.caps,
-              textTransform: 'uppercase',
-              cursor: 'pointer',
-              color: tab === t ? COLOR.text.primary : COLOR.text.muted,
-              transition: 'color 80ms linear',
-            }}
-          >
-            {t}
-          </button>
-        ))}
-      </div>
-      <div style={{ display: 'flex', height: ROW_HEIGHT.header, background: COLOR.bg.surface, borderBottom: BORDER.standard, flexShrink: 0 }}>
-        <ColHdr label="SYMBOL" flex />
-        <ColHdr label="LTP" w={60} align="right" />
-        <ColHdr label="%CHG" w={56} align="right" />
-      </div>
-      <div style={{ flex: 1, overflowY: 'auto' }}>
-        {active.length === 0 ? (
-          <div style={{ padding: '20px', textAlign: 'center', color: COLOR.text.muted, fontSize: TYPE.size.sm, fontFamily: TYPE.family.mono }}>NO LIVE DATA</div>
-        ) : (
-          active.slice(0, 20).map((s) => (
-            <DenseRow
-              key={s.instrument_key || s.ticker}
-              ticker={s.ticker}
-              ltp={s.ltp}
-              pct={s.changePct}
-              onBuy={() => { setSelectedSymbol(s); openOrderModal('BUY'); }}
-              onSell={() => { setSelectedSymbol(s); openOrderModal('SELL'); }}
-            />
-          ))
-        )}
-      </div>
-    </div>
-  );
-};
-
 export const TrendingWidget: React.FC = () => {
   const { prices, instrumentMeta } = useUpstoxStore();
   const trending = useMemo(
@@ -385,6 +318,7 @@ const OrdersRow: React.FC<{ order: any }> = ({ order }) => {
     </div>
   );
 };
+
 export const OrdersWidget: React.FC = () => {
   const orders = useUpstoxStore((s) => s.orders);
   const { accessToken } = useUpstoxStore();
@@ -457,7 +391,6 @@ export const OrdersWidget: React.FC = () => {
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100%', background: COLOR.bg.surface }}>
-      {/* Action Toolbar */}
       <div style={{ height: '32px', display: 'flex', alignItems: 'center', justifyContent: 'flex-end', padding: '0 12px', borderBottom: BORDER.standard, flexShrink: 0 }}>
         <button 
             onClick={handleCancelAll}
@@ -509,7 +442,6 @@ export const OrdersWidget: React.FC = () => {
                 {c}
             </div>
         ))}
-        {/* Spacer for Actions column */}
         <div style={{ width: 100, minWidth: 100, flexShrink: 0, background: '#000000' }} />
       </div>
       <div 
@@ -549,14 +481,5 @@ export const BasketWidget: React.FC = () => (
       BASKET ORDERS
     </span>
     <span style={{ fontFamily: TYPE.family.mono, fontSize: TYPE.size.sm, color: COLOR.text.secondary }}>Batch multiple orders for simultaneous execution.</span>
-  </div>
-);
-
-export const PriceLadderWidget: React.FC = () => (
-  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100%', background: COLOR.bg.surface, gap: '6px' }}>
-    <span style={{ fontFamily: TYPE.family.mono, fontSize: TYPE.size.xs, color: COLOR.semantic.down, letterSpacing: TYPE.letterSpacing.caps, textTransform: 'uppercase', border: `1px solid ${COLOR.semantic.down}`, padding: '2px 6px' }}>
-      MARKET CLOSED
-    </span>
-    <span style={{ fontFamily: TYPE.family.mono, fontSize: TYPE.size.sm, color: COLOR.text.muted }}>Price ladder unavailable outside session.</span>
   </div>
 );

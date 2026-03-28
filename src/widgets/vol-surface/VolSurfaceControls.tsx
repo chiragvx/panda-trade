@@ -10,6 +10,12 @@ interface VolSurfaceControlsProps {
   setShowHV: (v: boolean) => void;
   loading: boolean;
   lastSync: Date | null;
+  optionSide: 'CE' | 'PE' | 'BOTH';
+  setOptionSide: (v: 'CE' | 'PE' | 'BOTH') => void;
+  isWireframe: boolean;
+  setIsWireframe: (v: boolean) => void;
+  isSmooth: boolean;
+  setIsSmooth: (v: boolean) => void;
 }
 
 export const VolSurfaceControls: React.FC<VolSurfaceControlsProps> = ({ 
@@ -18,7 +24,13 @@ export const VolSurfaceControls: React.FC<VolSurfaceControlsProps> = ({
   showHV, 
   setShowHV, 
   loading,
-  lastSync
+  lastSync,
+  optionSide,
+  setOptionSide,
+  isWireframe,
+  setIsWireframe,
+  isSmooth,
+  setIsSmooth
 }) => {
   return (
     <div style={{ 
@@ -42,11 +54,61 @@ export const VolSurfaceControls: React.FC<VolSurfaceControlsProps> = ({
       <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
         {lastSync && (
             <span style={{ fontSize: '9px', color: COLOR.text.muted, fontVariantNumeric: 'tabular-nums' }}>
-                SYNCED: {lastSync.toLocaleTimeString()}
+                {lastSync.toLocaleTimeString()}
             </span>
         )}
         
         <div style={{ height: '16px', width: '1px', background: COLOR.bg.border, margin: '0 4px' }} />
+
+        {/* Option Side Toggle */}
+        <div style={{ display: 'flex', background: COLOR.bg.elevated, border: BORDER.standard, borderRadius: '4px', overflow: 'hidden' }}>
+            {(['CE', 'PE', 'BOTH'] as const).map(s => (
+                <button 
+                    key={s} 
+                    onClick={() => setOptionSide(s)}
+                    style={{ 
+                        padding: '2px 8px', 
+                        fontSize: '9px', 
+                        background: optionSide === s ? COLOR.semantic.info : 'transparent',
+                        color: optionSide === s ? '#fff' : COLOR.text.muted,
+                        border: 'none',
+                        cursor: 'pointer'
+                    }}
+                >
+                    {s}
+                </button>
+            ))}
+        </div>
+
+        <div style={{ height: '16px', width: '1px', background: COLOR.bg.border, margin: '0 4px' }} />
+
+        <Button 
+            variant="ghost" 
+            size="xs" 
+            onClick={() => setIsWireframe(!isWireframe)}
+            style={{ 
+                color: isWireframe ? COLOR.semantic.info : COLOR.text.muted,
+                background: isWireframe ? `${COLOR.semantic.info}15` : 'transparent',
+                borderColor: isWireframe ? COLOR.semantic.info : 'transparent'
+            }}
+        >
+            <LayoutPanelTop size={12} />
+            <span style={{ marginLeft: '4px' }}>WIRE</span>
+        </Button>
+
+        <Button 
+            variant="ghost" 
+            size="xs" 
+            onClick={() => setIsSmooth(!isSmooth)}
+            style={{ 
+                color: isSmooth ? COLOR.semantic.info : COLOR.text.muted,
+                background: isSmooth ? `${COLOR.semantic.info}15` : 'transparent',
+                borderColor: isSmooth ? COLOR.semantic.info : 'transparent'
+            }}
+        >
+            <MonitorPlay size={12} />
+            <span style={{ marginLeft: '4px' }}>SMOOTH</span>
+        </Button>
 
         <Button 
             variant="ghost" 
@@ -59,7 +121,7 @@ export const VolSurfaceControls: React.FC<VolSurfaceControlsProps> = ({
             }}
         >
             {showHV ? <Eye size={12} /> : <EyeOff size={12} />}
-            <span style={{ marginLeft: '4px' }}>HV REFERENCE</span>
+            <span style={{ marginLeft: '4px' }}>HV</span>
         </Button>
 
         <Button 
@@ -69,14 +131,13 @@ export const VolSurfaceControls: React.FC<VolSurfaceControlsProps> = ({
             disabled={loading}
         >
             <RotateCcw size={12} style={{ animation: loading ? 'spin 1s linear infinite' : 'none' }} />
-            <span style={{ marginLeft: '4px' }}>SYNC</span>
         </Button>
 
         <div style={{ height: '16px', width: '1px', background: COLOR.bg.border, margin: '0 4px' }} />
 
         <Button variant="ghost" size="xs" onClick={() => (window as any).dispatchEvent(new Event('RESET_VOL_CAMERA'))}>
-            <LayoutPanelTop size={12} />
-            <span style={{ marginLeft: '4px' }}>RESET VIEW</span>
+            <RotateCcw size={12} />
+            <span style={{ marginLeft: '4px' }}>VIEW</span>
         </Button>
       </div>
 

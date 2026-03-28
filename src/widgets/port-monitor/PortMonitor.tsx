@@ -1,181 +1,327 @@
-import React, { useMemo, useState } from 'react';
-import { AreaChart, Area, ResponsiveContainer } from 'recharts';
-import { Ship, Map as MapIcon, Table } from 'lucide-react';
-import { useNSEData } from '../../hooks/useNSEData';
-import { COLOR, TYPE, BORDER } from '../../ds/tokens';
+import React, { useMemo, useState, useEffect, useRef } from 'react';
+import { Ship, Anchor, Search, Filter, Eye, EyeOff, Shield, Users, Radio, Map as MapIcon, Table, Info } from 'lucide-react';
+import { MapContainer, TileLayer, Marker, Popup, useMap, ZoomControl } from 'react-leaflet';
+import L from 'leaflet';
+import { COLOR, TYPE, BORDER, SPACE } from '../../ds/tokens';
 import { WidgetShell } from '../../ds/components/WidgetShell';
-import { SegmentedControl } from '../../ds/components/SegmentedControl';
-import { DataTable } from '../../ds/components/DataTable';
+import { useSettingsStore } from '../../store/useSettingsStore';
 import { EmptyState } from '../../ds/components/EmptyState';
 
-interface PortData {
+// AIS Message Structure (Simplified)
+interface VesselState {
+  mmsi: number;
   name: string;
   lat: number;
   lon: number;
-  vessels: number;
-  type: string;
-  stocks: string[];
-  activityChangePct: number;
-  proxyReturnPct: number;
-  correlationRank: string;
-  trend: { day: number; count: number }[];
+  course: number;
+  speed: number;
+  type: number;
+  typeStr: string;
+  category: 'MILITARY' | 'CIVILIAN' | 'OTHER';
+  lastSeen: number;
+  country: string;
+  destination: string;
 }
 
-const toNumber = (value: unknown): number => {
-  const parsed = Number(value);
-  return Number.isFinite(parsed) ? parsed : 0;
+const getVesselCategory = (type: number): 'MILITARY' | 'CIVILIAN' | 'OTHER' => {
+    if (type === 35) return 'MILITARY';
+    if ((type >= 60 && type <= 69) || (type >= 70 && type <= 89)) return 'CIVILIAN';
+    return 'OTHER';
 };
 
-const parsePorts = (payload: any): PortData[] => {
-  const raw = Array.isArray(payload) ? payload : Array.isArray(payload?.data) ? payload.data : [];
-  return raw.map((item: any) => ({
-    name: String(item.name || item.port || '').toUpperCase(),
-    lat: toNumber(item.lat),
-    lon: toNumber(item.lon),
-    vessels: toNumber(item.vessels),
-    type: String(item.type || 'UNKNOWN'),
-    stocks: Array.isArray(item.stocks) ? item.stocks.map((s: any) => String(s).toUpperCase()) : [],
-    activityChangePct: toNumber(item.activityChangePct),
-    proxyReturnPct: toNumber(item.proxyReturnPct),
-    correlationRank: String(item.correlationRank || 'N/A').toUpperCase(),
-    trend: Array.isArray(item.trend)
-      ? item.trend.map((t: any, idx: number) => ({ day: toNumber(t.day ?? idx), count: toNumber(t.count) }))
-      : [],
-  })).filter((item: PortData) => item.name.length > 0);
+const getVesselTypeStr = (type: number): string => {
+    if (type === 35) return 'MILITARY';
+    if (type >= 60 && type <= 69) return 'PASSENGER';
+    if (type >= 70 && type <= 79) return 'CARGO';
+    if (type >= 80 && type <= 89) return 'TANKER';
+    if (type === 30) return 'FISHING';
+    if (type === 52) return 'TUG';
+    if (type === 51) return 'SAR';
+    return 'OTHER';
 };
 
-const PortMonitor: React.FC = () => {
-  const { data } = useNSEData<any>('/api/port-activity', { pollingInterval: 5 * 60 * 1000 });
-  const ports = useMemo(() => parsePorts(data), [data]);
+const getShipIcon = (course: number, category: string) => {
+  let color: string = COLOR.text.muted;
+  if (category === 'MILITARY') color = COLOR.semantic.down;
+  if (category === 'CIVILIAN') color = COLOR.semantic.info;
+  if (category === 'OTHER') color = COLOR.semantic.warning;
+  
+  const shadow = category === 'MILITARY' ? `filter: drop-shadow(0 0 4px ${COLOR.semantic.down});` : '';
+  
+  // Custom ship shape icon (pointy at one end)
+  return L.divIcon({
+    className: 'custom-ship-icon',
+    html: `<div style="transform: rotate(${course}deg); color: ${color}; ${shadow} display: flex; align-items: center; justify-content: center;">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+              <path d="M12 2L4.5 20.29L5.21 21L12 18L18.79 21L19.5 20.29L12 2Z"/>
+            </svg>
+          </div>`,
+    iconSize: [20, 20],
+    iconAnchor: [10, 10],
+  });
+};
 
-  const [selectedPort, setSelectedPort] = useState<PortData | null>(null);
-  const [viewMode, setViewMode] = useState<'map' | 'table'>('table');
+const MapController: React.FC<{ center?: [number, number] }> = ({ center }) => {
+    const map = useMap();
+    useEffect(() => {
+        if (center) map.setView(center, 9);
+    }, [center, map]);
+    return null;
+};
 
-  const columns = [
-    { 
-        key: 'name', 
-        label: 'PRIMARY_PORT', 
-        render: (val: string, item: any) => (
-            <div>
-                <div style={{ fontSize: '11px', fontWeight: TYPE.weight.bold, color: COLOR.text.primary }}>{val.replace(/_/g, ' ')}</div>
-                <div style={{ fontSize: '8px', color: COLOR.text.muted, textTransform: 'uppercase' }}>{item.type}</div>
-            </div>
-        )
-    },
-    { 
-        key: 'activityChangePct', 
-        label: 'ACTIVITY_7D_CHG', 
-        align: 'right' as const,
-        render: (val: number) => (
-            <div style={{ fontSize: '11px', fontWeight: TYPE.weight.bold, color: val >= 0 ? COLOR.semantic.up : COLOR.semantic.down }}>
-                {val >= 0 ? '+' : ''}{val.toFixed(2)}%
-            </div>
-        )
-    },
-    { 
-        key: 'proxyReturnPct', 
-        label: 'PROXY_RETURN', 
-        align: 'right' as const,
-        render: (val: number) => (
-            <span style={{ fontSize: '11px', fontWeight: TYPE.weight.bold, color: val >= 0 ? COLOR.semantic.up : COLOR.semantic.down }}>
-                {val >= 0 ? '+' : ''}{val.toFixed(2)}%
-            </span>
-        )
-    },
-    { 
-        key: 'correlationRank', 
-        label: 'CORRELATION_RANK', 
-        align: 'right' as const,
-        render: (val: string) => (
-            <span style={{ fontSize: '8px', fontWeight: TYPE.weight.bold, color: COLOR.text.muted, border: `1px solid ${COLOR.bg.border}`, padding: '2px 6px', textTransform: 'uppercase' }}>
-                {val}
-            </span>
-        )
+const MarineMap: React.FC = () => {
+  const { aisStreamApiKey } = useSettingsStore();
+  const [vessels, setVessels] = useState<Record<number, VesselState>>({});
+  const [selectedVessel, setSelectedVessel] = useState<VesselState | null>(null);
+  const [search, setSearch] = useState('');
+  const [filters, setFilters] = useState({ MILITARY: true, CIVILIAN: true, OTHER: true });
+  const [status, setStatus] = useState<'IDLE' | 'CONNECTING' | 'LIVE' | 'ERROR'>('IDLE');
+  
+  const wsRef = useRef<WebSocket | null>(null);
+
+  useEffect(() => {
+    if (!aisStreamApiKey) {
+        setStatus('IDLE');
+        return;
     }
-  ];
+
+    const connect = () => {
+        setStatus('CONNECTING');
+        const ws = new WebSocket('wss://stream.aisstream.io/v0/stream');
+        wsRef.current = ws;
+
+        ws.onopen = () => {
+            console.log('AISStream Connected');
+            setStatus('LIVE');
+            // Subscribe to India region for performance
+            ws.send(JSON.stringify({
+                APIKey: aisStreamApiKey,
+                BoundingBoxes: [[[8.0, 68.0], [30.0, 90.0]]]
+            }));
+        };
+
+        ws.onmessage = (event) => {
+            const data = JSON.parse(event.data);
+            if (data.MessageType === 'PositionReport') {
+                const pos = data.Message.PositionReport;
+                const meta = data.MetaData;
+                const mmsi = meta.MMSI;
+                
+                setVessels(prev => ({
+                    ...prev,
+                    [mmsi]: {
+                        ...prev[mmsi],
+                        mmsi,
+                        name: meta.ShipName || prev[mmsi]?.name || 'UNKNOWN',
+                        lat: pos.Latitude,
+                        lon: pos.Longitude,
+                        course: pos.TrueHeading || pos.Cog || 0,
+                        speed: pos.Sog || 0,
+                        type: prev[mmsi]?.type || 0,
+                        typeStr: prev[mmsi]?.typeStr || 'UNKNOWN',
+                        category: prev[mmsi]?.category || 'OTHER',
+                        lastSeen: Date.now(),
+                        country: meta.country || 'N/A',
+                        destination: meta.Destination || prev[mmsi]?.destination || '---'
+                    }
+                }));
+            } else if (data.MessageType === 'ShipStaticData') {
+                const stat = data.Message.ShipStaticData;
+                const mmsi = data.MetaData.MMSI;
+                const type = stat.Type;
+                
+                setVessels(prev => {
+                    if (!prev[mmsi]) return prev;
+                    return {
+                        ...prev,
+                        [mmsi]: {
+                            ...prev[mmsi],
+                            type,
+                            typeStr: getVesselTypeStr(type),
+                            category: getVesselCategory(type),
+                            name: data.MetaData.ShipName || prev[mmsi].name
+                        }
+                    };
+                });
+            }
+        };
+
+        ws.onerror = () => setStatus('ERROR');
+        ws.onclose = () => {
+            if (status !== 'IDLE') setTimeout(connect, 5000);
+        };
+    };
+
+    connect();
+    return () => {
+        if (wsRef.current) wsRef.current.close();
+    };
+  }, [aisStreamApiKey]);
+
+  const vesselList = useMemo(() => Object.values(vessels), [vessels]);
+
+  const filteredVessels = useMemo(() => {
+    return vesselList.filter(v => {
+        const matchesSearch = v.name.toLowerCase().includes(search.toLowerCase()) || 
+                             v.mmsi.toString().includes(search);
+        
+        if (!matchesSearch) return false;
+        if (!filters[v.category]) return false;
+        
+        return true;
+    });
+  }, [vesselList, search, filters]);
+
+  if (!aisStreamApiKey) {
+      return (
+          <EmptyState 
+            icon={<Anchor size={48} color={COLOR.semantic.info} />}
+            message="AISSTREAM_API_REQUIRED"
+            subMessage="Please configure your AISStream.io API key in the Connectivity Dashboard to enable live Marine tracking."
+          />
+      );
+  }
 
   return (
     <WidgetShell>
-      <WidgetShell.Toolbar>
-        <SegmentedControl 
-            options={[
-                { label: 'MAP_VISUAL', value: 'map', icon: <MapIcon size={10} /> },
-                { label: 'CORRELATION_MATRIX', value: 'table', icon: <Table size={10} /> }
-            ]}
-            value={viewMode}
-            onChange={(v) => setViewMode(v as any)}
-        />
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', opacity: 0.6 }}>
-          <Ship size={12} style={{ color: COLOR.semantic.info }} />
-          <span style={{ fontSize: '8px', fontWeight: TYPE.weight.bold, color: COLOR.text.muted, textTransform: 'uppercase' }}>LIVE_FEED_ONLY</span>
+        <WidgetShell.Toolbar>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flex: 1 }}>
+                <Anchor size={12} color={COLOR.semantic.info} />
+                <span style={{ fontSize: '9px', fontWeight: TYPE.weight.bold, color: COLOR.text.secondary, textTransform: 'uppercase', letterSpacing: TYPE.letterSpacing.caps }}>
+                    MARINE_MAP_LIVE
+                </span>
+            </div>
+            <div style={{ fontSize: '9px', color: COLOR.text.muted, display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <div style={{ 
+                    width: '6px', 
+                    height: '6px', 
+                    borderRadius: '50%', 
+                    background: status === 'LIVE' ? COLOR.semantic.up : (status === 'ERROR' ? COLOR.semantic.down : COLOR.semantic.warning), 
+                    animation: status === 'LIVE' ? 'pulse 2s infinite' : 'none' 
+                }} />
+                <span>{status}</span>
+            </div>
+        </WidgetShell.Toolbar>
+
+        <div style={{ display: 'flex', flex: 1, minHeight: 0 }}>
+            <div style={{ width: '280px', borderRight: BORDER.standard, display: 'flex', flexDirection: 'column', background: COLOR.bg.surface }}>
+                <div style={{ padding: '12px', background: COLOR.bg.elevated, borderBottom: BORDER.standard }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', background: COLOR.bg.surface, border: BORDER.standard, padding: '6px 10px', borderRadius: '2px', marginBottom: '12px' }}>
+                        <Search size={12} color={COLOR.text.muted} />
+                        <input 
+                            value={search}
+                            onChange={e => setSearch(e.target.value)}
+                            placeholder="FIND_VESSEL/MMSI..."
+                            style={{ background: 'transparent', border: 'none', outline: 'none', color: COLOR.text.primary, fontSize: '10px', fontFamily: TYPE.family.mono, width: '100%' }}
+                        />
+                    </div>
+
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '4px' }}>
+                        <FilterBtn label="MILITARY" icon={<Shield size={10} />} active={filters.MILITARY} color={COLOR.semantic.down} onClick={() => setFilters(f => ({ ...f, MILITARY: !f.MILITARY }))} />
+                        <FilterBtn label="CIVILIAN" icon={<Users size={10} />} active={filters.CIVILIAN} color={COLOR.semantic.info} onClick={() => setFilters(f => ({ ...f, CIVILIAN: !f.CIVILIAN }))} />
+                        <FilterBtn label="OTHER" icon={<Radio size={10} />} active={filters.OTHER} color={COLOR.semantic.warning} onClick={() => setFilters(f => ({ ...f, OTHER: !f.OTHER }))} />
+                    </div>
+                </div>
+
+                <div style={{ flex: 1, overflowY: 'auto' }} className="custom-scrollbar">
+                    {filteredVessels.length === 0 ? (
+                        <div style={{ padding: '60px 20px', textAlign: 'center', opacity: 0.3 }}>
+                            <Anchor size={32} style={{ margin: '0 auto 16px' }} />
+                            <div style={{ fontSize: '10px', fontWeight: 'bold' }}>NO VESSELS DETECTED</div>
+                        </div>
+                    ) : (
+                        filteredVessels.slice(0, 100).map(v => (
+                            <VesselRow key={v.mmsi} vessel={v} active={selectedVessel?.mmsi === v.mmsi} onClick={() => setSelectedVessel(v)} />
+                        ))
+                    )}
+                </div>
+
+                <div style={{ padding: '8px 12px', borderTop: BORDER.standard, fontSize: '8px', color: COLOR.text.muted, background: COLOR.bg.elevated }}>
+                    TRACKING: {filteredVessels.length} VESSELS IN REGION
+                </div>
+            </div>
+
+            <div style={{ flex: 1, position: 'relative', background: '#050505' }}>
+                <MapContainer center={[18.9218, 72.8347]} zoom={6} style={{ height: '100%', width: '100%' }} zoomControl={false}>
+                    <TileLayer url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png" attribution='&copy; CARTO' />
+                    <ZoomControl position="bottomright" />
+                    <MapController center={selectedVessel ? [selectedVessel.lat, selectedVessel.lon] : undefined} />
+                    
+                    {filteredVessels.map(v => (
+                        <Marker key={v.mmsi} position={[v.lat, v.lon]} icon={getShipIcon(v.course, v.category)} eventHandlers={{ click: () => setSelectedVessel(v) }}>
+                            <Popup className="dark-popup">
+                                <VesselPopupContent vessel={v} />
+                            </Popup>
+                        </Marker>
+                    ))}
+                </MapContainer>
+            </div>
         </div>
-      </WidgetShell.Toolbar>
-
-      <div style={{ flex: 1, position: 'relative', display: 'flex', overflow: 'hidden' }}>
-        {selectedPort && (
-          <div style={{ position: 'absolute', top: '12px', left: '12px', zIndex: 100, width: '240px', background: COLOR.bg.surface, border: BORDER.standard, padding: '12px' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start', marginBottom: '12px' }}>
-              <div>
-                <div style={{ fontSize: '11px', fontWeight: TYPE.weight.bold, color: COLOR.text.primary }}>{selectedPort.name}</div>
-                <div style={{ fontSize: '8px', color: COLOR.text.muted, textTransform: 'uppercase', marginTop: '2px' }}>{selectedPort.type}</div>
-              </div>
-              <button onClick={() => setSelectedPort(null)} style={{ background: 'none', border: 'none', color: COLOR.text.muted, cursor: 'pointer', fontSize: '14px' }}>×</button>
-            </div>
-
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'end', marginBottom: '16px' }}>
-              <div>
-                <span style={{ fontSize: '8px', color: COLOR.text.muted, textTransform: 'uppercase', display: 'block' }}>VESSEL_COUNT</span>
-                <span style={{ fontSize: '18px', fontWeight: TYPE.weight.bold, color: COLOR.text.primary, fontVariantNumeric: 'tabular-nums' }}>{selectedPort.vessels}</span>
-              </div>
-              <div style={{ height: '32px', width: '80px' }}>
-                <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={0}>
-                  <AreaChart data={selectedPort.trend}>
-                    <Area type="monotone" dataKey="count" stroke={COLOR.semantic.info} strokeWidth={1} fill={`${COLOR.semantic.info}10`} isAnimationActive={false} />
-                  </AreaChart>
-                </ResponsiveContainer>
-              </div>
-            </div>
-
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-              <span style={{ fontSize: '8px', color: COLOR.text.muted, textTransform: 'uppercase', marginBottom: '4px' }}>CORRELATED_EQUITIES</span>
-              {selectedPort.stocks.length === 0 ? (
-                <div style={{ fontSize: '9px', color: COLOR.text.muted }}>NO CORRELATED DATA</div>
-              ) : (
-                selectedPort.stocks.map((stock) => (
-                  <div key={stock} style={{ display: 'flex', justifyContent: 'space-between', padding: '6px 8px', background: COLOR.bg.elevated, border: BORDER.standard, alignItems: 'center' }}>
-                    <span style={{ fontSize: '10px', fontWeight: TYPE.weight.bold, color: COLOR.text.primary }}>{stock}</span>
-                  </div>
-                ))
-              )}
-            </div>
-          </div>
-        )}
-
-        {viewMode === 'map' ? (
-          <EmptyState 
-            icon={<MapIcon size={32} />} 
-            message="MAP_ENGINE_OFFLINE" 
-            subMessage="Geospatial visualization requires active GPS feed and mapping tile server connection."
-          />
-        ) : (
-          ports.length === 0 ? (
-            <EmptyState 
-                icon={<Table size={32} />} 
-                message="NO PORT MONITOR DATA" 
-                subMessage="Waiting for global port activity data stream synchronization."
-            />
-          ) : (
-            <DataTable 
-                data={ports}
-                columns={columns}
-                onRowClick={(item) => setSelectedPort(item)}
-            />
-          )
-        )}
-      </div>
     </WidgetShell>
   );
 };
 
-export default PortMonitor;
+const FilterBtn: React.FC<{ label: string, icon: React.ReactNode, active: boolean, color: string, onClick: () => void }> = ({ label, icon, active, color, onClick }) => (
+    <button onClick={onClick} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px', padding: '6px 4px', background: active ? `${color}15` : COLOR.bg.surface, border: `1px solid ${active ? color : BORDER.standard}`, color: active ? color : COLOR.text.muted, borderRadius: '2px', cursor: 'pointer', transition: 'all 0.1s linear' }}>
+        {icon}
+        <span style={{ fontSize: '7px', fontWeight: 'bold' }}>{label}</span>
+    </button>
+);
 
+const VesselRow: React.FC<{ vessel: VesselState, active: boolean, onClick: () => void }> = ({ vessel, active, onClick }) => {
+    let accent: string = COLOR.text.muted;
+    if (vessel.category === 'MILITARY') accent = COLOR.semantic.down;
+    if (vessel.category === 'CIVILIAN') accent = COLOR.semantic.info;
+    if (vessel.category === 'OTHER') accent = COLOR.semantic.warning;
+
+    return (
+        <div onClick={onClick} style={{ padding: '10px 12px', borderBottom: '1px solid #111', cursor: 'pointer', background: active ? `${accent}15` : 'transparent', borderLeft: `2px solid ${active ? accent : 'transparent'}` }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <span style={{ fontWeight: 'bold', color: active ? COLOR.text.primary : COLOR.text.secondary, fontSize: '11px' }}>{vessel.name}</span>
+                <span style={{ fontSize: '8px', color: accent, fontWeight: 'bold', background: `${accent}20`, padding: '1px 4px' }}>{vessel.typeStr}</span>
+            </div>
+            <div style={{ display: 'flex', gap: '8px', marginTop: '4px', fontSize: '9px', color: COLOR.text.muted }}>
+                <span>{vessel.speed.toFixed(1)} KN</span>
+                <span>|</span>
+                <span>HDG {vessel.course}°</span>
+                <span style={{ marginLeft: 'auto' }}>MMSI: {vessel.mmsi}</span>
+            </div>
+        </div>
+    );
+};
+
+const VesselPopupContent: React.FC<{ vessel: VesselState }> = ({ vessel }) => {
+    let accent: string = COLOR.text.muted;
+    if (vessel.category === 'MILITARY') accent = COLOR.semantic.down;
+    if (vessel.category === 'CIVILIAN') accent = COLOR.semantic.info;
+    if (vessel.category === 'OTHER') accent = COLOR.semantic.warning;
+
+    return (
+        <div style={{ background: '#000', color: '#fff', padding: '2px', fontSize: '11px', minWidth: '160px' }}>
+            <div style={{ borderBottom: `1px solid ${accent}`, paddingBottom: '6px', marginBottom: '8px' }}>
+                <div style={{ fontSize: '12px', fontWeight: 'bold', color: accent }}>{vessel.name}</div>
+                <div style={{ fontSize: '9px', color: COLOR.text.muted }}>MMSI: {vessel.mmsi} • {vessel.country}</div>
+            </div>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+                <div>
+                    <div style={{ fontSize: '8px', color: COLOR.text.muted }}>SPEED</div>
+                    <div style={{ fontWeight: 'bold' }}>{vessel.speed.toFixed(1)} kn</div>
+                </div>
+                <div>
+                    <div style={{ fontSize: '8px', color: COLOR.text.muted }}>HEADING</div>
+                    <div style={{ fontWeight: 'bold' }}>{vessel.course}°</div>
+                </div>
+                <div style={{ gridColumn: 'span 2' }}>
+                    <div style={{ fontSize: '8px', color: COLOR.text.muted }}>STATUS_CATEGORY</div>
+                    <div style={{ fontWeight: 'bold', color: accent }}>{vessel.category} ({vessel.typeStr})</div>
+                </div>
+                <div style={{ gridColumn: 'span 2' }}>
+                    <div style={{ fontSize: '8px', color: COLOR.text.muted }}>DESTINATION</div>
+                    <div style={{ fontWeight: 'bold', fontSize: '10px' }}>{vessel.destination}</div>
+                </div>
+            </div>
+        </div>
+    );
+};
+
+export default MarineMap;

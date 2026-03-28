@@ -272,12 +272,12 @@ export const OptionChainWidget: React.FC = () => {
         <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden', position: 'relative' }}>
             {/* Table Header — fixed, no vertical scroll */}
             <div style={{ display: 'flex', height: '28px', flexShrink: 0, background: COLOR.bg.surface, borderBottom: BORDER.standard, fontSize: '9px', fontWeight: TYPE.weight.bold, color: COLOR.text.muted, boxSizing: 'border-box', overflow: 'hidden' }}>
-                <div ref={ceHeaderRef} onScroll={syncScroll} style={{ flex: 1, overflowX: 'auto', overflowY: 'hidden', direction: 'rtl' }} className="hide-scrollbar">
+                <div ref={ceHeaderRef} onScroll={syncScroll} style={{ flex: 1, overflowX: 'auto', overflowY: 'hidden', direction: 'rtl', borderRight: BORDER.standard }} className="hide-scrollbar">
                     <div style={{ display: 'flex', direction: 'ltr', width: CE_TOTAL_W, flexShrink: 0 }}>
-                        {ceCols.map(c => <div key={c} style={{ width: COLUMN_WIDTH, display: 'flex', alignItems: 'center', justifyContent: 'flex-end', padding: '0 8px', borderLeft: BORDER.standard, flexShrink: 0, boxSizing: 'border-box' }}>{c}</div>)}
+                        {ceCols.map(c => <div key={c} style={{ width: COLUMN_WIDTH, display: 'flex', alignItems: 'center', justifyContent: 'flex-end', padding: '0 8px', borderRight: BORDER.standard, flexShrink: 0, boxSizing: 'border-box' }}>{c}</div>)}
                     </div>
                 </div>
-                <div style={{ width: STRIKE_W, flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', background: COLOR.bg.elevated, borderLeft: BORDER.standard, borderRight: BORDER.standard, zIndex: 20, boxSizing: 'border-box' }}>STRIKE</div>
+                <div style={{ width: STRIKE_W, flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', background: COLOR.bg.elevated, borderRight: BORDER.standard, zIndex: 20, boxSizing: 'border-box' }}>STRIKE</div>
                 <div ref={peHeaderRef} onScroll={syncScroll} style={{ flex: 1, overflowX: 'auto', overflowY: 'hidden', display: 'flex' }} className="hide-scrollbar">
                     <div style={{ display: 'flex', width: PE_TOTAL_W, flexShrink: 0 }}>
                         {peCols.map(c => <div key={c} style={{ width: COLUMN_WIDTH, display: 'flex', alignItems: 'center', justifyContent: 'flex-start', padding: '0 8px', borderRight: BORDER.standard, flexShrink: 0, boxSizing: 'border-box' }}>{c}</div>)}

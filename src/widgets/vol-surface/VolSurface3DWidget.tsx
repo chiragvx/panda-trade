@@ -12,6 +12,9 @@ export const VolSurface3DWidget: React.FC = () => {
   const { selectedSymbol } = useSelectionStore();
   const { surfaceData, loading, error, hvData, refresh } = useVolSurfaceData(selectedSymbol?.instrument_key || '');
   const [showHV, setShowHV] = useState(true);
+  const [optionSide, setOptionSide] = useState<'CE' | 'PE' | 'BOTH'>('CE');
+  const [isWireframe, setIsWireframe] = useState(false);
+  const [isSmooth, setIsSmooth] = useState(true);
   const [lastSync, setLastSync] = useState<Date | null>(null);
 
   useEffect(() => {
@@ -39,6 +42,12 @@ export const VolSurface3DWidget: React.FC = () => {
         setShowHV={setShowHV} 
         loading={loading}
         lastSync={lastSync}
+        optionSide={optionSide}
+        setOptionSide={setOptionSide}
+        isWireframe={isWireframe}
+        setIsWireframe={setIsWireframe}
+        isSmooth={isSmooth}
+        setIsSmooth={setIsSmooth}
       />
 
       <div style={{ flex: 1, position: 'relative' }}>
@@ -68,7 +77,26 @@ export const VolSurface3DWidget: React.FC = () => {
               NO OPTION CHAIN DATA FOR {selectedSymbol.ticker}
            </div>
         ) : (
-          <VolSurface3DChart data={surfaceData} hv={hvData} showHV={showHV} />
+          <>
+            <VolSurface3DChart 
+              data={surfaceData} 
+              hv={hvData} 
+              showHV={showHV}
+              optionSide={optionSide}
+              isWireframe={isWireframe}
+              isSmooth={isSmooth}
+            />
+            {/* IV Legend Overlay */}
+            <div style={{ position: 'absolute', bottom: '20px', right: '20px', padding: '12px', background: 'rgba(0,0,0,0.6)', border: BORDER.standard, borderRadius: '4px', display: 'flex', flexDirection: 'column', gap: '6px', pointerEvents: 'none' }}>
+              <span style={{ fontSize: '9px', fontWeight: 'bold', color: COLOR.text.muted, textAlign: 'center', marginBottom: '4px' }}>IV% RANGE</span>
+              <div style={{ width: '12px', height: '100px', background: 'linear-gradient(to top, #3388aa 0%, #33aa33 50%, #3333aa 100%)', border: '1px solid #333' }} />
+              <div style={{ position: 'absolute', right: '36px', top: '30px', height: '100px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', fontSize: '10px', color: '#fff', textAlign: 'right', whiteSpace: 'nowrap' }}>
+                <span>80%</span>
+                <span>40%</span>
+                <span>0%</span>
+              </div>
+            </div>
+          </>
         )}
       </div>
 

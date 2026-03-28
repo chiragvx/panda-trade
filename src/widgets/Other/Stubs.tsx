@@ -48,23 +48,19 @@ export const IndicesStub = () => <GenericStub name="Indices" category="Market Da
 export const DepthStub = () => <GenericStub name="Market Depth" category="Market Data" />;
 export const ETFStub = () => <GenericStub name="ETF Scanner" category="Market Data" />;
 export const HeatmapStub = () => <GenericStub name="Heatmap" category="Market Data" />;
-export const TickerTapeStub = () => <GenericStub name="Ticker Tape" category="Market Data" />;
 
 // Analytics Stubs
 export const OIGraphStub = () => <GenericStub name="OI Graph" category="Charts & Analytics" />;
 export const IVChartStub = () => <GenericStub name="IV Chart" category="Charts & Analytics" />;
 export const VolatilitySkewStub = () => <GenericStub name="Volatility Skew" category="Charts & Analytics" />;
 export const TechnicalsStub = () => <GenericStub name="Technicals" category="Charts & Analytics" />;
-export const CandlePatternsStub = () => <GenericStub name="Candlestick Patterns" category="Charts & Analytics" />;
 export const VWapStub = () => <GenericStub name="VWAP" category="Charts & Analytics" />;
 
 // Options Stubs
 export const StraddleChainStub = () => <GenericStub name="Straddle Chain" category="Options" />;
 export const FuturesChainStub = () => <GenericStub name="Futures Chain" category="Options" />;
-export const OptionScalperStub = () => <GenericStub name="Option Scalper" category="Options" />;
 
 // Account Stubs
-export const SuperOrdersStub = () => <GenericStub name="Super Orders" category="Account" />;
 export const NotificationsStub = () => <GenericStub name="Notifications" category="Account" />;
 
 // Scalping Stubs
@@ -72,6 +68,5 @@ export const ScalperStub = () => <GenericStub name="Scalper" category="Scalping"
 export const TimeSalesStub = () => <GenericStub name="Time & Sales" category="Scalping" />;
 
 // Tools Stubs
-export const LiveScannerStub = () => <GenericStub name="Live Scanner" category="Tools" />;
 export const CorpActionsStub = () => <GenericStub name="Corporate Actions" category="Tools" />;
 export const FundamentalsStub = () => <GenericStub name="Fundamentals" category="Tools" />;
