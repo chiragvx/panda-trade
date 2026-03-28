@@ -67,6 +67,8 @@ import { FundamentalsWidget } from './widgets/Other/FundamentalsWidget';
 
 import { useLayoutStore } from './store/useStore';
 
+const VolSurface3DWidget = React.lazy(() => import('./widgets/vol-surface/VolSurface3DWidget').then(m => ({ default: m.VolSurface3DWidget })));
+
 
 interface LayoutManagerProps {
   model: Model;
@@ -108,6 +110,11 @@ const renderWidget = (id: string, node: TabNode) => {
         case 'live-scanner': return <LiveScannerStub />;
         case 'corp-actions': return <CorpActionsStub />;
         case 'fundamentals': return <FundamentalsWidget />;
+        case 'vol-surface-3d': return (
+            <React.Suspense fallback={<div className="h-full w-full bg-black flex items-center justify-center text-[10px] text-muted-foreground">LOADING 3D ENGINE...</div>}>
+                <VolSurface3DWidget />
+            </React.Suspense>
+        );
         
         // Intelligence Widgets
         case 'fii-dii': return <FIIDIITracker />;

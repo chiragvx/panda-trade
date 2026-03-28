@@ -7,6 +7,7 @@ import { COLOR, TYPE, BORDER, SPACE } from '../../ds/tokens';
 import { useSelectionStore, useLayoutStore } from '../../store/useStore';
 import { buildSymbolFromFeed } from '../../utils/liveSymbols';
 import { Button } from '../../ds/components/Button';
+import { isIsin } from '../../utils/liveSymbols';
 
 const UpstoxPortfolio: React.FC = () => {
     const { accessToken, status, prices, instrumentMeta } = useUpstoxStore();
@@ -212,7 +213,9 @@ const UpstoxPortfolio: React.FC = () => {
                                         className="hover:bg-bg-elevated transition-colors"
                                     >
                                         <td style={{ padding: '8px 12px' }}>
-                                            <span style={{ display: 'block', fontSize: TYPE.size.md, fontWeight: TYPE.weight.bold, color: COLOR.text.primary }}>{item.trading_symbol}</span>
+                                            <span style={{ display: 'block', fontSize: TYPE.size.md, fontWeight: TYPE.weight.bold, color: COLOR.text.primary }}>
+                                                {isIsin(item.trading_symbol) ? (item.name || item.trading_symbol) : item.trading_symbol}
+                                            </span>
                                             <span style={{ display: 'block', fontSize: '9px', color: COLOR.text.muted, textTransform: 'uppercase' }}>{item.product || item.exchange}</span>
                                         </td>
                                         <td style={{ padding: '8px 12px', textAlign: 'right', fontVariantNumeric: 'tabular-nums', fontSize: TYPE.size.md }}>{item.quantity}</td>

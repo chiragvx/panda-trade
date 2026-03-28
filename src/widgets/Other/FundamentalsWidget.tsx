@@ -1,8 +1,9 @@
 import React, { useMemo } from 'react';
 import { useSelectionStore } from '../../store/useStore';
 import { useUpstoxStore } from '../../store/useUpstoxStore';
-import { COLOR, TYPE, BORDER, SPACE } from '../../ds/tokens';
-import { BarChart3, TrendingUp, TrendingDown, Info, DollarSign, Activity, PieChart, Shield, AlertCircle } from 'lucide-react';
+import { COLOR, TYPE, BORDER } from '../../ds/tokens';
+import { BarChart3, TrendingUp, Info, DollarSign, Activity, PieChart, Shield, AlertCircle } from 'lucide-react';
+import { isIsin } from '../../utils/liveSymbols';
 
 const MetricCard: React.FC<{ label: string; value: string; subValue?: string; icon?: React.ReactNode; color?: string }> = ({ label, value, subValue, icon, color }) => (
   <div style={{ 
@@ -32,6 +33,18 @@ export const FundamentalsWidget: React.FC = () => {
     if (!selectedSymbol) return 0;
     return prices[selectedSymbol.instrument_key || '']?.ltp || selectedSymbol.ltp || 0;
   }, [selectedSymbol, prices]);
+
+  // Handle ISIN vs Proper Name
+  const displayTicker = useMemo(() => {
+    if (!selectedSymbol) return '';
+    return isIsin(selectedSymbol.ticker) ? (selectedSymbol.name || 'INSTRUMENT') : selectedSymbol.ticker;
+  }, [selectedSymbol]);
+
+  const displayName = useMemo(() => {
+    if (!selectedSymbol) return '';
+    if (isIsin(selectedSymbol.ticker)) return 'UPSTOX_EQUITY_DATA';
+    return selectedSymbol.name || 'INSTRUMENT OVERVIEW';
+  }, [selectedSymbol]);
 
   // Purged mock data - awaiting API integration for fundamentals
   const fundamentals = useMemo(() => {
@@ -64,10 +77,10 @@ export const FundamentalsWidget: React.FC = () => {
       <div style={{ padding: '12px 16px', borderBottom: BORDER.standard, display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: '#050505' }}>
         <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <span style={{ fontSize: '14px', fontWeight: '900', color: '#FFF' }}>{selectedSymbol.ticker}</span>
+                <span style={{ fontSize: '14px', fontWeight: '900', color: '#FFF' }}>{displayTicker}</span>
                 <span style={{ fontSize: '9px', padding: '1px 4px', background: COLOR.interactive.hover, borderRadius: '2px', color: COLOR.text.muted }}>{selectedSymbol.exchange}</span>
             </div>
-            <span style={{ fontSize: '10px', color: COLOR.text.muted, fontWeight: 'medium' }}>{selectedSymbol.name || 'INSTRUMENT OVERVIEW'}</span>
+            <span style={{ fontSize: '10px', color: COLOR.text.muted, fontWeight: 'medium' }}>{displayName}</span>
         </div>
         <div style={{ textAlign: 'right' }}>
             <span style={{ fontSize: '16px', fontWeight: 'bold', color: COLOR.semantic.info, fontFamily: TYPE.family.mono }}>₹{ltp.toFixed(2)}</span>

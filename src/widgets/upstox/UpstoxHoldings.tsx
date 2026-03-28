@@ -1,4 +1,5 @@
 import React, { useMemo, useState } from 'react';
+import { isIsin } from '../../utils/liveSymbols';
 import { useUpstoxStore } from '../../store/useUpstoxStore';
 import { useLayoutStore, useSelectionStore } from '../../store/useStore';
 import { useContextMenuStore, ContextMenuOption } from '../../store/useContextMenuStore';
@@ -150,8 +151,12 @@ const UpstoxHoldings: React.FC = () => {
         const pnl = toNumber(h?.pnl, (ltp - avgCost) * qty);
         const pnlPct = avgCost > 0 && qty > 0 ? (pnl / (avgCost * qty)) * 100 : 0;
 
+        const rawSymbol = String(h?.trading_symbol || h?.tradingsymbol || h?.symbol || '--');
+        const name = String(h?.name || h?.company_name || '');
+        const symbol = isIsin(rawSymbol) && name ? name : rawSymbol;
+
         return {
-          symbol: String(h?.trading_symbol || h?.tradingsymbol || h?.symbol || '--'),
+          symbol,
           exchange: String(h?.exchange || 'NSE'),
           quantity: qty,
           avgCost,

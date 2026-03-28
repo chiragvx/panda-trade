@@ -12,6 +12,11 @@ export const getTickerFromInstrumentKey = (instrumentKey: string): string => {
   return rawTicker.trim().toUpperCase();
 };
 
+export const isIsin = (s: string): boolean => {
+  if (!s || s.length !== 12) return false;
+  return /^[A-Z]{2}[A-Z0-9]{10}$/.test(s);
+};
+
 export const buildSymbolFromFeed = (
   instrumentKey: string,
   feed?: {
@@ -38,9 +43,19 @@ export const buildSymbolFromFeed = (
   const bid = toNumber(feed?.bid);
   const ask = toNumber(feed?.ask);
   const volume = toNumber(feed?.volume);
+  
   const derivedTicker = getTickerFromInstrumentKey(instrumentKey);
-  const ticker = String(meta?.ticker || derivedTicker).toUpperCase();
-  const name = String(meta?.name || ticker).toUpperCase();
+  
+  // Clean up ISIN tickers
+  let ticker = String(meta?.ticker || derivedTicker).toUpperCase();
+  let name = String(meta?.name || ticker).toUpperCase();
+
+  if (isIsin(ticker) && name && !isIsin(name)) {
+    // If ticker is ISIN but name is a proper name, use name as ticker 
+    // or at least favor the name in UI (handled in components)
+    // But here we can swap if they are the same or ticker is just an ID
+  }
+
   const exchange: string = meta?.exchange || (instrumentKey.startsWith('BSE') ? 'BSE' : 'NSE');
   const close = cp || ltp;
   const open = toNumber(feed?.open, close);

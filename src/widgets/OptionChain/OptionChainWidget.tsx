@@ -10,6 +10,7 @@ import { Button } from '../../ds/components/Button';
 import { Badge } from '../../ds/components/Badge';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Search, ChevronDown, Sigma, ShoppingBag, Settings2, RotateCcw } from 'lucide-react';
+import { isIsin } from '../../utils/liveSymbols';
 
 interface MarketData {
   ltp: number;
@@ -221,7 +222,7 @@ export const OptionChainWidget: React.FC = () => {
                     style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '4px 8px', background: '#000000', border: `1px solid #222222`, cursor: 'text' }}
                 >
                     <Search size={14} color={COLOR.text.muted} />
-                    <span style={{ fontSize: '11px', color: '#FFFFFF', fontWeight: 'bold' }}>{selectedSymbol?.ticker || 'SEARCH...'}</span>
+                    <span style={{ fontSize: '11px', color: '#FFFFFF', fontWeight: 'bold' }}>{isIsin(selectedSymbol?.ticker || '') ? (selectedSymbol?.name || 'SEARCH...') : (selectedSymbol?.ticker || 'SEARCH...')}</span>
                     <Badge label={`₹${currentSpot.toFixed(2)}`} variant="exchange-nse" />
                 </div>
                 

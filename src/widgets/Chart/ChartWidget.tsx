@@ -1,10 +1,11 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef, useMemo, useState } from 'react';
 import { useSelectionStore } from '../../store/useStore';
 import { COLOR, BORDER } from '../../ds/tokens';
 import { Change } from '../../ds/components/Change';
 import { Button } from '../../ds/components/Button';
 import { useLayoutStore } from '../../store/useStore';
 import { useUpstoxStore } from '../../store/useUpstoxStore';
+import { isIsin } from '../../utils/liveSymbols';
 
 declare global {
   interface Window {
@@ -18,6 +19,11 @@ export const ChartWidget: React.FC = () => {
   const { selectedSymbol } = useSelectionStore();
   const { prices } = useUpstoxStore();
   const { openOrderModal } = useLayoutStore();
+
+  const displayTicker = useMemo(() => {
+    if (!selectedSymbol) return '--';
+    return isIsin(selectedSymbol.ticker) ? (selectedSymbol.name || 'INSTRUMENT') : selectedSymbol.ticker;
+  }, [selectedSymbol]);
 
   const liveFeed = selectedSymbol?.instrument_key ? prices[selectedSymbol.instrument_key] : undefined;
   const currentPrice = selectedSymbol?.instrument_key
@@ -81,7 +87,7 @@ export const ChartWidget: React.FC = () => {
       {/* Dynamic Header */}
       <div style={{ height: '36px', borderBottom: BORDER.standard, display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 12px', background: '#0a0a0b' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-          <span style={{ fontSize: '13px', fontWeight: 'bold', color: '#fff' }}>{selectedSymbol?.ticker || '--'}</span>
+          <span style={{ fontSize: '13px', fontWeight: 'bold', color: '#fff' }}>{displayTicker}</span>
           <span style={{ fontSize: '14px', color: '#fff' }}>₹{currentPrice.toFixed(2)}</span>
           <Change value={liveChangePct} format="percent" size="sm" />
           {isIndex && <span style={{ fontSize: '9px', color: COLOR.text.muted, padding: '1px 4px', border: BORDER.standard }}>INDEX</span>}

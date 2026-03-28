@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
+import { isIsin } from '../../utils/liveSymbols';
 import { useSelectionStore, useLayoutStore, useWatchlistStore, Watchlist } from '../../store/useStore';
 import { useUpstoxStore } from '../../store/useUpstoxStore';
 import { useContextMenuStore } from '../../store/useContextMenuStore';
@@ -57,19 +58,22 @@ const WatchlistRow: React.FC<{
   const flash = usePriceFlash(price);
   const isIndex = symbol.instrument_key?.includes('_INDEX') || symbol.instrument_key?.includes('VIX');
 
+  const tickerIsIsin = isIsin(symbol.ticker);
+  const displayTicker = tickerIsIsin ? (symbol.name || 'INSTRUMENT') : (symbol.ticker || '--');
+
   const handleRightClick = (e: React.MouseEvent) => {
     e.preventDefault();
     setSelectedSymbol(symbol);
     
     const options = [
       { 
-        label: 'BUY ' + symbol.ticker, 
+        label: 'BUY ' + displayTicker, 
         icon: <ArrowUpCircle size={14} />, 
         variant: 'info' as const,
         onClick: () => { openOrderModal('BUY'); } 
       },
       { 
-        label: 'SELL ' + symbol.ticker, 
+        label: 'SELL ' + displayTicker, 
         icon: <ArrowDownCircle size={14} />, 
         variant: 'danger' as const,
         onClick: () => { openOrderModal('SELL'); } 
@@ -154,7 +158,7 @@ const WatchlistRow: React.FC<{
                             overflow: 'hidden',
                             textOverflow: 'ellipsis'
                         }}>
-                        {symbol.ticker || '--'}
+                        {displayTicker}
                         </span>
                         <Badge label={symbol.exchange} variant={symbol.exchange === 'NSE' ? 'exchange-nse' : 'exchange-bse'} />
                     </div>

@@ -292,6 +292,34 @@ export const upstoxApi = {
     });
   },
 
+  getOptionChainBulk: async (token: string, instrumentKey: string, expiries: string[]) => {
+    // Parallel fetch up to 8 expiries to avoid long waterfalls
+    const results = await Promise.allSettled(
+      expiries.slice(0, 8).map(expiry => 
+        upstoxApi.getOptionChain(token, instrumentKey, expiry)
+      )
+    );
+    
+    return results.map(r => r.status === 'fulfilled' ? r.value : null).filter(Boolean);
+  },
+
+  getHistoricalVolatility: async (token: string, instrumentKey: string, lookback: number = 100) =>
+    guardedRequest(`hist-vol:${token.slice(-8)}:${instrumentKey}:${lookback}`, 3600000, async () => {
+      const now = new Date();
+      const past = new Date(now.getTime() - (lookback + 20) * 24 * 60 * 60 * 1000); // Buffer for market holidays
+      
+      const toDate = now.toISOString().split('T')[0];
+      const fromDate = past.toISOString().split('T')[0];
+      
+      const response = await api.get(
+        `${BASE_URL}/historical-candle/${encodeURIComponent(instrumentKey)}/day/${toDate}/${fromDate}`,
+        {
+          headers: authHeaders(token),
+        }
+      );
+      return response.data;
+    }),
+
   getOptionChain: async (token: string, instrumentKey: string, expiry: string) =>
     guardedRequest(`opt-chain:${token.slice(-8)}:${instrumentKey}:${expiry}`, 1500, async () => {
       let key = instrumentKey;

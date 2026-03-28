@@ -100,6 +100,14 @@ export const WIDGET_REGISTRY: Record<string, WidgetConfig> = {
     singleton: false,
     category: 'Charts & Analytics',
   },
+  'vol-surface-3d': {
+    id: 'vol-surface-3d',
+    displayName: 'Volatility Surface (3D)',
+    icon: 'Mountain',
+    shortcut: 'Alt+V',
+    singleton: false,
+    category: 'Charts & Analytics',
+  },
   technicals: {
     id: 'technicals',
     displayName: 'Technicals',

@@ -3,6 +3,7 @@ import { useSelectionStore } from '../../store/useStore';
 import { useUpstoxStore } from '../../store/useUpstoxStore';
 import { COLOR, TYPE, BORDER } from '../../ds/tokens';
 import { motion } from 'framer-motion';
+import { isIsin } from '../../utils/liveSymbols';
 
 const EMPTY_TAPE_TRADES: Array<{ time: string; price: number; qty: number; side: 'BUY' | 'SELL' }> = [];
 
@@ -12,6 +13,11 @@ export const MarketDepthWidget: React.FC = () => {
   const [view, setView] = useState<'DEPTH' | 'TAPE'>('DEPTH');
   const selectedKey = selectedSymbol?.instrument_key || '';
   const liveFeed = selectedKey ? prices[selectedKey] : undefined;
+
+  const displayTicker = useMemo(() => {
+    if (!selectedSymbol) return '--';
+    return isIsin(selectedSymbol.ticker) ? (selectedSymbol.name || 'INSTRUMENT') : selectedSymbol.ticker;
+  }, [selectedSymbol]);
 
   const ltp = selectedKey
     ? Number(liveFeed?.ltp ?? selectedSymbol?.ltp ?? 0)
@@ -82,7 +88,7 @@ export const MarketDepthWidget: React.FC = () => {
           </div>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-          <span style={{ fontSize: '10px', color: COLOR.text.primary, fontWeight: 'bold' }}>{selectedSymbol?.ticker || '--'}</span>
+          <span style={{ fontSize: '10px', color: COLOR.text.primary, fontWeight: 'bold' }}>{displayTicker}</span>
           <span style={{ fontSize: '10px', color: COLOR.text.muted }}>₹{ltp.toFixed(2)}</span>
         </div>
       </div>

@@ -3,6 +3,7 @@ import { TabNode } from 'flexlayout-react';
 import { useSelectionStore } from '../../store/useStore';
 import { ShieldCheck, Zap } from 'lucide-react';
 import { COLOR, TYPE, BORDER, SPACE } from '../../ds/tokens';
+import { isIsin } from '../../utils/liveSymbols';
 
 interface OrderEntryWidgetProps {
     node?: TabNode;
@@ -12,8 +13,11 @@ export const OrderEntryWidget: React.FC<OrderEntryWidgetProps> = ({ node }) => {
     const { selectedSymbol: globalSymbol } = useSelectionStore();
     const [mode, setMode] = useState<'BUY' | 'SELL'>('BUY');
     const [symbol, setSymbol] = useState(globalSymbol?.ticker || '');
+    const [name, setName] = useState(globalSymbol?.name || '');
     const [price, setPrice] = useState('0.00');
     const [qty, setQty] = useState('1');
+
+    const displaySymbol = isIsin(symbol) ? (name || 'INSTRUMENT') : symbol;
 
     useEffect(() => {
         if (node) {
@@ -29,6 +33,7 @@ export const OrderEntryWidget: React.FC<OrderEntryWidgetProps> = ({ node }) => {
     useEffect(() => {
         if (!node && globalSymbol) {
             setSymbol(globalSymbol.ticker);
+            setName(globalSymbol.name);
             setPrice(globalSymbol.ltp.toString());
         }
     }, [globalSymbol, node]);
@@ -69,7 +74,7 @@ export const OrderEntryWidget: React.FC<OrderEntryWidgetProps> = ({ node }) => {
                         {mode === 'BUY' ? 'B' : 'S'}
                     </div>
                     <div>
-                        <div style={{ fontSize: '12px', fontWeight: TYPE.weight.bold, textTransform: 'uppercase' }}>{symbol || 'WAITING_FOR_CTX'}</div>
+                        <div style={{ fontSize: '12px', fontWeight: TYPE.weight.bold, textTransform: 'uppercase' }}>{displaySymbol || 'WAITING_FOR_CTX'}</div>
                         <div style={{ fontSize: '9px', color: COLOR.text.muted, textTransform: 'uppercase' }}>LIMIT_ORDER_ENTRY</div>
                     </div>
                 </div>
