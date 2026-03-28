@@ -3,6 +3,10 @@ import { AreaChart, Area, ResponsiveContainer } from 'recharts';
 import { Ship, Map as MapIcon, Table } from 'lucide-react';
 import { useNSEData } from '../../hooks/useNSEData';
 import { COLOR, TYPE, BORDER } from '../../ds/tokens';
+import { WidgetShell } from '../../ds/components/WidgetShell';
+import { SegmentedControl } from '../../ds/components/SegmentedControl';
+import { DataTable } from '../../ds/components/DataTable';
+import { EmptyState } from '../../ds/components/EmptyState';
 
 interface PortData {
   name: string;
@@ -47,44 +51,65 @@ const PortMonitor: React.FC = () => {
   const [selectedPort, setSelectedPort] = useState<PortData | null>(null);
   const [viewMode, setViewMode] = useState<'map' | 'table'>('table');
 
+  const columns = [
+    { 
+        key: 'name', 
+        label: 'PRIMARY_PORT', 
+        render: (val: string, item: any) => (
+            <div>
+                <div style={{ fontSize: '11px', fontWeight: TYPE.weight.bold, color: COLOR.text.primary }}>{val.replace(/_/g, ' ')}</div>
+                <div style={{ fontSize: '8px', color: COLOR.text.muted, textTransform: 'uppercase' }}>{item.type}</div>
+            </div>
+        )
+    },
+    { 
+        key: 'activityChangePct', 
+        label: 'ACTIVITY_7D_CHG', 
+        align: 'right' as const,
+        render: (val: number) => (
+            <div style={{ fontSize: '11px', fontWeight: TYPE.weight.bold, color: val >= 0 ? COLOR.semantic.up : COLOR.semantic.down }}>
+                {val >= 0 ? '+' : ''}{val.toFixed(2)}%
+            </div>
+        )
+    },
+    { 
+        key: 'proxyReturnPct', 
+        label: 'PROXY_RETURN', 
+        align: 'right' as const,
+        render: (val: number) => (
+            <span style={{ fontSize: '11px', fontWeight: TYPE.weight.bold, color: val >= 0 ? COLOR.semantic.up : COLOR.semantic.down }}>
+                {val >= 0 ? '+' : ''}{val.toFixed(2)}%
+            </span>
+        )
+    },
+    { 
+        key: 'correlationRank', 
+        label: 'CORRELATION_RANK', 
+        align: 'right' as const,
+        render: (val: string) => (
+            <span style={{ fontSize: '8px', fontWeight: TYPE.weight.bold, color: COLOR.text.muted, border: `1px solid ${COLOR.bg.border}`, padding: '2px 6px', textTransform: 'uppercase' }}>
+                {val}
+            </span>
+        )
+    }
+  ];
+
   return (
-    <div style={{ height: '100%', display: 'flex', flexDirection: 'column', background: COLOR.bg.base, fontFamily: TYPE.family.mono }}>
-      <div style={{ padding: '8px 12px', borderBottom: BORDER.standard, background: COLOR.bg.surface, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <div style={{ display: 'flex', background: COLOR.bg.elevated, border: BORDER.standard }}>
-          <button
-            onClick={() => setViewMode('map')}
-            style={{
-              padding: '4px 12px',
-              fontSize: '9px',
-              fontWeight: TYPE.weight.bold,
-              background: viewMode === 'map' ? COLOR.interactive.selected : 'transparent',
-              color: viewMode === 'map' ? COLOR.semantic.info : COLOR.text.muted,
-              border: 'none',
-              cursor: 'pointer',
-            }}
-          >
-            <MapIcon size={10} style={{ marginRight: '6px', verticalAlign: 'middle' }} /> MAP_VISUAL
-          </button>
-          <button
-            onClick={() => setViewMode('table')}
-            style={{
-              padding: '4px 12px',
-              fontSize: '9px',
-              fontWeight: TYPE.weight.bold,
-              background: viewMode === 'table' ? COLOR.interactive.selected : 'transparent',
-              color: viewMode === 'table' ? COLOR.semantic.info : COLOR.text.muted,
-              borderLeft: BORDER.standard,
-              cursor: 'pointer',
-            }}
-          >
-            <Table size={10} style={{ marginRight: '6px', verticalAlign: 'middle' }} /> CORRELATION_MATRIX
-          </button>
-        </div>
+    <WidgetShell>
+      <WidgetShell.Toolbar>
+        <SegmentedControl 
+            options={[
+                { label: 'MAP_VISUAL', value: 'map', icon: <MapIcon size={10} /> },
+                { label: 'CORRELATION_MATRIX', value: 'table', icon: <Table size={10} /> }
+            ]}
+            value={viewMode}
+            onChange={(v) => setViewMode(v as any)}
+        />
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px', opacity: 0.6 }}>
           <Ship size={12} style={{ color: COLOR.semantic.info }} />
           <span style={{ fontSize: '8px', fontWeight: TYPE.weight.bold, color: COLOR.text.muted, textTransform: 'uppercase' }}>LIVE_FEED_ONLY</span>
         </div>
-      </div>
+      </WidgetShell.Toolbar>
 
       <div style={{ flex: 1, position: 'relative', display: 'flex', overflow: 'hidden' }}>
         {selectedPort && (
@@ -127,59 +152,30 @@ const PortMonitor: React.FC = () => {
         )}
 
         {viewMode === 'map' ? (
-          <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', background: COLOR.bg.base, color: COLOR.text.muted, fontSize: '9px', fontWeight: TYPE.weight.bold, textTransform: 'uppercase', letterSpacing: TYPE.letterSpacing.caps }}>
-            MAP_ENGINE_OFFLINE
-          </div>
+          <EmptyState 
+            icon={<MapIcon size={32} />} 
+            message="MAP_ENGINE_OFFLINE" 
+            subMessage="Geospatial visualization requires active GPS feed and mapping tile server connection."
+          />
         ) : (
-          <div style={{ flex: 1, overflowY: 'auto' }} className="custom-scrollbar">
-            <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
-              <thead>
-                <tr style={{ background: COLOR.bg.surface, borderBottom: BORDER.standard }}>
-                  <th style={{ padding: '8px 12px', fontSize: '8px', fontWeight: TYPE.weight.bold, color: COLOR.text.muted, textTransform: 'uppercase' }}>PRIMARY_PORT</th>
-                  <th style={{ padding: '8px 12px', fontSize: '8px', fontWeight: TYPE.weight.bold, color: COLOR.text.muted, textTransform: 'uppercase', textAlign: 'right' }}>ACTIVITY_7D_CHG</th>
-                  <th style={{ padding: '8px 12px', fontSize: '8px', fontWeight: TYPE.weight.bold, color: COLOR.text.muted, textTransform: 'uppercase', textAlign: 'right' }}>PROXY_RETURN</th>
-                  <th style={{ padding: '8px 12px', fontSize: '8px', fontWeight: TYPE.weight.bold, color: COLOR.text.muted, textTransform: 'uppercase', textAlign: 'right' }}>CORRELATION_RANK</th>
-                </tr>
-              </thead>
-              <tbody>
-                {ports.length === 0 ? (
-                  <tr>
-                    <td colSpan={4} style={{ padding: '20px', textAlign: 'center', color: COLOR.text.muted, fontSize: '10px' }}>
-                      NO PORT MONITOR DATA
-                    </td>
-                  </tr>
-                ) : (
-                  ports.map((port, i) => (
-                    <tr key={i} style={{ borderBottom: BORDER.standard, cursor: 'pointer' }} className="hover:bg-interactive-hover transition-colors" onClick={() => setSelectedPort(port)}>
-                      <td style={{ padding: '12px' }}>
-                        <div style={{ fontSize: '11px', fontWeight: TYPE.weight.bold, color: COLOR.text.primary }}>{port.name.replace(/_/g, ' ')}</div>
-                        <div style={{ fontSize: '8px', color: COLOR.text.muted, textTransform: 'uppercase' }}>{port.type}</div>
-                      </td>
-                      <td style={{ padding: '12px', textAlign: 'right' }}>
-                        <div style={{ fontSize: '11px', fontWeight: TYPE.weight.bold, color: port.activityChangePct >= 0 ? COLOR.semantic.up : COLOR.semantic.down, fontVariantNumeric: 'tabular-nums' }}>
-                          {port.activityChangePct >= 0 ? '+' : ''}{port.activityChangePct.toFixed(2)}%
-                        </div>
-                      </td>
-                      <td style={{ padding: '12px', textAlign: 'right' }}>
-                        <span style={{ fontSize: '11px', fontWeight: TYPE.weight.bold, color: port.proxyReturnPct >= 0 ? COLOR.semantic.up : COLOR.semantic.down, fontVariantNumeric: 'tabular-nums' }}>
-                          {port.proxyReturnPct >= 0 ? '+' : ''}{port.proxyReturnPct.toFixed(2)}%
-                        </span>
-                      </td>
-                      <td style={{ padding: '12px', textAlign: 'right' }}>
-                        <span style={{ fontSize: '8px', fontWeight: TYPE.weight.bold, color: COLOR.text.muted, border: `1px solid ${COLOR.bg.border}`, padding: '2px 6px', textTransform: 'uppercase' }}>
-                          {port.correlationRank}
-                        </span>
-                      </td>
-                    </tr>
-                  ))
-                )}
-              </tbody>
-            </table>
-          </div>
+          ports.length === 0 ? (
+            <EmptyState 
+                icon={<Table size={32} />} 
+                message="NO PORT MONITOR DATA" 
+                subMessage="Waiting for global port activity data stream synchronization."
+            />
+          ) : (
+            <DataTable 
+                data={ports}
+                columns={columns}
+                onRowClick={(item) => setSelectedPort(item)}
+            />
+          )
         )}
       </div>
-    </div>
+    </WidgetShell>
   );
 };
 
 export default PortMonitor;
+

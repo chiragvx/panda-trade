@@ -323,13 +323,22 @@ export const upstoxApi = {
   getOptionChain: async (token: string, instrumentKey: string, expiry: string) =>
     guardedRequest(`opt-chain:${token.slice(-8)}:${instrumentKey}:${expiry}`, 1500, async () => {
       let key = instrumentKey;
-      if (key.toUpperCase().includes('NIFTY 50')) key = 'NSE_INDEX|Nifty 50';
-      if (key.toUpperCase().includes('BANK')) key = 'NSE_INDEX|Nifty Bank';
-      if (key.toUpperCase().includes('FIN')) key = 'NSE_INDEX|Nifty Fin Service';
+      if (key.toUpperCase().includes('NIFTY 50') || key.toUpperCase() === 'NIFTY') key = 'NSE_INDEX|Nifty 50';
+      else if (key.toUpperCase().includes('BANK') || key.toUpperCase() === 'BANKNIFTY') key = 'NSE_INDEX|Nifty Bank';
+      else if (key.toUpperCase().includes('FIN') || key.toUpperCase() === 'FINNIFTY') key = 'NSE_INDEX|Nifty Fin Service';
+      else if (key.toUpperCase().includes('MIDCAP') || key.toUpperCase() === 'MIDCPNIFTY') key = 'NSE_INDEX|Nifty Midcap 150';
       
-      const encodedKey = encodeURIComponent(key).replace(/\+/g, '%20');
-      const response = await api.get(`${BASE_URL}/option/chain?instrument_key=${encodedKey}&expiry_date=${expiry}`, {
-        headers: authHeaders(token),
+      const response = await api.get(`${BASE_URL}/option/chain`, {
+          params: { instrument_key: key, expiry_date: expiry },
+          headers: {
+              ...authHeaders(token),
+              'Content-Type': 'application/json'
+          },
+          paramsSerializer: params => {
+              return Object.entries(params)
+                  .map(([k, v]) => `${k}=${encodeURIComponent(String(v)).replace(/\+/g, '%20')}`)
+                  .join('&');
+          }
       });
       return response.data;
     }),
@@ -337,14 +346,31 @@ export const upstoxApi = {
   getExpiries: async (token: string, instrumentKey: string) =>
     guardedRequest(`expiries:${token.slice(-8)}:${instrumentKey}`, 3600000, async () => {
       let key = instrumentKey;
-      if (key.toUpperCase().includes('NIFTY 50')) key = 'NSE_INDEX|Nifty 50';
-      if (key.toUpperCase().includes('BANK')) key = 'NSE_INDEX|Nifty Bank';
-      if (key.toUpperCase().includes('FIN')) key = 'NSE_INDEX|Nifty Fin Service';
+      if (key.toUpperCase().includes('NIFTY 50') || key.toUpperCase() === 'NIFTY') key = 'NSE_INDEX|Nifty 50';
+      else if (key.toUpperCase().includes('BANK') || key.toUpperCase() === 'BANKNIFTY') key = 'NSE_INDEX|Nifty Bank';
+      else if (key.toUpperCase().includes('FIN') || key.toUpperCase() === 'FINNIFTY') key = 'NSE_INDEX|Nifty Fin Service';
+      else if (key.toUpperCase().includes('MIDCAP') || key.toUpperCase() === 'MIDCPNIFTY') key = 'NSE_INDEX|Nifty Midcap 150';
 
-      const encodedKey = encodeURIComponent(key).replace(/\+/g, '%20');
-      const response = await api.get(`${BASE_URL}/option/expiry?instrument_key=${encodedKey}`, {
-        headers: authHeaders(token),
+      // Use /option/contract to get ACTIVE contracts and extract their expiries
+      const response = await api.get(`${BASE_URL}/option/contract`, {
+          params: { instrument_key: key },
+          headers: {
+              ...authHeaders(token),
+              'Content-Type': 'application/json'
+          },
+          paramsSerializer: params => {
+              return Object.entries(params)
+                  .map(([k, v]) => `${k}=${encodeURIComponent(String(v)).replace(/\+/g, '%20')}`)
+                  .join('&');
+          }
       });
+      
+      if (response.data.status === 'success' && Array.isArray(response.data.data)) {
+          // Extract unique expiry dates
+          const uniqueExpiries = [...new Set(response.data.data.map((item: any) => item.expiry))].sort();
+          return { status: 'success', data: uniqueExpiries };
+      }
+      
       return response.data;
     }),
 };

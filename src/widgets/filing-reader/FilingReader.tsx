@@ -2,7 +2,9 @@ import React, { useState, useMemo } from 'react';
 import { useGlobalStore } from '../../store/globalStore';
 import { useNSEData } from '../../hooks/useNSEData';
 import { Filter, Sparkles, AlertCircle, ChevronDown, ChevronUp } from 'lucide-react';
-import { COLOR, TYPE, BORDER } from '../../ds/tokens';
+import { COLOR, TYPE, BORDER, SPACE } from '../../ds/tokens';
+import { WidgetShell } from '../../ds/components/WidgetShell';
+import { EmptyState } from '../../ds/components/EmptyState';
 
 interface Filing {
   symbol: string;
@@ -76,79 +78,82 @@ const FilingReader: React.FC = () => {
   );
 
   return (
-    <div style={{ height: '100%', display: 'flex', flexDirection: 'column', background: COLOR.bg.base, fontFamily: TYPE.family.mono }}>
-      <div style={{ padding: '8px 12px', borderBottom: BORDER.standard, background: COLOR.bg.surface, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-          <Filter size={12} style={{ color: COLOR.text.muted }} />
-          <select
-            style={{ background: 'none', border: 'none', color: COLOR.text.secondary, fontSize: '9px', fontWeight: TYPE.weight.bold, outline: 'none', cursor: 'pointer', fontFamily: TYPE.family.mono }}
-            value={filterCategory}
-            onChange={(e) => setFilterCategory(e.target.value)}
-          >
-            <option value="all">ALL_FILINGS</option>
-            {categories.map((c) => <option key={c} value={c}>{c}</option>)}
-          </select>
-        </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', opacity: 0.6 }}>
-          <Sparkles size={10} style={{ color: COLOR.semantic.warning }} />
-          <span style={{ fontSize: '8px', fontWeight: TYPE.weight.bold, color: COLOR.text.muted, textTransform: 'uppercase' }}>LIVE_EXTRACTION</span>
-        </div>
-      </div>
-
-      <div style={{ flex: 1, overflowY: 'auto' }} className="custom-scrollbar">
-        {filteredFilings.map((filing, idx) => (
-          <div
-            key={idx}
-            style={{
-              borderBottom: BORDER.standard,
-              background: filing.priority === 'high' ? `${COLOR.semantic.warning}05` : COLOR.bg.base,
-              position: 'relative',
-            }}
-          >
-            <div style={{ padding: '12px', cursor: 'pointer' }} onClick={() => setExpandedId(expandedId === idx ? null : idx)}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  <span style={{ fontSize: '8px', fontWeight: TYPE.weight.bold, color: getCategoryColor(filing.category), border: `1px solid ${getCategoryColor(filing.category)}40`, padding: '1px 4px', background: COLOR.bg.surface }}>{filing.category}</span>
-                  <span style={{ fontSize: '9px', fontWeight: TYPE.weight.bold, color: COLOR.text.primary }}>{filing.symbol || '--'}</span>
-                  {filing.priority === 'high' && <AlertCircle size={10} style={{ color: COLOR.semantic.warning }} />}
-                </div>
-                <span style={{ fontSize: '8px', color: COLOR.text.muted }}>{filing.timestamp}</span>
-              </div>
-
-              <div style={{ display: 'flex', gap: '12px', alignItems: 'start' }}>
-                <div style={{ flex: 1, fontSize: '11px', fontWeight: TYPE.weight.medium, color: COLOR.text.primary, lineHeight: '1.4' }}>{filing.headline}</div>
-                {filing.keyNumber && (
-                  <span style={{ fontSize: '12px', fontWeight: TYPE.weight.bold, color: filing.sentiment === 'positive' ? COLOR.semantic.up : COLOR.semantic.down, fontVariantNumeric: 'tabular-nums' }}>
-                    {filing.keyNumber}
-                  </span>
-                )}
-                <div style={{ color: COLOR.text.muted }}>{expandedId === idx ? <ChevronUp size={12} /> : <ChevronDown size={12} />}</div>
-              </div>
+    <WidgetShell>
+        <WidgetShell.Toolbar>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <Filter size={12} style={{ color: COLOR.text.muted }} />
+                <select
+                    style={{ background: 'none', border: 'none', color: COLOR.text.secondary, fontSize: '9px', fontWeight: TYPE.weight.bold, outline: 'none', cursor: 'pointer', fontFamily: TYPE.family.mono, textTransform: 'uppercase' }}
+                    value={filterCategory}
+                    onChange={(e) => setFilterCategory(e.target.value)}
+                >
+                    <option value="all">ALL_FILINGS</option>
+                    {categories.map((c) => <option key={c} value={c}>{c}</option>)}
+                </select>
             </div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', opacity: 0.6 }}>
+                <Sparkles size={10} style={{ color: COLOR.semantic.warning }} />
+                <span style={{ fontSize: '8px', fontWeight: TYPE.weight.bold, color: COLOR.text.muted, textTransform: 'uppercase' }}>LIVE_EXTRACTION</span>
+            </div>
+        </WidgetShell.Toolbar>
 
-            {expandedId === idx && (
-              <div style={{ padding: '0 12px 12px 12px', background: COLOR.bg.surface, borderTop: BORDER.standard }}>
-                <div style={{ fontSize: '10px', color: COLOR.text.secondary, lineHeight: '1.6', paddingTop: '10px' }}>{filing.fullText || 'No full filing text available.'}</div>
-                <div style={{ marginTop: '10px', display: 'flex', gap: '12px' }}>
-                  <button style={{ background: 'none', border: 'none', color: COLOR.semantic.info, fontSize: '9px', fontWeight: TYPE.weight.bold, padding: 0, cursor: 'pointer' }} className="hover:underline">
-                    VIEW_EXCHANGE_SOURCE
-                  </button>
-                  <button style={{ background: 'none', border: 'none', color: COLOR.text.muted, fontSize: '9px', fontWeight: TYPE.weight.bold, padding: 0, cursor: 'pointer' }} className="hover:underline">
-                    SENTIMENT_ANALYSIS
-                  </button>
-                </div>
-              </div>
+        <div style={{ flex: 1, overflowY: 'auto' }} className="custom-scrollbar">
+            {filteredFilings.length === 0 ? (
+                <EmptyState 
+                    icon={<AlertCircle size={32} />}
+                    message="NO_ACTIVE_FILINGS"
+                    subMessage="Monitoring exchange feeds for live corporate disclosures and regulatory announcements."
+                />
+            ) : (
+                filteredFilings.map((filing, idx) => (
+                    <div
+                        key={idx}
+                        style={{
+                            borderBottom: BORDER.standard,
+                            background: filing.priority === 'high' ? `${COLOR.semantic.warning}05` : 'transparent',
+                            position: 'relative',
+                        }}
+                        className="hover:bg-bg-elevated transition-colors"
+                    >
+                        <div style={{ padding: '12px', cursor: 'pointer' }} onClick={() => setExpandedId(expandedId === idx ? null : idx)}>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                    <span style={{ fontSize: '9px', fontWeight: TYPE.weight.bold, color: getCategoryColor(filing.category), border: `1px solid ${getCategoryColor(filing.category)}40`, padding: '1px 4px', background: COLOR.bg.surface }}>{filing.category}</span>
+                                    <span style={{ fontSize: '10px', fontWeight: TYPE.weight.bold, color: COLOR.text.primary }}>{filing.symbol || '--'}</span>
+                                    {filing.priority === 'high' && <AlertCircle size={10} style={{ color: COLOR.semantic.warning }} />}
+                                </div>
+                                <span style={{ fontSize: '9px', color: COLOR.text.muted, fontWeight: TYPE.weight.bold }}>{filing.timestamp}</span>
+                            </div>
+
+                            <div style={{ display: 'flex', gap: '12px', alignItems: 'start' }}>
+                                <div style={{ flex: 1, fontSize: '11px', fontWeight: TYPE.weight.medium, color: COLOR.text.primary, lineHeight: '1.4' }}>{filing.headline}</div>
+                                {filing.keyNumber && (
+                                    <span style={{ fontSize: '12px', fontWeight: TYPE.weight.bold, color: filing.sentiment === 'positive' ? COLOR.semantic.up : COLOR.semantic.down, fontVariantNumeric: 'tabular-nums' }}>
+                                        {filing.keyNumber}
+                                    </span>
+                                )}
+                                <div style={{ color: COLOR.text.muted, marginTop: '2px' }}>{expandedId === idx ? <ChevronUp size={12} /> : <ChevronDown size={12} />}</div>
+                            </div>
+                        </div>
+
+                        {expandedId === idx && (
+                            <div style={{ padding: '12px', background: COLOR.bg.surface, borderTop: BORDER.standard, borderBottom: BORDER.standard }}>
+                                <div style={{ fontSize: '11px', color: COLOR.text.secondary, lineHeight: '1.6', background: COLOR.bg.elevated, padding: '10px', border: BORDER.standard }}>{filing.fullText || 'No full filing text available.'}</div>
+                                <div style={{ marginTop: '12px', display: 'flex', gap: '12px' }}>
+                                    <button style={{ background: 'none', border: BORDER.standard, padding: '4px 8px', color: COLOR.semantic.info, fontSize: '9px', fontWeight: TYPE.weight.bold, cursor: 'pointer' }} className="hover:opacity-80">
+                                        VIEW_EXCHANGE_SOURCE
+                                    </button>
+                                    <button style={{ background: 'none', border: BORDER.standard, padding: '4px 8px', color: COLOR.text.muted, fontSize: '9px', fontWeight: TYPE.weight.bold, cursor: 'pointer' }} className="hover:opacity-80">
+                                        SENTIMENT_ANALYSIS
+                                    </button>
+                                </div>
+                            </div>
+                        )}
+                    </div>
+                ))
             )}
-          </div>
-        ))}
-
-        {filteredFilings.length === 0 && (
-          <div style={{ height: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '40px', opacity: 0.3 }}>
-            <span style={{ fontSize: '9px', fontWeight: TYPE.weight.bold, color: COLOR.text.muted, textTransform: 'uppercase', letterSpacing: TYPE.letterSpacing.caps }}>NO_ACTIVE_FILINGS</span>
-          </div>
-        )}
-      </div>
-    </div>
+        </div>
+    </WidgetShell>
   );
 };
 

@@ -1,11 +1,15 @@
 import React, { useEffect, useState } from 'react';
 import { useUpstoxStore } from '../../store/useUpstoxStore';
 import { upstoxApi } from '../../services/upstoxApi';
-import { ShoppingBag, RefreshCw, AlertCircle, ShoppingCart } from 'lucide-react';
-import { COLOR, TYPE, BORDER, SPACE } from '../../ds/tokens';
+import { RefreshCw, ShoppingBag } from 'lucide-react';
+import { COLOR, TYPE } from '../../ds/tokens';
 import { useSelectionStore, useLayoutStore } from '../../store/useStore';
 import { buildSymbolFromFeed } from '../../utils/liveSymbols';
-import { Button } from '../../ds/components/Button';
+import { WidgetShell } from '../../ds/components/WidgetShell';
+import { StatusBanner } from '../../ds/components/StatusBanner';
+import { DataTable } from '../../ds/components/DataTable';
+import { EmptyState } from '../../ds/components/EmptyState';
+import { HoverActions } from '../../ds/components/HoverActions';
 
 const UpstoxOrders: React.FC = () => {
     const { accessToken, status, prices, instrumentMeta } = useUpstoxStore();
@@ -45,149 +49,115 @@ const UpstoxOrders: React.FC = () => {
         }
     };
 
-    return (
-        <div style={{ height: '100%', display: 'flex', flexDirection: 'column', background: COLOR.bg.base, overflow: 'hidden', fontFamily: TYPE.family.mono }}>
-            
-            {/* Connection Status Banner */}
-            {status !== 'connected' && (
-                <div style={{ 
-                    padding: '2px 8px', background: '#450a0a', borderBottom: BORDER.standard,
-                    display: 'flex', alignItems: 'center', gap: '8px', justifyContent: 'center'
-                }}>
-                    <AlertCircle size={10} color={COLOR.semantic.down} />
-                    <span style={{ fontSize: '9px', fontWeight: 'bold', color: COLOR.semantic.down, letterSpacing: '0.05em' }}>
-                        DISCONNECTED - STALE ORDER BOOK [{new Date().toLocaleTimeString()}]
-                    </span>
+    const handleSelect = (order: any) => {
+        const meta = instrumentMeta[order.instrument_token] || {
+            ticker: order.trading_symbol,
+            name: order.trading_symbol,
+            exchange: order.exchange as any
+        };
+        const symbol = buildSymbolFromFeed(order.instrument_token, prices[order.instrument_token], meta);
+        setSelectedSymbol(symbol);
+    };
+
+    const handleAction = (order: any, type: 'BUY' | 'SELL') => {
+        handleSelect(order);
+        setTimeout(() => openOrderModal(type), 0);
+    };
+
+    const columns = [
+        { 
+            key: 'order_timestamp', 
+            label: 'TIME', 
+            width: 80,
+            render: (val: string) => <span style={{ color: COLOR.text.muted, fontSize: '10px' }}>{val?.split(' ')[1] || '--:--:--'}</span>
+        },
+        { 
+            key: 'trading_symbol', 
+            label: 'SYMBOL', 
+            render: (val: string, item: any) => (
+                <div>
+                    <div style={{ fontWeight: 'bold' }}>{val}</div>
+                    <div style={{ fontSize: '9px', color: COLOR.text.muted }}>{item.exchange}</div>
                 </div>
+            )
+        },
+        { 
+            key: 'transaction_type', 
+            label: 'TYPE', 
+            width: 60,
+            render: (val: string) => (
+                <span style={{ fontWeight: 'bold', color: val === 'BUY' ? COLOR.semantic.up : COLOR.semantic.down }}>
+                    {val}
+                </span>
+            )
+        },
+        { key: 'quantity', label: 'QTY', align: 'right' as const, width: 60 },
+        { 
+            key: 'price', 
+            label: 'PRICE', 
+            align: 'right' as const, 
+            width: 80,
+            render: (val: any, item: any) => val || item.average_price || '--'
+        },
+        { 
+            key: 'status', 
+            label: 'STATUS', 
+            align: 'right' as const, 
+            width: 100,
+            render: (val: string, item: any, idx: number) => (
+                <div style={{ position: 'relative', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'flex-end' }}
+                     onMouseEnter={() => setHoveredIndex(idx)}
+                     onMouseLeave={() => setHoveredIndex(null)}>
+                    <span style={{ fontWeight: 'bold', color: getStatusColor(val), fontSize: '10px' }}>
+                        {val.toUpperCase()}
+                    </span>
+                    <HoverActions 
+                        isVisible={hoveredIndex === idx}
+                        onBuy={() => handleAction(item, 'BUY')}
+                        onSell={() => handleAction(item, 'SELL')}
+                    />
+                </div>
+            )
+        }
+    ];
+
+    return (
+        <WidgetShell>
+            {status !== 'connected' && (
+                <StatusBanner 
+                    variant="disconnected" 
+                    message={`DISCONNECTED - STALE ORDER BOOK [${new Date().toLocaleTimeString()}]`} 
+                />
             )}
 
-            <div style={{ padding: '8px 12px', borderBottom: BORDER.standard, background: COLOR.bg.surface, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                 <span style={{ fontSize: TYPE.size.xs, fontWeight: TYPE.weight.bold, color: COLOR.text.primary, textTransform: 'uppercase', letterSpacing: TYPE.letterSpacing.caps, display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <WidgetShell.Toolbar>
+                 <span style={{ fontSize: TYPE.size.xs, fontWeight: TYPE.weight.bold, textTransform: 'uppercase', letterSpacing: TYPE.letterSpacing.caps, display: 'flex', alignItems: 'center', gap: '8px' }}>
                     ORDER_BOOK [DLY]
                  </span>
-                 <button onClick={fetchOrders} style={{ 
-                     background: 'none', 
-                     border: 'none', 
-                     color: COLOR.text.muted, 
-                     cursor: 'pointer',
-                     display: 'flex',
-                     alignItems: 'center'
-                 }} className={loading ? 'animate-spin' : 'hover:text-text-primary'}>
+                 <button onClick={fetchOrders} style={{ background: 'none', border: 'none', color: COLOR.text.muted, cursor: 'pointer' }} className={loading ? 'animate-spin' : 'hover:text-text-primary'}>
                     <RefreshCw size={12} />
                  </button>
-            </div>
+            </WidgetShell.Toolbar>
 
-            <div style={{ flex: 1, overflowY: 'auto', background: COLOR.bg.base }} className="custom-scrollbar">
-                <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: TYPE.size.sm }}>
-                    <thead style={{ position: 'sticky', top: 0, background: COLOR.bg.surface, borderBottom: BORDER.standard, zIndex: 1 }}>
-                        <tr>
-                            <th style={{ padding: '8px 12px', textAlign: 'left', fontWeight: TYPE.weight.bold, color: COLOR.text.secondary, textTransform: 'uppercase', letterSpacing: TYPE.letterSpacing.caps, fontSize: '9px' }}>TIME</th>
-                            <th style={{ padding: '8px 12px', textAlign: 'left', fontWeight: TYPE.weight.bold, color: COLOR.text.secondary, textTransform: 'uppercase', letterSpacing: TYPE.letterSpacing.caps, fontSize: '9px' }}>SYMBOL</th>
-                            <th style={{ padding: '8px 12px', textAlign: 'left', fontWeight: TYPE.weight.bold, color: COLOR.text.secondary, textTransform: 'uppercase', letterSpacing: TYPE.letterSpacing.caps, fontSize: '9px' }}>TYPE</th>
-                            <th style={{ padding: '8px 12px', textAlign: 'right', fontWeight: TYPE.weight.bold, color: COLOR.text.secondary, textTransform: 'uppercase', letterSpacing: TYPE.letterSpacing.caps, fontSize: '9px' }}>QTY</th>
-                            <th style={{ padding: '8px 12px', textAlign: 'right', fontWeight: TYPE.weight.bold, color: COLOR.text.secondary, textTransform: 'uppercase', letterSpacing: TYPE.letterSpacing.caps, fontSize: '9px' }}>PRICE</th>
-                            <th style={{ padding: '8px 12px', textAlign: 'right', fontWeight: TYPE.weight.bold, color: COLOR.text.secondary, textTransform: 'uppercase', letterSpacing: TYPE.letterSpacing.caps, fontSize: '9px' }}>STATUS</th>
-                        </tr>
-                    </thead>
-                    <tbody style={{ color: COLOR.text.primary }}>
-                        {orders.length === 0 ? (
-                            <tr>
-                                <td colSpan={6} style={{ padding: '32px', textAlign: 'center', fontSize: TYPE.size.xs, color: COLOR.text.muted, textTransform: 'uppercase', fontWeight: TYPE.weight.bold }}>NO ORDER ENTRIES TODAY</td>
-                            </tr>
-                        ) : (
-                            orders.map((order, idx) => (
-                                <tr 
-                                    key={idx} 
-                                    onMouseEnter={() => setHoveredIndex(idx)}
-                                    onMouseLeave={() => setHoveredIndex(null)}
-                                    onClick={() => {
-                                        const meta = instrumentMeta[order.instrument_token] || {
-                                            ticker: order.trading_symbol,
-                                            name: order.trading_symbol,
-                                            exchange: order.exchange as any
-                                        };
-                                        const symbol = buildSymbolFromFeed(order.instrument_token, prices[order.instrument_token], meta);
-                                        setSelectedSymbol(symbol);
-                                    }}
-                                    style={{ borderBottom: BORDER.standard, position: 'relative', cursor: 'pointer' }} 
-                                    className="hover:bg-bg-elevated transition-colors"
-                                >
-                                    <td style={{ padding: '8px 12px', color: COLOR.text.muted, fontSize: '10px', fontVariantNumeric: 'tabular-nums' }}>
-                                        {order.order_timestamp?.split(' ')[1] || '--:--:--'}
-                                    </td>
-                                    <td style={{ padding: '8px 12px' }}>
-                                        <span style={{ display: 'block', fontSize: TYPE.size.sm, fontWeight: TYPE.weight.bold, color: COLOR.text.primary }}>{order.trading_symbol}</span>
-                                        <span style={{ display: 'block', fontSize: '9px', color: COLOR.text.muted, textTransform: 'uppercase' }}>{order.exchange}</span>
-                                    </td>
-                                    <td style={{ 
-                                        padding: '8px 12px', 
-                                        fontSize: TYPE.size.xs, 
-                                        fontWeight: TYPE.weight.bold,
-                                        color: order.transaction_type === 'BUY' ? COLOR.semantic.up : COLOR.semantic.down
-                                    }}>
-                                        {order.transaction_type}
-                                    </td>
-                                    <td style={{ padding: '8px 12px', textAlign: 'right', fontVariantNumeric: 'tabular-nums' }}>{order.quantity}</td>
-                                    <td style={{ padding: '8px 12px', textAlign: 'right', fontVariantNumeric: 'tabular-nums' }}>
-                                        {order.price || order.average_price || '--'}
-                                    </td>
-                                    <td style={{ 
-                                        padding: '8px 12px', 
-                                        textAlign: 'right', 
-                                        fontSize: '10px', 
-                                        fontWeight: TYPE.weight.bold, 
-                                        color: getStatusColor(order.status),
-                                        position: 'relative'
-                                    }}>
-                                        {order.status.toUpperCase()}
-
-                                        {hoveredIndex === idx && (
-                                            <div style={{
-                                                position: 'absolute',
-                                                right: 0,
-                                                top: 0,
-                                                bottom: 0,
-                                                display: 'flex',
-                                                alignItems: 'center',
-                                                gap: '4px',
-                                                padding: '0 8px',
-                                                background: 'inherit',
-                                                borderLeft: `1px solid ${COLOR.bg.border}`,
-                                                zIndex: 10
-                                            }}>
-                                                <Button variant="buy" size="xs" onClick={(e) => {
-                                                    e.stopPropagation();
-                                                    const meta = instrumentMeta[order.instrument_token] || {
-                                                        ticker: order.trading_symbol,
-                                                        name: order.trading_symbol,
-                                                        exchange: order.exchange as any
-                                                    };
-                                                    const symbol = buildSymbolFromFeed(order.instrument_token, prices[order.instrument_token], meta);
-                                                    setSelectedSymbol(symbol);
-                                                    openOrderModal('BUY');
-                                                }}>B</Button>
-                                                <Button variant="sell" size="xs" onClick={(e) => {
-                                                    e.stopPropagation();
-                                                    const meta = instrumentMeta[order.instrument_token] || {
-                                                        ticker: order.trading_symbol,
-                                                        name: order.trading_symbol,
-                                                        exchange: order.exchange as any
-                                                    };
-                                                    const symbol = buildSymbolFromFeed(order.instrument_token, prices[order.instrument_token], meta);
-                                                    setSelectedSymbol(symbol);
-                                                    openOrderModal('SELL');
-                                                }}>S</Button>
-                                            </div>
-                                        )}
-                                    </td>
-                                </tr>
-                            ))
-                        )}
-                    </tbody>
-                </table>
+            <div style={{ flex: 1, overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
+                {orders.length === 0 ? (
+                    <EmptyState 
+                        icon={<ShoppingBag size={32} />} 
+                        message="NO ORDER ENTRIES TODAY" 
+                        subMessage="Recent trades and pending orders will appear here once initiated."
+                    />
+                ) : (
+                    <DataTable 
+                        data={orders}
+                        columns={columns}
+                        onRowClick={handleSelect}
+                        stickyFirstColumn
+                    />
+                )}
             </div>
-        </div>
+        </WidgetShell>
     );
 };
 
 export default UpstoxOrders;
+

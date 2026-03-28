@@ -1,8 +1,10 @@
 import React, { useEffect, useState } from 'react';
 import { useUpstoxStore } from '../../store/useUpstoxStore';
-import { upstoxApi } from '../../services/upstoxApi';
-import { Target, Plus, RefreshCw, AlertCircle } from 'lucide-react';
-import { COLOR, TYPE, BORDER, SPACE } from '../../ds/tokens';
+import { Plus, RefreshCw, Target } from 'lucide-react';
+import { COLOR, TYPE } from '../../ds/tokens';
+import { WidgetShell } from '../../ds/components/WidgetShell';
+import { StatusBanner } from '../../ds/components/StatusBanner';
+import { EmptyState } from '../../ds/components/EmptyState';
 
 const UpstoxGTT: React.FC = () => {
     const { accessToken, status } = useUpstoxStore();
@@ -19,23 +21,16 @@ const UpstoxGTT: React.FC = () => {
     };
 
     return (
-        <div style={{ height: '100%', display: 'flex', flexDirection: 'column', background: COLOR.bg.base, overflow: 'hidden', fontFamily: TYPE.family.mono }}>
-            
-            {/* Connection Status Banner */}
+        <WidgetShell>
             {status !== 'connected' && (
-                <div style={{ 
-                    padding: '2px 8px', background: '#450a0a', borderBottom: BORDER.standard,
-                    display: 'flex', alignItems: 'center', gap: '8px', justifyContent: 'center'
-                }}>
-                    <AlertCircle size={10} color={COLOR.semantic.down} />
-                    <span style={{ fontSize: '9px', fontWeight: 'bold', color: COLOR.semantic.down, letterSpacing: '0.05em' }}>
-                        DISCONNECTED - GTT TRIGGER ENGINE OFFLINE
-                    </span>
-                </div>
+                <StatusBanner 
+                    variant="disconnected" 
+                    message="DISCONNECTED - GTT TRIGGER ENGINE OFFLINE" 
+                />
             )}
 
-            <div style={{ padding: '8px 12px', borderBottom: BORDER.standard, background: COLOR.bg.surface, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                 <span style={{ fontSize: TYPE.size.xs, fontWeight: TYPE.weight.bold, color: COLOR.text.primary, textTransform: 'uppercase', letterSpacing: TYPE.letterSpacing.caps, display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <WidgetShell.Toolbar>
+                 <span style={{ fontSize: TYPE.size.xs, fontWeight: TYPE.weight.bold, textTransform: 'uppercase', letterSpacing: TYPE.letterSpacing.caps, display: 'flex', alignItems: 'center', gap: '8px' }}>
                     GTT_ENGINE [UPSTOX]
                  </span>
                  <div style={{ display: 'flex', gap: '16px', alignItems: 'center' }}>
@@ -46,16 +41,16 @@ const UpstoxGTT: React.FC = () => {
                         <RefreshCw size={12} />
                     </button>
                  </div>
-            </div>
+            </WidgetShell.Toolbar>
 
-            <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', background: COLOR.bg.base }}>
-                 <div style={{ textAlign: 'center', padding: SPACE[6] }}>
-                    <div style={{ fontSize: TYPE.size.xs, fontWeight: TYPE.weight.bold, color: COLOR.text.muted, textTransform: 'uppercase', letterSpacing: TYPE.letterSpacing.caps, marginBottom: '8px' }}>Institutional Engine Offline</div>
-                    <div style={{ fontSize: '9px', color: COLOR.text.muted, fontStyle: 'italic', maxWidth: '240px' }}>GTT scope requires enhanced API permissions. Enable from Upstox console to activate trigger-based orders.</div>
-                 </div>
-            </div>
-        </div>
+            <EmptyState 
+                icon={<Target size={32} />} 
+                message="Institutional Engine Offline" 
+                subMessage="GTT scope requires enhanced API permissions. Enable from Upstox console to activate trigger-based orders."
+            />
+        </WidgetShell>
     );
 };
 
 export default UpstoxGTT;
+
