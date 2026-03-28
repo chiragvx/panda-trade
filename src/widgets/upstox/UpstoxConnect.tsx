@@ -7,7 +7,7 @@ const UpstoxConnect: React.FC = () => {
     const { apiKey, apiSecret, accessToken, status, isSandbox, setCredentials, logout, toggleSandbox } = useUpstoxStore();
     const [tempKey, setTempKey] = useState(apiKey);
     const [tempSecret, setTempSecret] = useState(apiSecret);
-    const [redirectUrl, setRedirectUrl] = useState('http://localhost:5173/callback');
+    const [redirectUrl, setRedirectUrl] = useState('https://panda-trade-nine.vercel.app/callback');
     const [isSaving, setIsSaving] = useState(false);
 
     const handleSave = () => {
