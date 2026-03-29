@@ -16,6 +16,7 @@ import { useUpstoxStore } from './store/useUpstoxStore';
 import { useSettingsStore } from './store/useSettingsStore';
 import { useKeyboardShortcuts } from './hooks/useKeyboardShortcuts';
 import { useUpstoxBridge } from './hooks/useUpstoxBridge';
+import { Analytics } from '@vercel/analytics/react';
 import { DVDEasterEgg } from './components/EasterEgg/DVDVideo';
 import { ShieldAlert, X } from 'lucide-react';
 import { TYPE } from './ds/tokens';
@@ -335,6 +336,7 @@ const App: React.FC = () => {
               </div>
             } />
           </Routes>
+          <Analytics />
         </div>
       </Router>
     </QueryClientProvider>
