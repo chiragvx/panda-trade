@@ -56,6 +56,7 @@ import { HeatmapWidget } from './widgets/Heatmap/HeatmapWidget';
 import { FundamentalsWidget } from './widgets/Other/FundamentalsWidget';
 
 import { useLayoutStore } from './store/useStore';
+import { WidgetStateWrapper } from './components/WidgetStateWrapper';
 
 const VolSurface3DWidget = React.lazy(() => import('./widgets/vol-surface/VolSurface3DWidget').then(m => ({ default: m.VolSurface3DWidget })));
 
@@ -161,6 +162,7 @@ export const LayoutManager: React.FC<LayoutManagerProps> = ({ model }) => {
     };
   }, [model]);
 
+
   const factory = (node: TabNode) => {
     const widgetId = node.getComponent()!;
     const instanceKey = node.getId();
@@ -176,7 +178,9 @@ export const LayoutManager: React.FC<LayoutManagerProps> = ({ model }) => {
              willChange: 'transform, opacity, filter' 
            }}
         >
-          {renderWidget(widgetId, node)}
+          <WidgetStateWrapper id={widgetId}>
+            {renderWidget(widgetId, node)}
+          </WidgetStateWrapper>
         </motion.div>
       </AnimatePresence>
     );

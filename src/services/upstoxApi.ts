@@ -12,6 +12,20 @@ const api = axios.create({
   timeout: 15000,
 });
 
+// Sync with store to handle 401s
+import { useUpstoxStore } from '../store/useUpstoxStore';
+
+api.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    if (error.response?.status === 401) {
+      console.warn('Unauthorized Upstox request detected. Logging out...');
+      useUpstoxStore.getState().logout();
+    }
+    return Promise.reject(error);
+  }
+);
+
 const inFlightRequests = new Map<string, Promise<any>>();
 const responseCache = new Map<string, CacheEntry>();
 

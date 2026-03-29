@@ -1,43 +1,40 @@
 import React from 'react';
+import { Database } from 'lucide-react';
 import { useSelectionStore } from '../../store/useStore';
 import { COLOR, TYPE, BORDER } from '../../ds/tokens';
 
 export const GenericStub: React.FC<{ name: string; category: string }> = ({ name, category }) => {
   const { selectedSymbol } = useSelectionStore();
+  
   return (
     <div style={{
       display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
-      height: '100%', background: COLOR.bg.surface, gap: '12px', padding: '24px',
+      height: '100%', background: COLOR.bg.surface, gap: '16px', padding: '24px',
     }}>
       <div style={{
-        padding: '2px 8px', border: `1px solid ${COLOR.bg.border}`,
-        fontFamily: TYPE.family.mono, fontSize: TYPE.size.xs, color: COLOR.text.muted,
-        letterSpacing: TYPE.letterSpacing.caps, textTransform: 'uppercase',
+        width: '40px', height: '40px', borderRadius: '50%', background: 'rgba(255,255,255,0.05)',
+        display: 'flex', alignItems: 'center', justifyContent: 'center', color: COLOR.text.muted
       }}>
-        {category}
+        <Database size={20} />
       </div>
-      <span style={{
-        fontFamily: TYPE.family.mono, fontSize: TYPE.size.xl, fontWeight: TYPE.weight.bold,
-        color: COLOR.text.secondary, textTransform: 'uppercase', letterSpacing: '-0.02em',
-      }}>
-        {name}
-      </span>
-      <div style={{
-        display: 'flex', flexDirection: 'column', gap: '4px', padding: '8px 12px',
-        border: BORDER.standard, width: '200px',
-      }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-          <span style={{ fontFamily: TYPE.family.mono, fontSize: TYPE.size.xs, color: COLOR.text.muted }}>SYMBOL</span>
-          <span style={{ fontFamily: TYPE.family.mono, fontSize: TYPE.size.xs, color: COLOR.semantic.info }}>{selectedSymbol?.ticker || '---'}</span>
+      <div style={{ textAlign: 'center' }}>
+        <div style={{
+          fontFamily: TYPE.family.mono, fontSize: '10px', color: COLOR.text.muted,
+          letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: '8px'
+        }}>
+          {category} / {name}
         </div>
-        <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-          <span style={{ fontFamily: TYPE.family.mono, fontSize: TYPE.size.xs, color: COLOR.text.muted }}>STATUS</span>
-          <span style={{ fontFamily: TYPE.family.mono, fontSize: TYPE.size.xs, color: COLOR.text.secondary }}>NO LIVE DATA</span>
+        <div style={{
+          fontFamily: TYPE.family.mono, fontSize: '12px', fontWeight: 'bold',
+          color: '#fff', textTransform: 'uppercase'
+        }}>
+          NO_API_DATA_STREAM
         </div>
-        <div style={{ height: '1px', background: COLOR.bg.border }} />
-        <span style={{ fontFamily: TYPE.family.mono, fontSize: TYPE.size.xs, color: COLOR.text.muted, textAlign: 'center' }}>
-          WIDGET COMING SOON
-        </span>
+        {selectedSymbol && (
+          <div style={{ fontSize: '10px', color: COLOR.semantic.info, marginTop: '4px', fontFamily: TYPE.family.mono }}>
+            LISTENING FOR: {selectedSymbol.ticker}
+          </div>
+        )}
       </div>
     </div>
   );

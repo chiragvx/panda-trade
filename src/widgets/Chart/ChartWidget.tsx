@@ -38,7 +38,7 @@ export const ChartWidget: React.FC = () => {
 
     // Mapping Upstox ticker to TV Symbol
     // Upstox: "NSE_EQ|INE062A01020" -> "NSE:RELIANCE"
-    let tvSymbol = 'NSE:NIFTY';
+    let tvSymbol = 'NASDAQ:AAPL';
     if (selectedSymbol) {
       if (selectedSymbol.exchange === 'NSE') {
         tvSymbol = `NSE:${selectedSymbol.ticker}`;
