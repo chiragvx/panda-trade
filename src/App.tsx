@@ -10,6 +10,7 @@ import { ContextMenu } from './ds/components/ContextMenu';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import UpstoxCallback from './components/UpstoxCallback';
+import LandingPage from './layout/LandingPage';
 import { useSelectionStore, useLayoutStore } from './store/useStore';
 import { useUpstoxStore } from './store/useUpstoxStore';
 import { useSettingsStore } from './store/useSettingsStore';
@@ -185,11 +186,12 @@ const App: React.FC = () => {
   return (
     <QueryClientProvider client={queryClient}>
       <Router>
-        <div className="flex flex-col h-screen w-screen bg-bg-base overflow-hidden selection:bg-accent-info/30 selection:text-text-primary">
+        <div className="flex flex-col min-h-screen w-screen bg-bg-base selection:bg-accent-info/30 selection:text-text-primary">
           <Routes>
+            <Route path="/" element={<LandingPage />} />
             <Route path="/callback" element={<UpstoxCallback />} />
-            <Route path="*" element={
-              <>
+            <Route path="/app" element={
+              <div className="h-screen w-screen overflow-hidden flex flex-col">
                 <AnimatePresence>
                   {(!isOnline && !dismissedNetworkMsg) && (
                     <motion.div
@@ -330,7 +332,7 @@ const App: React.FC = () => {
 
                 {isIdle && <DVDEasterEgg />}
                 <div className="fixed top-0 left-0 w-full h-[1px] bg-border z-[10000] pointer-events-none opacity-20" />
-              </>
+              </div>
             } />
           </Routes>
         </div>

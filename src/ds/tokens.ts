@@ -33,6 +33,8 @@ export const COLOR = {
 export const TYPE = {
   family: {
     mono: '"JetBrains Mono", "Fira Code", "Consolas", monospace',
+    sans: '"Inter", "IBM Plex Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+    heading: '"Genos", sans-serif',
   },
   size: {
     xs: '10px',
