@@ -19,8 +19,8 @@ export const useSettingsStore = create<SettingsState>()(
       setAisStreamApiKey: (aisStreamApiKey) => set({ aisStreamApiKey }),
       nasaApiKey: '',
       setNasaApiKey: (nasaApiKey) => set({ nasaApiKey }),
-      // Upstox is default and non-removable, but we can list it
-      enabledConnections: ['upstox-01', 'aisstream-01', 'nasa-01'], 
+      // Only Upstox is enabled by default. Others are opt-in.
+      enabledConnections: ['upstox-01'], 
       addConnection: (id) => set((state) => ({
         enabledConnections: state.enabledConnections.includes(id) 
           ? state.enabledConnections 

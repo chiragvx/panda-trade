@@ -3,8 +3,7 @@ import { Search, RotateCcw, Plus, AlertCircle, ChevronDown, Zap, Anchor, ShieldC
 import { useUpstoxStore } from '../store/useUpstoxStore';
 import { useSettingsStore } from '../store/useSettingsStore';
 import { COLOR, BORDER, TYPE, SPACE } from '../ds/tokens';
-import UpstoxConnect from '../widgets/upstox/UpstoxConnect';
-import { AisStreamConnect } from '../widgets/Other/AisStreamConnect';
+import { ApiConfigModal } from '../components/ApiConfigModal';
 import { GenericConnect } from '../widgets/Other/GenericConnect';
 
 interface ConnectionMeta {
@@ -25,7 +24,7 @@ export const ApiDashboard: React.FC = () => {
     const [searchQuery, setSearchQuery] = useState('');
     const [statusFilter, setStatusFilter] = useState<'ALL' | 'CONNECTED' | 'DISCONNECTED'>('ALL');
     const [typeFilter, setTypeFilter] = useState<'ALL' | 'BROKER' | 'DATA_FEED'>('ALL');
-    const [activeModal, setActiveModal] = useState<'UPSTOX' | 'AISSTREAM' | 'GENERIC' | null>(null);
+    const [activeModal, setActiveModal] = useState<'UPSTOX' | 'AISSTREAM' | 'NASA' | 'GENERIC' | null>(null);
 
     // Master manifest of supported backends
     const masterConnections: ConnectionMeta[] = useMemo(() => [
@@ -245,24 +244,13 @@ export const ApiDashboard: React.FC = () => {
             </div>
 
             {/* Config Overlay (Simulated Modals) */}
-            {activeModal === 'UPSTOX' && (
+            {activeModal && (
                 <div style={modalOverlayStyle} onClick={() => setActiveModal(null)}>
-                    <div style={modalContentStyle} onClick={e => e.stopPropagation()}>
-                        <UpstoxConnect />
-                    </div>
-                </div>
-            )}
-            {activeModal === 'AISSTREAM' && (
-                <div style={modalOverlayStyle} onClick={() => setActiveModal(null)}>
-                    <div style={modalContentStyle} onClick={e => e.stopPropagation()}>
-                        <AisStreamConnect />
-                    </div>
-                </div>
-            )}
-            {activeModal === 'GENERIC' && (
-                <div style={modalOverlayStyle} onClick={() => setActiveModal(null)}>
-                    <div style={modalContentStyle} onClick={e => e.stopPropagation()}>
-                        <GenericConnect onClose={() => setActiveModal(null)} />
+                    <div style={{ ...modalContentStyle, width: 'auto', maxWidth: 'none', background: 'transparent', border: 'none', boxShadow: 'none' }} onClick={e => e.stopPropagation()}>
+                        {activeModal === 'UPSTOX' && <ApiConfigModal provider="UPSTOX" onClose={() => setActiveModal(null)} />}
+                        {activeModal === 'AISSTREAM' && <ApiConfigModal provider="AISSTREAM" onClose={() => setActiveModal(null)} />}
+                        {activeModal === 'NASA' && <ApiConfigModal provider="NASA" onClose={() => setActiveModal(null)} />}
+                        {activeModal === 'GENERIC' && <GenericConnect onClose={() => setActiveModal(null)} />}
                     </div>
                 </div>
             )}

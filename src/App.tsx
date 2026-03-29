@@ -42,7 +42,7 @@ const queryClient = new QueryClient({
 const App: React.FC = () => {
   const { workspace, setWorkspace } = useLayoutStore();
   const { status, accessToken, apiKey, apiSecret } = useUpstoxStore();
-  const { aisStreamApiKey, nasaApiKey } = useSettingsStore();
+  const { aisStreamApiKey, nasaApiKey, enabledConnections } = useSettingsStore();
   const [dismissedApis, setDismissedApis] = useState<string[]>([]);
   const [dismissedNetworkMsg, setDismissedNetworkMsg] = useState(false);
   const [isOnline, setIsOnline] = useState(window.navigator.onLine);
@@ -64,10 +64,10 @@ const App: React.FC = () => {
   
   const apiFailures = useMemo(() => {
     const fails: string[] = [];
-    if (!aisStreamApiKey && workspace !== 'API') fails.push('AISSTREAM_FEED');
-    if (!nasaApiKey && workspace !== 'API') fails.push('NASA_FIRMS_SCANNER');
+    if (enabledConnections.includes('aisstream-01') && !aisStreamApiKey && workspace !== 'API') fails.push('AISSTREAM_FEED');
+    if (enabledConnections.includes('nasa-01') && !nasaApiKey && workspace !== 'API') fails.push('NASA_FIRMS_SCANNER');
     return fails.filter(f => !dismissedApis.includes(f));
-  }, [aisStreamApiKey, nasaApiKey, workspace, dismissedApis]);
+  }, [aisStreamApiKey, nasaApiKey, enabledConnections, workspace, dismissedApis]);
 
   const [isIdle, setIsIdle] = useState(false);
   const idleTimerRef = useRef<NodeJS.Timeout | null>(null);
