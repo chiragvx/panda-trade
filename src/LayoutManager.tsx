@@ -20,16 +20,16 @@ import {
   BasketWidget 
 } from './widgets/Other/Widgets';
 import UpstoxHoldings from './widgets/upstox/UpstoxHoldings';
+import { IndicesWidget } from './widgets/Other/IndicesWidget';
+import { OIGraphWidget } from './widgets/Other/OIGraphWidget';
+import { TechnicalsWidget } from './widgets/Other/TechnicalsWidget';
+import { VWapWidget } from './widgets/Other/VWapWidget';
+import { ETFScanner } from './widgets/Other/ETFScanner';
+import { StraddleChainWidget } from './widgets/Other/StraddleChainWidget';
 import { 
-  IndicesStub, 
-  ETFStub, 
   HeatmapStub, 
-  OIGraphStub, 
   IVChartStub, 
   VolatilitySkewStub, 
-  TechnicalsStub, 
-  VWapStub, 
-  StraddleChainStub, 
   FuturesChainStub, 
   NotificationsStub, 
   CorpActionsStub, 
@@ -77,16 +77,16 @@ const renderWidget = (id: string, node: TabNode) => {
         case 'holdings': return <UpstoxHoldings />;
         case 'basket': return <BasketWidget />;
         case 'orderEntry': return <OrderEntryWidget node={node} />;
-        case 'indices': return <IndicesStub />;
-        case 'etf-scanner': return <ETFStub />;
+        case 'indices': return <IndicesWidget />;
+        case 'etf-scanner': return <ETFScanner />;
         case 'holdings-heatmap': return <HeatmapWidget />;
-        case 'oi-graph': return <OIGraphStub />;
+        case 'oi-graph': return <OIGraphWidget />;
         case 'iv-chart': return <IVChartStub />;
         case 'volatility-skew': return <VolatilitySkewStub />;
-        case 'technicals': return <TechnicalsStub />;
-        case 'vwap-indicator': return <VWapStub />;
+        case 'technicals': return <TechnicalsWidget />;
+        case 'vwap-indicator': return <VWapWidget />;
         case 'options-chain': return <OptionChainWidget />;
-        case 'straddle-chain': return <StraddleChainStub />;
+        case 'straddle-chain': return <StraddleChainWidget />;
         case 'futures-chain': return <FuturesChainStub />;
         case 'notifications': return <NotificationsStub />;
         case 'corporate-actions': return <CorpActionsStub />;
