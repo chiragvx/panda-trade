@@ -7,10 +7,16 @@ import { COLOR, BORDER, TYPE } from '../../ds/tokens';
 import { AlertCircle, RefreshCw } from 'lucide-react';
 import { Button } from '../../ds/components/Button';
 import { isIsin } from '../../utils/liveSymbols';
+import { WidgetSymbolSearch } from '../../components/WidgetSearch/WidgetSymbolSearch';
+import { useUpstoxStore } from '../../store/useUpstoxStore';
 
 export const VolSurface3DWidget: React.FC = () => {
-  const { selectedSymbol } = useSelectionStore();
-  const { surfaceData, loading, error, hvData, refresh } = useVolSurfaceData(selectedSymbol?.instrument_key || '');
+  const { selectedSymbol: globalSymbol } = useSelectionStore();
+  const [localSymbol, setLocalSymbol] = useState<any>(null);
+  const { setInstrumentMeta } = useUpstoxStore();
+  
+  const activeSymbol = localSymbol || globalSymbol;
+  const { surfaceData, loading, error, hvData, refresh } = useVolSurfaceData(activeSymbol?.instrument_key || '');
   const [showHV, setShowHV] = useState(true);
   const [optionSide, setOptionSide] = useState<'CE' | 'PE' | 'BOTH'>('CE');
   const [isWireframe, setIsWireframe] = useState(false);
@@ -23,18 +29,42 @@ export const VolSurface3DWidget: React.FC = () => {
     }
   }, [surfaceData]);
 
-  const displayName = isIsin(selectedSymbol?.ticker || '') ? selectedSymbol?.name : selectedSymbol?.ticker;
+  const displayName = isIsin(activeSymbol?.ticker || '') ? activeSymbol?.name : activeSymbol?.ticker;
 
-  if (!selectedSymbol) {
+  if (!activeSymbol) {
     return (
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%', color: COLOR.text.muted, fontSize: '12px' }}>
-        SELECT SYMBOL TO VIEW SURFACE
+      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100%', background: '#000', gap: '20px' }}>
+        <div style={{ color: COLOR.text.muted, fontSize: '11px', letterSpacing: '0.1em' }}>SELECT SYMBOL TO VIEW SURFACE</div>
+        <WidgetSymbolSearch 
+            onSelect={(res) => {
+                setLocalSymbol({ instrument_key: res.instrumentKey, ticker: res.ticker, name: res.name, exchange: res.exchange });
+                setInstrumentMeta({ [res.instrumentKey]: { ticker: res.ticker, name: res.name, exchange: res.exchange } });
+            }} 
+            placeholder="SEARCH..." 
+        />
       </div>
     );
   }
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100%', background: '#000', overflow: 'hidden' }}>
+      <div style={{ padding: '4px 12px', borderBottom: BORDER.standard, background: COLOR.bg.surface, display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <WidgetSymbolSearch 
+            onSelect={(res) => {
+              setLocalSymbol({ instrument_key: res.instrumentKey, ticker: res.ticker, name: res.name, exchange: res.exchange });
+              setInstrumentMeta({ [res.instrumentKey]: { ticker: res.ticker, name: res.name, exchange: res.exchange } });
+            }} 
+            placeholder="SEARCH..." 
+          />
+          {localSymbol && (
+            <button 
+              onClick={() => setLocalSymbol(null)}
+              style={{ background: 'transparent', border: 'none', color: COLOR.semantic.down, fontSize: '9px', fontWeight: 'bold' }}
+            >
+              RESET
+            </button>
+          )}
+      </div>
       <VolSurfaceControls 
         symbolName={displayName || 'INDEX'} 
         onRefresh={refresh} 
@@ -74,7 +104,7 @@ export const VolSurface3DWidget: React.FC = () => {
            </div>
         ) : surfaceData.length === 0 ? (
            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%', color: COLOR.text.muted, fontSize: '11px' }}>
-              NO OPTION CHAIN DATA FOR {selectedSymbol.ticker}
+              NO OPTION CHAIN DATA FOR {activeSymbol.ticker}
            </div>
         ) : (
           <>

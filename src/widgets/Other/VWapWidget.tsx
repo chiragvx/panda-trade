@@ -48,7 +48,7 @@ export const VWapWidget: React.FC = () => {
                             setLocalSymbol({ instrument_key: res.instrumentKey, ticker: res.ticker });
                             setInstrumentMeta({ [res.instrumentKey]: { ticker: res.ticker, name: res.name, exchange: res.exchange } });
                         }} 
-                        placeholder="OVERRIDE..." 
+                        placeholder="SEARCH..." 
                     />
                     {localSymbol && (
                         <button 

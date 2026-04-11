@@ -39,7 +39,7 @@ export const OIGraphWidget: React.FC = () => {
                             setLocalSymbol({ instrument_key: res.instrumentKey, ticker: res.ticker });
                             setInstrumentMeta({ [res.instrumentKey]: { ticker: res.ticker, name: res.name, exchange: res.exchange } });
                         }} 
-                        placeholder="OVERRIDE_SYMBOL..." 
+                        placeholder="SEARCH..." 
                     />
                     {localSymbol && (
                         <button 

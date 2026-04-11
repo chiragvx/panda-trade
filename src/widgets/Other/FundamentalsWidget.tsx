@@ -103,7 +103,7 @@ export const FundamentalsWidget: React.FC = () => {
                         setLocalSymbol({ instrument_key: res.instrumentKey, ticker: res.ticker, name: res.name, exchange: res.exchange });
                         setInstrumentMeta({ [res.instrumentKey]: { ticker: res.ticker, name: res.name, exchange: res.exchange } });
                     }} 
-                    placeholder="RESEARCH_ANOTHER_SYMBOL..." 
+                    placeholder="SEARCH..." 
                 />
                 {localSymbol && (
                     <button 

@@ -4,6 +4,8 @@ import { useSelectionStore } from '../../store/useStore';
 import { ShieldCheck, Zap } from 'lucide-react';
 import { COLOR, TYPE, BORDER, SPACE } from '../../ds/tokens';
 import { isIsin } from '../../utils/liveSymbols';
+import { WidgetSymbolSearch } from '../../components/WidgetSearch/WidgetSymbolSearch';
+import { useUpstoxStore } from '../../store/useUpstoxStore';
 
 interface OrderEntryWidgetProps {
     node?: TabNode;
@@ -11,11 +13,13 @@ interface OrderEntryWidgetProps {
 
 export const OrderEntryWidget: React.FC<OrderEntryWidgetProps> = ({ node }) => {
     const { selectedSymbol: globalSymbol } = useSelectionStore();
+    const { setInstrumentMeta } = useUpstoxStore();
     const [mode, setMode] = useState<'BUY' | 'SELL'>('BUY');
     const [symbol, setSymbol] = useState(globalSymbol?.ticker || '');
     const [name, setName] = useState(globalSymbol?.name || '');
     const [price, setPrice] = useState('0.00');
     const [qty, setQty] = useState('1');
+    const [localOverride, setLocalOverride] = useState(false);
 
     const displaySymbol = isIsin(symbol) ? (name || 'INSTRUMENT') : symbol;
 
@@ -78,9 +82,35 @@ export const OrderEntryWidget: React.FC<OrderEntryWidgetProps> = ({ node }) => {
                         <div style={{ fontSize: '9px', color: COLOR.text.muted, textTransform: 'uppercase' }}>LIMIT_ORDER_ENTRY</div>
                     </div>
                 </div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', border: `1px solid ${activeColor}40`, padding: '2px 8px', background: `${activeColor}10` }}>
-                    <Zap size={10} style={{ color: activeColor }} />
-                    <span style={{ fontSize: '8px', fontWeight: TYPE.weight.bold, color: activeColor }}>LIVE_FEED_ACTIVE</span>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <WidgetSymbolSearch 
+                        onSelect={(res) => {
+                            setSymbol(res.ticker);
+                            setName(res.name);
+                            setLocalOverride(true);
+                            setInstrumentMeta({ [res.instrumentKey]: { ticker: res.ticker, name: res.name, exchange: res.exchange } });
+                        }}
+                        placeholder="SEARCH..." 
+                    />
+                    {localOverride && (
+                        <button 
+                            onClick={() => {
+                                setLocalOverride(false);
+                                if (globalSymbol) {
+                                    setSymbol(globalSymbol.ticker);
+                                    setName(globalSymbol.name);
+                                    setPrice(globalSymbol.ltp.toString());
+                                }
+                            }}
+                            style={{ background: 'transparent', border: 'none', color: activeColor, fontSize: '8px', fontWeight: 'bold' }}
+                        >
+                            RESET
+                        </button>
+                    )}
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', border: `1px solid ${activeColor}40`, padding: '2px 8px', background: `${activeColor}10` }}>
+                        <Zap size={10} style={{ color: activeColor }} />
+                        <span style={{ fontSize: '8px', fontWeight: TYPE.weight.bold, color: activeColor }}>LIVE_FEED_ACTIVE</span>
+                    </div>
                 </div>
             </div>
 

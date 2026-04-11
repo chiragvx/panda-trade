@@ -10,7 +10,7 @@ interface WidgetSymbolSearchProps {
     placeholder?: string;
 }
 
-export const WidgetSymbolSearch: React.FC<WidgetSymbolSearchProps> = ({ onSelect, placeholder = "SEARCH_SYMBOL..." }) => {
+export const WidgetSymbolSearch: React.FC<WidgetSymbolSearchProps> = ({ onSelect, placeholder = "SEARCH..." }) => {
     const { accessToken } = useUpstoxStore();
     const [query, setQuery] = useState('');
     const [results, setResults] = useState<UpstoxSearchResult[]>([]);
@@ -82,14 +82,15 @@ export const WidgetSymbolSearch: React.FC<WidgetSymbolSearchProps> = ({ onSelect
                             position: 'absolute', 
                             top: '100%', 
                             left: 0, 
-                            right: 0, 
-                            background: '#050505', 
+                            minWidth: '280px', 
+                            background: '#0a0a0a', 
                             border: BORDER.standard, 
-                            zIndex: 100, 
-                            maxHeight: '200px', 
+                            zIndex: 1000, 
+                            maxHeight: '300px', 
                             overflowY: 'auto',
-                            boxShadow: '0 10px 30px rgba(0,0,0,0.5)',
-                            marginTop: '4px'
+                            boxShadow: '0 20px 50px rgba(0,0,0,0.8)',
+                            marginTop: '6px',
+                            backdropFilter: 'blur(10px)'
                         }}
                         className="custom-scrollbar"
                     >

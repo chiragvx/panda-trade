@@ -5,7 +5,8 @@ import { useUpstoxStore } from '../../store/useUpstoxStore';
 import { COLOR, TYPE, BORDER } from '../../ds/tokens';
 import { Badge } from '../../ds/components/Badge';
 import { Button } from '../../ds/components/Button';
-import { Search, Filter, Zap, TrendingUp } from 'lucide-react';
+import { Search, Filter, Zap, TrendingUp, X } from 'lucide-react';
+import { WidgetSymbolSearch } from '../../components/WidgetSearch/WidgetSymbolSearch';
 
 interface NewsItem {
   id: string;
@@ -53,7 +54,9 @@ const normaliseNews = (payload: any): NewsItem[] => {
 };
 
 export const NewsWidget: React.FC = () => {
-  const { selectedSymbol } = useSelectionStore();
+  const { selectedSymbol: globalSymbol } = useSelectionStore();
+  const [localSymbol, setLocalSymbol] = useState<any>(null);
+  const activeSymbol = localSymbol || globalSymbol;
   const { prices } = useUpstoxStore();
 
   const [expanded, setExpanded] = useState<string | null>(null);
@@ -62,11 +65,11 @@ export const NewsWidget: React.FC = () => {
   const allNews = useMemo<NewsItem[]>(() => [], []);
 
   const filteredNews = useMemo(() => {
-    if (filterMode === 'LINKED' && selectedSymbol) {
-      return allNews.filter((n) => n.tickers.includes(selectedSymbol.ticker));
+    if (filterMode === 'LINKED' && activeSymbol) {
+      return allNews.filter((n) => n.tickers.includes(activeSymbol.ticker));
     }
     return allNews;
-  }, [allNews, filterMode, selectedSymbol]);
+  }, [allNews, filterMode, activeSymbol]);
 
   const newsVelocity = useMemo(() => {
     if (filteredNews.length >= 8) return 'HIGH';
@@ -100,15 +103,14 @@ export const NewsWidget: React.FC = () => {
             }}
           >
             {filterMode === 'LINKED' ? <Zap size={10} /> : <Filter size={10} />}
-            {filterMode === 'LINKED' ? `LINKED: ${selectedSymbol?.ticker || 'NONE'}` : 'ALL STORIES'}
+            {filterMode === 'LINKED' ? `LINKED: ${activeSymbol?.ticker || 'NONE'}` : 'ALL STORIES'}
           </button>
         </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-            <span style={{ fontSize: '9px', color: COLOR.text.muted, fontFamily: TYPE.family.mono }}>VELOCITY:</span>
-            <span style={{ fontSize: '9px', color: newsVelocity === 'HIGH' ? COLOR.semantic.up : COLOR.text.primary, fontFamily: TYPE.family.mono, fontWeight: 'bold' }}>{newsVelocity}</span>
-          </div>
-          <Search size={14} color={COLOR.text.muted} />
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <WidgetSymbolSearch onSelect={(res) => setLocalSymbol({ ticker: res.ticker })} placeholder="SEARCH..." />
+          {localSymbol && (
+             <button onClick={() => setLocalSymbol(null)} style={{ background: 'transparent', border: 'none', color: COLOR.semantic.down, cursor: 'pointer' }}><X size={12} /></button>
+          )}
         </div>
       </div>
 

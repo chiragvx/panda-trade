@@ -6,6 +6,8 @@ import { Button } from '../../ds/components/Button';
 import { useLayoutStore } from '../../store/useStore';
 import { useUpstoxStore } from '../../store/useUpstoxStore';
 import { isIsin } from '../../utils/liveSymbols';
+import { WidgetSymbolSearch } from '../../components/WidgetSearch/WidgetSymbolSearch';
+import { TYPE } from '../../ds/tokens';
 
 declare global {
   interface Window {
@@ -16,8 +18,11 @@ declare global {
 export const ChartWidget: React.FC = () => {
   const containerRef = useRef<HTMLDivElement>(null);
   const widgetRef = useRef<any>(null);
-  const { selectedSymbol } = useSelectionStore();
-  const { prices } = useUpstoxStore();
+  const { selectedSymbol: globalSymbol } = useSelectionStore();
+  const [localSymbol, setLocalSymbol] = useState<any>(null);
+  
+  const selectedSymbol = localSymbol || globalSymbol;
+  const { prices, setInstrumentMeta } = useUpstoxStore();
   const { openOrderModal } = useLayoutStore();
 
   const displayTicker = useMemo(() => {
@@ -93,12 +98,30 @@ export const ChartWidget: React.FC = () => {
           {isIndex && <span style={{ fontSize: '9px', color: COLOR.text.muted, padding: '1px 4px', border: BORDER.standard }}>INDEX</span>}
         </div>
 
-        {!isIndex && selectedSymbol && (
-          <div style={{ display: 'flex', gap: '8px' }}>
-            <Button variant="buy" size="xs" onClick={() => openOrderModal('BUY')} style={{ padding: '2px 16px', fontWeight: '900' }}>BUY</Button>
-            <Button variant="sell" size="xs" onClick={() => openOrderModal('SELL')} style={{ padding: '2px 16px', fontWeight: '900' }}>SELL</Button>
-          </div>
-        )}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <WidgetSymbolSearch 
+            onSelect={(res) => {
+              setLocalSymbol({ instrument_key: res.instrumentKey, ticker: res.ticker, exchange: res.exchange, name: res.name });
+              setInstrumentMeta({ [res.instrumentKey]: { ticker: res.ticker, name: res.name, exchange: res.exchange } });
+            }} 
+            placeholder="SEARCH..." 
+          />
+          {localSymbol && (
+            <button 
+              onClick={() => setLocalSymbol(null)}
+              style={{ background: 'transparent', border: 'none', color: '#ff4d4d', fontSize: '9px', fontWeight: '900', cursor: 'pointer', padding: '0' }}
+            >
+              RESET
+            </button>
+          )}
+
+          {!isIndex && selectedSymbol && (
+            <div style={{ display: 'flex', gap: '8px', marginLeft: '8px' }}>
+              <Button variant="buy" size="xs" onClick={() => openOrderModal('BUY')} style={{ padding: '2px 12px', fontWeight: '900', height: '24px' }}>BUY</Button>
+              <Button variant="sell" size="xs" onClick={() => openOrderModal('SELL')} style={{ padding: '2px 12px', fontWeight: '900', height: '24px' }}>SELL</Button>
+            </div>
+          )}
+        </div>
       </div>
 
       {/* TradingView Native Container */}
