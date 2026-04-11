@@ -67,6 +67,8 @@ export const OptionChainWidget: React.FC = () => {
   const [debug, setDebug] = useState(false);
 
   const [currentRootKey, setCurrentRootKey] = useState<string>('');
+  const [localKey, setLocalKey] = useState<string | null>(null);
+  const [localTicker, setLocalTicker] = useState<string | null>(null);
 
   // Search
   const [search, setSearch] = useState('');
@@ -139,11 +141,13 @@ export const OptionChainWidget: React.FC = () => {
   useEffect(() => {
     if (!accessToken) return;
     
-    if (selectedSymbol?.instrument_key) {
-      const isOption = selectedSymbol.exchange === 'NFO' || isIsin(selectedSymbol.instrument_key);
-      if (!isOption && selectedSymbol.instrument_key !== currentRootKey) {
-        setCurrentRootKey(selectedSymbol.instrument_key);
-        loadOptionChain(selectedSymbol.instrument_key);
+    const targetKey = localKey || selectedSymbol?.instrument_key;
+    
+    if (targetKey) {
+      const isOption = selectedSymbol?.exchange === 'NFO' || isIsin(targetKey);
+      if (!isOption && targetKey !== currentRootKey) {
+        setCurrentRootKey(targetKey);
+        loadOptionChain(targetKey);
       }
     } else if (!currentRootKey) {
         // Default to Nifty 50 on initial load if nothing selected
@@ -151,7 +155,7 @@ export const OptionChainWidget: React.FC = () => {
         setCurrentRootKey(defaultKey);
         loadOptionChain(defaultKey);
     }
-  }, [selectedSymbol?.instrument_key, accessToken, currentRootKey]);
+  }, [selectedSymbol?.instrument_key, localKey, accessToken, currentRootKey]);
 
   const handleExpiryChange = (newExpiry: string) => { 
     setSelectedExpiry(newExpiry); 
@@ -170,7 +174,7 @@ export const OptionChainWidget: React.FC = () => {
     return () => clearTimeout(timer);
   }, [search, accessToken]);
 
-  const currentSpot = prices[selectedSymbol?.instrument_key || '']?.ltp || selectedSymbol?.ltp || 0;
+  const currentSpot = prices[localKey || selectedSymbol?.instrument_key || '']?.ltp || selectedSymbol?.ltp || 0;
   
   const { atmIndex, visibleChain, hasMoreAbove, hasMoreBelow } = React.useMemo(() => {
     if (!chain.length) return { atmIndex: 0, visibleChain: [], hasMoreAbove: false, hasMoreBelow: false };
@@ -242,8 +246,16 @@ export const OptionChainWidget: React.FC = () => {
                 <div style={{ position: 'relative' }}>
                     <div onClick={() => setShowSearch(true)} style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '2px 8px', background: COLOR.bg.surface, border: BORDER.standard, cursor: 'text', minWidth: '160px' }}>
                         <Search size={12} style={{ color: COLOR.text.muted }} />
-                        <span style={{ fontSize: '11px', color: COLOR.text.primary, fontWeight: TYPE.weight.bold }}>{selectedSymbol?.ticker || 'SEARCH...'}</span>
+                        <span style={{ fontSize: '11px', color: COLOR.text.primary, fontWeight: TYPE.weight.bold }}>{localTicker || selectedSymbol?.ticker || 'SEARCH...'}</span>
                         <Price value={currentSpot} size="xs" color="info" />
+                        {localKey && (
+                            <button 
+                                onClick={(e) => { e.stopPropagation(); setLocalKey(null); setLocalTicker(null); }}
+                                style={{ background: COLOR.semantic.down, border: 'none', color: '#fff', fontSize: '8px', padding: '1px 4px', borderRadius: '2px', marginLeft: '4px' }}
+                            >
+                                RESET
+                            </button>
+                        )}
                     </div>
                     <AnimatePresence>{showSearch && (
                         <>
@@ -252,7 +264,12 @@ export const OptionChainWidget: React.FC = () => {
                                 <input autoFocus value={search} onChange={e => setSearch(e.target.value)} placeholder="TICKER OR INDEX..." style={{ width: '100%', background: COLOR.bg.surface, border: 'none', borderBottom: BORDER.standard, padding: '10px', color: '#fff' }} />
                                 <div style={{ maxHeight: '400px', overflowY: 'auto' }}>
                                     {searchResults.map(res => (
-                                        <div key={res.instrumentKey} onClick={() => { setSelectedSymbol({ ticker: res.ticker, instrument_key: res.instrumentKey, exchange: res.exchange, name: res.name } as any); setShowSearch(false); setSearch(''); }} style={{ padding: '8px 12px', cursor: 'pointer', display: 'flex', justifyContent: 'space-between' }} className="hover:bg-interactive-hover">
+                                        <div key={res.instrumentKey} onClick={() => { 
+                                            setLocalKey(res.instrumentKey); 
+                                            setLocalTicker(res.ticker);
+                                            setShowSearch(false); 
+                                            setSearch(''); 
+                                        }} style={{ padding: '8px 12px', cursor: 'pointer', display: 'flex', justifyContent: 'space-between' }} className="hover:bg-interactive-hover">
                                             <div style={{ display: 'flex', flexDirection: 'column' }}><span style={{ fontWeight: 'bold', fontSize: '11px' }}>{res.ticker}</span><span style={{ fontSize: '9px', color: COLOR.text.muted }}>{res.name}</span></div>
                                             <Badge label={res.exchange} variant="exchange-nse" />
                                         </div>

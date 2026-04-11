@@ -4,8 +4,9 @@ import { useSelectionStore } from '../store/useStore';
 import { upstoxApi } from '../services/upstoxApi';
 import { calculateRSI, calculateSMA, calculateEMA } from '../utils/ta';
 
-export const useTechnicals = () => {
-    const { selectedSymbol } = useSelectionStore();
+export const useTechnicals = (overrideSymbol?: any) => {
+    const { selectedSymbol: globalSymbol } = useSelectionStore();
+    const selectedSymbol = overrideSymbol || globalSymbol;
     const { accessToken } = useUpstoxStore();
     const [indicators, setIndicators] = useState<any>(null);
     const [isLoading, setIsLoading] = useState(false);

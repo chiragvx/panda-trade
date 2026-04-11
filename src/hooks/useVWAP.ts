@@ -3,8 +3,9 @@ import { useUpstoxStore } from '../store/useUpstoxStore';
 import { useSelectionStore } from '../store/useStore';
 import { upstoxApi } from '../services/upstoxApi';
 
-export const useVWAP = () => {
-    const { selectedSymbol } = useSelectionStore();
+export const useVWAP = (overrideSymbol?: any) => {
+    const { selectedSymbol: globalSymbol } = useSelectionStore();
+    const selectedSymbol = overrideSymbol || globalSymbol;
     const { accessToken } = useUpstoxStore();
     const [vwap, setVwap] = useState<number | null>(null);
     const [isLoading, setIsLoading] = useState(false);

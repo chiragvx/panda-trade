@@ -5,15 +5,18 @@ import { COLOR, TYPE, BORDER, SPACE } from '../../ds/tokens';
 import { WidgetShell } from '../../ds/components/WidgetShell';
 import { EmptyState } from '../../ds/components/EmptyState';
 import { Orbit, Search, Info, TrendingUp, TrendingDown, Target } from 'lucide-react';
+import { WidgetSymbolSearch } from '../../components/WidgetSearch/WidgetSymbolSearch';
 
 export const VWapWidget: React.FC = () => {
-    const { vwap, isLoading, symbol } = useVWAP();
+    const [localSymbol, setLocalSymbol] = React.useState<any>(null);
+    const { vwap, isLoading, symbol } = useVWAP(localSymbol);
+    const { setInstrumentMeta } = useUpstoxStore();
     // LTP is derived from store prices mapped by symbol from hook
 
     // I'll just use the hook I created or get it from store
     const ltp = useUpstoxStore(s => {
-        const key = Object.keys(s.prices).find(k => k.includes(symbol || '')); // Rough lookup
-        return key ? s.prices[key].ltp : 0;
+        const key = localSymbol?.instrument_key || Object.keys(s.prices).find(k => k.includes(symbol || '')); // Precise if local, rough if global
+        return key ? s.prices[key]?.ltp : 0;
     });
 
     if (!symbol) {
@@ -33,10 +36,28 @@ export const VWapWidget: React.FC = () => {
 
     return (
         <WidgetShell>
-            <WidgetShell.Toolbar>
+            <WidgetShell.Toolbar style={{ height: 'auto', padding: '8px 12px', flexWrap: 'wrap', gap: '8px' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                     <Orbit size={14} style={{ color: COLOR.semantic.info }} />
                     <span style={{ fontSize: '10px', fontWeight: TYPE.weight.black, color: COLOR.text.primary, letterSpacing: '0.1em' }}>VWAP_ANALYSIS: {symbol}</span>
+                </div>
+                
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <WidgetSymbolSearch 
+                        onSelect={(res) => {
+                            setLocalSymbol({ instrument_key: res.instrumentKey, ticker: res.ticker });
+                            setInstrumentMeta({ [res.instrumentKey]: { ticker: res.ticker, name: res.name, exchange: res.exchange } });
+                        }} 
+                        placeholder="OVERRIDE..." 
+                    />
+                    {localSymbol && (
+                        <button 
+                            onClick={() => setLocalSymbol(null)}
+                            style={{ background: 'transparent', border: 'none', color: COLOR.semantic.down, fontSize: '9px', fontWeight: 'bold', cursor: 'pointer' }}
+                        >
+                            RESET
+                        </button>
+                    )}
                 </div>
             </WidgetShell.Toolbar>
 

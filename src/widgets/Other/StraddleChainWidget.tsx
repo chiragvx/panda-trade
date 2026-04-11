@@ -4,10 +4,13 @@ import { COLOR, TYPE, BORDER, SPACE, ROW_HEIGHT } from '../../ds/tokens';
 import { WidgetShell } from '../../ds/components/WidgetShell';
 import { EmptyState } from '../../ds/components/EmptyState';
 import { Split, Search, Filter, Info, Info as InfoIcon } from 'lucide-react';
+import { WidgetSymbolSearch } from '../../components/WidgetSearch/WidgetSymbolSearch';
+import { useUpstoxStore } from '../../store/useUpstoxStore';
 
 export const StraddleChainWidget: React.FC = () => {
-    // We can reuse the useOIGraphData hook but we need prices too
-    const { data: chainData, isLoading, expiries, selectedExpiry, setSelectedExpiry, symbol } = useOIGraphData();
+    const [localSymbol, setLocalSymbol] = React.useState<any>(null);
+    const { data: chainData, isLoading, expiries, selectedExpiry, setSelectedExpiry, symbol } = useOIGraphData(localSymbol);
+    const { setInstrumentMeta } = useUpstoxStore();
 
     if (!symbol) {
         return (
@@ -23,12 +26,30 @@ export const StraddleChainWidget: React.FC = () => {
 
     return (
         <WidgetShell>
-            <WidgetShell.Toolbar>
+            <WidgetShell.Toolbar style={{ height: 'auto', padding: '8px 12px', flexWrap: 'wrap', gap: '8px' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                     <Split size={14} style={{ color: COLOR.semantic.info }} />
                     <span style={{ fontSize: '10px', fontWeight: TYPE.weight.black, color: COLOR.text.primary, letterSpacing: '0.1em' }}>STRADDLE_CHAIN: {symbol}</span>
                 </div>
                 
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <WidgetSymbolSearch 
+                        onSelect={(res) => {
+                            setLocalSymbol({ instrument_key: res.instrumentKey, ticker: res.ticker });
+                            setInstrumentMeta({ [res.instrumentKey]: { ticker: res.ticker, name: res.name, exchange: res.exchange } });
+                        }} 
+                        placeholder="OVERRIDE..." 
+                    />
+                    {localSymbol && (
+                        <button 
+                            onClick={() => setLocalSymbol(null)}
+                            style={{ background: 'transparent', border: 'none', color: COLOR.semantic.down, fontSize: '9px', fontWeight: 'bold', cursor: 'pointer' }}
+                        >
+                            RESET
+                        </button>
+                    )}
+                </div>
+
                 <div style={{ flex: 1 }} />
 
                 <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>

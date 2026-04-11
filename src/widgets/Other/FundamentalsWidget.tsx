@@ -4,6 +4,7 @@ import { useUpstoxStore } from '../../store/useUpstoxStore';
 import { COLOR, TYPE, BORDER, SPACE } from '../../ds/tokens';
 import { BarChart3, TrendingUp, Info, DollarSign, Activity, PieChart, Shield, AlertCircle, Search } from 'lucide-react';
 import { isIsin } from '../../utils/liveSymbols';
+import { WidgetSymbolSearch } from '../../components/WidgetSearch/WidgetSymbolSearch';
 import { WidgetShell } from '../../ds/components/WidgetShell';
 import { EmptyState } from '../../ds/components/EmptyState';
 import { Price } from '../../ds/components/Price';
@@ -29,27 +30,30 @@ const MetricCard: React.FC<{ label: string; value: string; subValue?: string; ic
 );
 
 export const FundamentalsWidget: React.FC = () => {
-  const { selectedSymbol } = useSelectionStore();
-  const { prices } = useUpstoxStore();
+  const { selectedSymbol: globalSymbol } = useSelectionStore();
+  const [localSymbol, setLocalSymbol] = React.useState<any>(null);
+  
+  const activeSymbol = localSymbol || globalSymbol;
+  const { prices, setInstrumentMeta } = useUpstoxStore();
 
   const ltp = useMemo(() => {
-    if (!selectedSymbol) return 0;
-    return prices[selectedSymbol.instrument_key || '']?.ltp || selectedSymbol.ltp || 0;
-  }, [selectedSymbol, prices]);
+    if (!activeSymbol) return 0;
+    return prices[activeSymbol.instrument_key || '']?.ltp || activeSymbol.ltp || 0;
+  }, [activeSymbol, prices]);
 
   const displayTicker = useMemo(() => {
-    if (!selectedSymbol) return '';
-    return isIsin(selectedSymbol.ticker) ? (selectedSymbol.name || 'INSTRUMENT') : selectedSymbol.ticker;
-  }, [selectedSymbol]);
+    if (!activeSymbol) return '';
+    return isIsin(activeSymbol.ticker) ? (activeSymbol.name || 'INSTRUMENT') : activeSymbol.ticker;
+  }, [activeSymbol]);
 
   const displayName = useMemo(() => {
-    if (!selectedSymbol) return '';
-    if (isIsin(selectedSymbol.ticker)) return 'UPSTOX_EQUITY_DATA';
-    return selectedSymbol.name || 'INSTRUMENT OVERVIEW';
-  }, [selectedSymbol]);
+    if (!activeSymbol) return '';
+    if (isIsin(activeSymbol.ticker)) return 'UPSTOX_EQUITY_DATA';
+    return activeSymbol.name || 'INSTRUMENT OVERVIEW';
+  }, [activeSymbol]);
 
   const fundamentals = useMemo(() => {
-    if (!selectedSymbol) return null;
+    if (!activeSymbol) return null;
     return {
         marketCap: '---',
         pe: '---',
@@ -62,9 +66,9 @@ export const FundamentalsWidget: React.FC = () => {
         high52: '---',
         low52: '---',
     };
-  }, [selectedSymbol]);
+  }, [activeSymbol]);
 
-  if (!selectedSymbol) {
+  if (!activeSymbol) {
     return (
       <WidgetShell>
         <EmptyState 
@@ -78,17 +82,37 @@ export const FundamentalsWidget: React.FC = () => {
 
   return (
     <WidgetShell>
-        <WidgetShell.Toolbar style={{ height: 'auto', padding: '12px 16px' }}>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                    <span style={{ fontSize: '14px', fontWeight: TYPE.weight.black, color: COLOR.text.primary }}>{displayTicker}</span>
-                    <span style={{ fontSize: '9px', padding: '1px 4px', background: COLOR.bg.elevated, border: BORDER.standard, color: COLOR.text.muted, fontWeight: TYPE.weight.bold }}>{selectedSymbol.exchange}</span>
+        <WidgetShell.Toolbar style={{ height: 'auto', padding: '12px 16px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
+            <div style={{ width: '100%', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <span style={{ fontSize: '14px', fontWeight: TYPE.weight.black, color: COLOR.text.primary }}>{displayTicker}</span>
+                        <span style={{ fontSize: '9px', padding: '1px 4px', background: COLOR.bg.elevated, border: BORDER.standard, color: COLOR.text.muted, fontWeight: TYPE.weight.bold }}>{activeSymbol.exchange}</span>
+                    </div>
+                    <span style={{ fontSize: '10px', color: COLOR.text.muted, fontWeight: TYPE.weight.medium }}>{displayName}</span>
                 </div>
-                <span style={{ fontSize: '10px', color: COLOR.text.muted, fontWeight: TYPE.weight.medium }}>{displayName}</span>
+                <div style={{ textAlign: 'right' }}>
+                    <Price value={ltp} size="lg" weight="bold" />
+                    <div style={{ fontSize: '10px', color: COLOR.text.muted, fontWeight: TYPE.weight.bold }}>LAST_SIGNAL (UPSTOX)</div>
+                </div>
             </div>
-            <div style={{ textAlign: 'right' }}>
-                <Price value={ltp} size="lg" weight="bold" />
-                <div style={{ fontSize: '10px', color: COLOR.text.muted, fontWeight: TYPE.weight.bold }}>LAST_SIGNAL (UPSTOX)</div>
+
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', borderTop: BORDER.standard, paddingTop: '8px', width: '100%' }}>
+                <WidgetSymbolSearch 
+                    onSelect={(res) => {
+                        setLocalSymbol({ instrument_key: res.instrumentKey, ticker: res.ticker, name: res.name, exchange: res.exchange });
+                        setInstrumentMeta({ [res.instrumentKey]: { ticker: res.ticker, name: res.name, exchange: res.exchange } });
+                    }} 
+                    placeholder="RESEARCH_ANOTHER_SYMBOL..." 
+                />
+                {localSymbol && (
+                    <button 
+                        onClick={() => setLocalSymbol(null)}
+                        style={{ background: 'transparent', border: 'none', color: COLOR.semantic.down, fontSize: '9px', fontWeight: 'bold', cursor: 'pointer' }}
+                    >
+                        RESET_TO_GLOBAL
+                    </button>
+                )}
             </div>
         </WidgetShell.Toolbar>
 

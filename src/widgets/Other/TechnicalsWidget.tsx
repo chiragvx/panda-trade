@@ -4,9 +4,13 @@ import { COLOR, TYPE, BORDER, SPACE } from '../../ds/tokens';
 import { WidgetShell } from '../../ds/components/WidgetShell';
 import { EmptyState } from '../../ds/components/EmptyState';
 import { Cpu, Search, Info, TrendingUp, TrendingDown, Minus } from 'lucide-react';
+import { WidgetSymbolSearch } from '../../components/WidgetSearch/WidgetSymbolSearch';
+import { useUpstoxStore } from '../../store/useUpstoxStore';
 
 export const TechnicalsWidget: React.FC = () => {
-    const { indicators, isLoading, symbol } = useTechnicals();
+    const [localSymbol, setLocalSymbol] = React.useState<any>(null);
+    const { indicators, isLoading, symbol } = useTechnicals(localSymbol);
+    const { setInstrumentMeta } = useUpstoxStore();
 
     if (!symbol) {
         return (
@@ -34,10 +38,28 @@ export const TechnicalsWidget: React.FC = () => {
 
     return (
         <WidgetShell>
-            <WidgetShell.Toolbar>
+            <WidgetShell.Toolbar style={{ height: 'auto', padding: '8px 12px', flexWrap: 'wrap', gap: '8px' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                     <Cpu size={14} style={{ color: COLOR.semantic.info }} />
                     <span style={{ fontSize: '10px', fontWeight: TYPE.weight.black, color: COLOR.text.primary, letterSpacing: '0.1em' }}>TECHNICAL_ANALYSIS: {symbol}</span>
+                </div>
+                
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <WidgetSymbolSearch 
+                        onSelect={(res) => {
+                            setLocalSymbol({ instrument_key: res.instrumentKey, ticker: res.ticker });
+                            setInstrumentMeta({ [res.instrumentKey]: { ticker: res.ticker, name: res.name, exchange: res.exchange } });
+                        }} 
+                        placeholder="OVERRIDE..." 
+                    />
+                    {localSymbol && (
+                        <button 
+                            onClick={() => setLocalSymbol(null)}
+                            style={{ background: 'transparent', border: 'none', color: COLOR.semantic.down, fontSize: '9px', fontWeight: 'bold', cursor: 'pointer' }}
+                        >
+                            RESET
+                        </button>
+                    )}
                 </div>
             </WidgetShell.Toolbar>
 
