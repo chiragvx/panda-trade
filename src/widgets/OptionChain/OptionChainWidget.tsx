@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { NIFTY_50 } from '../../utils/defaultSymbol';
 import { useUpstoxStore } from '../../store/useUpstoxStore';
 import { useSelectionStore, useLayoutStore } from '../../store/useStore';
 import { upstoxApi } from '../../services/upstoxApi';
@@ -141,7 +142,7 @@ export const OptionChainWidget: React.FC = () => {
   useEffect(() => {
     if (!accessToken) return;
     
-    const targetKey = localKey || selectedSymbol?.instrument_key;
+    const targetKey = localKey || selectedSymbol?.instrument_key || NIFTY_50.instrument_key;
     
     if (targetKey) {
       const isOption = selectedSymbol?.exchange === 'NFO' || isIsin(targetKey);

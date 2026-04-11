@@ -13,17 +13,6 @@ export const OIGraphWidget: React.FC = () => {
     const { data, isLoading, expiries, selectedExpiry, setSelectedExpiry, stats, symbol } = useOIGraphData(localSymbol || undefined);
     const { setInstrumentMeta } = useUpstoxStore();
 
-    if (!symbol) {
-        return (
-            <WidgetShell>
-                <EmptyState 
-                    icon={<Search size={32} />}
-                    message="SELECT_INSTRUMENT"
-                    subMessage="Choose an F&O enabled symbol to view Open Interest distribution."
-                />
-            </WidgetShell>
-        );
-    }
 
     return (
         <WidgetShell>

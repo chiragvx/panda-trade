@@ -8,6 +8,7 @@ import { useUpstoxStore } from '../../store/useUpstoxStore';
 import { isIsin } from '../../utils/liveSymbols';
 import { WidgetSymbolSearch } from '../../components/WidgetSearch/WidgetSymbolSearch';
 import { TYPE } from '../../ds/tokens';
+import { NIFTY_50 } from '../../utils/defaultSymbol';
 
 declare global {
   interface Window {
@@ -21,7 +22,7 @@ export const ChartWidget: React.FC = () => {
   const { selectedSymbol: globalSymbol } = useSelectionStore();
   const [localSymbol, setLocalSymbol] = useState<any>(null);
   
-  const selectedSymbol = localSymbol || globalSymbol;
+  const selectedSymbol = localSymbol || globalSymbol || NIFTY_50;
   const { prices, setInstrumentMeta } = useUpstoxStore();
   const { openOrderModal } = useLayoutStore();
 

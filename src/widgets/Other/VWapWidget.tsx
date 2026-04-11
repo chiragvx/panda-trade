@@ -19,17 +19,6 @@ export const VWapWidget: React.FC = () => {
         return key ? s.prices[key]?.ltp : 0;
     });
 
-    if (!symbol) {
-        return (
-            <WidgetShell>
-                <EmptyState 
-                    icon={<Search size={32} />}
-                    message="SELECT_INSTRUMENT"
-                    subMessage="VWAP requires intraday volume and price data for calculation."
-                />
-            </WidgetShell>
-        );
-    }
 
     const diff = vwap ? ((ltp - vwap) / vwap) * 100 : 0;
     const isAbove = ltp > (vwap || 0);

@@ -8,26 +8,16 @@ import { EmptyState } from '../../ds/components/EmptyState';
 import { WidgetSymbolSearch } from '../../components/WidgetSearch/WidgetSymbolSearch';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts';
 import { Activity, Search, Filter, Info } from 'lucide-react';
+import { NIFTY_50 } from '../../utils/defaultSymbol';
 
 export const VolatilitySkew: React.FC = () => {
     const { selectedSymbol: globalSymbol } = useSelectionStore();
     const { setInstrumentMeta } = useUpstoxStore();
     const [localSymbol, setLocalSymbol] = useState<{ instrument_key: string, ticker: string } | null>(null);
     
-    const activeSymbol = localSymbol || globalSymbol;
+    const activeSymbol = localSymbol || globalSymbol || NIFTY_50;
     const { data, isLoading, expiries, selectedExpiry, setSelectedExpiry } = useVolatilitySkew(activeSymbol?.instrument_key);
 
-    if (!activeSymbol) {
-        return (
-            <WidgetShell>
-                <EmptyState 
-                    icon={<Search size={32} />}
-                    message="SELECT_INSTRUMENT"
-                    subMessage="Select a symbol to analyze the Implied Volatility skew across strikes."
-                />
-            </WidgetShell>
-        );
-    }
 
     return (
         <WidgetShell>

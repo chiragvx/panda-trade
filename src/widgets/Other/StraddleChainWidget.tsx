@@ -12,17 +12,6 @@ export const StraddleChainWidget: React.FC = () => {
     const { data: chainData, isLoading, expiries, selectedExpiry, setSelectedExpiry, symbol } = useOIGraphData(localSymbol);
     const { setInstrumentMeta } = useUpstoxStore();
 
-    if (!symbol) {
-        return (
-            <WidgetShell>
-                <EmptyState 
-                    icon={<Search size={32} />}
-                    message="SELECT_INSTRUMENT"
-                    subMessage="Select an F&O enabled symbol to view straddle/strangle pricing."
-                />
-            </WidgetShell>
-        );
-    }
 
     return (
         <WidgetShell>

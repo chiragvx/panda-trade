@@ -12,17 +12,6 @@ export const TechnicalsWidget: React.FC = () => {
     const { indicators, isLoading, symbol } = useTechnicals(localSymbol);
     const { setInstrumentMeta } = useUpstoxStore();
 
-    if (!symbol) {
-        return (
-            <WidgetShell>
-                <EmptyState 
-                    icon={<Search size={32} />}
-                    message="SELECT_INSTRUMENT"
-                    subMessage="Choose a symbol to analyze core technical indicators and price trends."
-                />
-            </WidgetShell>
-        );
-    }
 
     const getRSISentiment = (rsi: number) => {
         if (rsi >= 70) return { label: 'OVERBOUGHT', color: COLOR.semantic.down };

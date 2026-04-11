@@ -6,6 +6,7 @@ import { COLOR, TYPE, BORDER, SPACE } from '../../ds/tokens';
 import { isIsin } from '../../utils/liveSymbols';
 import { WidgetSymbolSearch } from '../../components/WidgetSearch/WidgetSymbolSearch';
 import { useUpstoxStore } from '../../store/useUpstoxStore';
+import { NIFTY_50 } from '../../utils/defaultSymbol';
 
 interface OrderEntryWidgetProps {
     node?: TabNode;
@@ -15,8 +16,8 @@ export const OrderEntryWidget: React.FC<OrderEntryWidgetProps> = ({ node }) => {
     const { selectedSymbol: globalSymbol } = useSelectionStore();
     const { setInstrumentMeta } = useUpstoxStore();
     const [mode, setMode] = useState<'BUY' | 'SELL'>('BUY');
-    const [symbol, setSymbol] = useState(globalSymbol?.ticker || '');
-    const [name, setName] = useState(globalSymbol?.name || '');
+    const [symbol, setSymbol] = useState(globalSymbol?.ticker || NIFTY_50.ticker);
+    const [name, setName] = useState(globalSymbol?.name || NIFTY_50.name);
     const [price, setPrice] = useState('0.00');
     const [qty, setQty] = useState('1');
     const [localOverride, setLocalOverride] = useState(false);

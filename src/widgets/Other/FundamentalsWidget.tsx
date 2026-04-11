@@ -28,12 +28,13 @@ const MetricCard: React.FC<{ label: string; value: string; subValue?: string; ic
     {subValue && <span style={{ fontSize: '9px', color: COLOR.text.muted }}>{subValue}</span>}
   </div>
 );
+import { NIFTY_50 } from '../../utils/defaultSymbol';
 
 export const FundamentalsWidget: React.FC = () => {
   const { selectedSymbol: globalSymbol } = useSelectionStore();
   const [localSymbol, setLocalSymbol] = React.useState<any>(null);
   
-  const activeSymbol = localSymbol || globalSymbol;
+  const activeSymbol = localSymbol || globalSymbol || NIFTY_50;
   const { prices, setInstrumentMeta } = useUpstoxStore();
 
   const ltp = useMemo(() => {
@@ -68,17 +69,6 @@ export const FundamentalsWidget: React.FC = () => {
     };
   }, [activeSymbol]);
 
-  if (!activeSymbol) {
-    return (
-      <WidgetShell>
-        <EmptyState 
-            icon={<Search size={32} />}
-            message="SELECT_INSTRUMENT"
-            subMessage="Choose a ticker from watchlist to retrieve core fundamental metrics."
-        />
-      </WidgetShell>
-    );
-  }
 
   return (
     <WidgetShell>

@@ -2,10 +2,11 @@ import { useState, useEffect, useMemo } from 'react';
 import { useUpstoxStore } from '../store/useUpstoxStore';
 import { useSelectionStore } from '../store/useStore';
 import { upstoxApi } from '../services/upstoxApi';
+import { NIFTY_50 } from '../utils/defaultSymbol';
 
 export const useOIGraphData = (overrideSymbol?: { instrument_key: string, ticker: string }) => {
     const { selectedSymbol: globalSelectedSymbol } = useSelectionStore();
-    const selectedSymbol = overrideSymbol || globalSelectedSymbol;
+    const selectedSymbol = overrideSymbol || globalSelectedSymbol || NIFTY_50;
     const { accessToken } = useUpstoxStore();
     const [data, setData] = useState<any[]>([]);
     const [isLoading, setIsLoading] = useState(false);
