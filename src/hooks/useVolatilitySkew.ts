@@ -40,7 +40,7 @@ export const useVolatilitySkew = (symbolKey?: string) => {
                         callIV: item.call_options?.market_data?.iv || 0,
                         putIV: item.put_options?.market_data?.iv || 0,
                     })).filter((item: any) => item.callIV > 0 || item.putIV > 0)
-                      .sort((a, b) => a.strike - b.strike);
+                      .sort((a: any, b: any) => a.strike - b.strike);
                     
                     setData(processed);
                 }

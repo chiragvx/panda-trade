@@ -3,7 +3,6 @@ import { useOIGraphData } from '../../hooks/useOIGraphData';
 import { COLOR, TYPE, BORDER, SPACE } from '../../ds/tokens';
 import { WidgetShell } from '../../ds/components/WidgetShell';
 import { EmptyState } from '../../ds/components/EmptyState';
-import { useOIGraphData } from '../../hooks/useOIGraphData';
 import { WidgetSymbolSearch } from '../../components/WidgetSearch/WidgetSymbolSearch';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts';
 import { BarChart2, Info, Search, Filter, Hash } from 'lucide-react';
