@@ -1,11 +1,11 @@
 import React, { useState } from 'react';
 import { useUpstoxStore } from '../store/useUpstoxStore';
 import { useSettingsStore } from '../store/useSettingsStore';
-import { ShieldCheck, ShieldAlert, Key, Globe, LogIn, ExternalLink, Lock, Zap, Anchor, Activity, Info, Eye, EyeOff } from 'lucide-react';
+import { ShieldCheck, ShieldAlert, Key, Globe, LogIn, ExternalLink, Lock, Zap, Anchor, Activity, Info, Eye, EyeOff, Server, Shield } from 'lucide-react';
 import { COLOR, TYPE, BORDER, SPACE } from '../ds/tokens';
 
 interface ApiConfigModalProps {
-    provider: 'UPSTOX' | 'AISSTREAM' | 'NASA';
+    provider: 'UPSTOX' | 'AISSTREAM' | 'NASA' | 'CUSTOM';
     onClose: () => void;
 }
 
@@ -117,6 +117,17 @@ export const ApiConfigModal: React.FC<ApiConfigModalProps> = ({ provider, onClos
             link: 'https://firms.modaps.eosdis.nasa.gov/api/data_availability/',
             handleSave: () => {
                 settings.setNasaApiKey(nasaKey);
+            }
+        },
+        CUSTOM: {
+            title: 'Custom Backend Infrastructure',
+            icon: <Server size={18} />,
+            image: '/custom_api_guide.png',
+            guide: 'Connect your own algorithmic backend or proprietary data stream via WebSocket/REST protocols.',
+            link: '#',
+            handleSave: () => {
+                // Custom logic if needed
+                settings.addConnection('custom');
             }
         }
     };
@@ -266,14 +277,23 @@ export const ApiConfigModal: React.FC<ApiConfigModalProps> = ({ provider, onClos
                         />
                     )}
 
-                    {provider === 'NASA' && (
-                        <SecureInput 
-                            label="FIRMS SCANNER KEY"
-                            icon={<Key size={12} />}
-                            value={nasaKey}
-                            onChange={setNasaKey}
-                            placeholder="Paste NASA Earthdata Key"
-                        />
+                    {provider === 'CUSTOM' && (
+                        <>
+                            <SecureInput 
+                                label="INFRASTRUCTURE URL"
+                                icon={<Globe size={12} />}
+                                value={aisKey} // Reusing aisKey as temp state or add new
+                                onChange={setAisKey}
+                                placeholder="http://api.yourdomain.com/v1"
+                            />
+                            <SecureInput 
+                                label="SECURITY TOKEN"
+                                icon={<Shield size={12} />}
+                                value={nasaKey} // Reusing nasaKey
+                                onChange={setNasaKey}
+                                placeholder="Paste bearer token"
+                            />
+                        </>
                     )}
                 </div>
 

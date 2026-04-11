@@ -4,7 +4,6 @@ import { useUpstoxStore } from '../store/useUpstoxStore';
 import { useSettingsStore } from '../store/useSettingsStore';
 import { COLOR, BORDER, TYPE, SPACE } from '../ds/tokens';
 import { ApiConfigModal } from '../components/ApiConfigModal';
-import { GenericConnect } from '../widgets/Other/GenericConnect';
 
 interface ConnectionMeta {
     id: string;
@@ -24,7 +23,7 @@ export const ApiDashboard: React.FC = () => {
     const [searchQuery, setSearchQuery] = useState('');
     const [statusFilter, setStatusFilter] = useState<'ALL' | 'CONNECTED' | 'DISCONNECTED'>('ALL');
     const [typeFilter, setTypeFilter] = useState<'ALL' | 'BROKER' | 'DATA_FEED'>('ALL');
-    const [activeModal, setActiveModal] = useState<'UPSTOX' | 'AISSTREAM' | 'NASA' | 'GENERIC' | null>(null);
+    const [activeModal, setActiveModal] = useState<'UPSTOX' | 'AISSTREAM' | 'NASA' | 'CUSTOM' | null>(null);
 
     // Master manifest of supported backends
     const masterConnections: ConnectionMeta[] = useMemo(() => [
@@ -162,7 +161,7 @@ export const ApiDashboard: React.FC = () => {
                         <RotateCcw size={14} />
                     </button>
                     <button 
-                        onClick={() => setActiveModal('GENERIC')}
+                        onClick={() => setActiveModal('CUSTOM')}
                         style={{ 
                             height: '34px', 
                             background: COLOR.semantic.info, 
@@ -207,7 +206,7 @@ export const ApiDashboard: React.FC = () => {
                             <p style={{ fontSize: '12px', color: '#666', margin: 0 }}>Please connect your first backend to start receiving data.</p>
                         </div>
                         <button 
-                            onClick={() => setActiveModal('GENERIC')}
+                            onClick={() => setActiveModal('CUSTOM')}
                             style={{ 
                                 background: 'transparent', 
                                 border: '1px solid #333', 
@@ -250,7 +249,7 @@ export const ApiDashboard: React.FC = () => {
                         {activeModal === 'UPSTOX' && <ApiConfigModal provider="UPSTOX" onClose={() => setActiveModal(null)} />}
                         {activeModal === 'AISSTREAM' && <ApiConfigModal provider="AISSTREAM" onClose={() => setActiveModal(null)} />}
                         {activeModal === 'NASA' && <ApiConfigModal provider="NASA" onClose={() => setActiveModal(null)} />}
-                        {activeModal === 'GENERIC' && <GenericConnect onClose={() => setActiveModal(null)} />}
+                        {activeModal === 'CUSTOM' && <ApiConfigModal provider="CUSTOM" onClose={() => setActiveModal(null)} />}
                     </div>
                 </div>
             )}

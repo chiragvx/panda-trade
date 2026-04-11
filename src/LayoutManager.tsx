@@ -26,10 +26,10 @@ import { TechnicalsWidget } from './widgets/Other/TechnicalsWidget';
 import { VWapWidget } from './widgets/Other/VWapWidget';
 import { ETFScanner } from './widgets/Other/ETFScanner';
 import { StraddleChainWidget } from './widgets/Other/StraddleChainWidget';
+import { VolatilitySkew } from './widgets/Other/VolatilitySkew';
 import { 
   HeatmapStub, 
   IVChartStub, 
-  VolatilitySkewStub, 
   FuturesChainStub, 
   NotificationsStub, 
   CorpActionsStub, 
@@ -82,7 +82,7 @@ const renderWidget = (id: string, node: TabNode) => {
         case 'holdings-heatmap': return <HeatmapWidget />;
         case 'oi-graph': return <OIGraphWidget />;
         case 'iv-chart': return <IVChartStub />;
-        case 'volatility-skew': return <VolatilitySkewStub />;
+        case 'volatility-skew': return <VolatilitySkew />;
         case 'technicals': return <TechnicalsWidget />;
         case 'vwap-indicator': return <VWapWidget />;
         case 'options-chain': return <OptionChainWidget />;

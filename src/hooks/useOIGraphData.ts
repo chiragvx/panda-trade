@@ -3,8 +3,9 @@ import { useUpstoxStore } from '../store/useUpstoxStore';
 import { useSelectionStore } from '../store/useStore';
 import { upstoxApi } from '../services/upstoxApi';
 
-export const useOIGraphData = () => {
-    const { selectedSymbol } = useSelectionStore();
+export const useOIGraphData = (overrideSymbol?: { instrument_key: string, ticker: string }) => {
+    const { selectedSymbol: globalSelectedSymbol } = useSelectionStore();
+    const selectedSymbol = overrideSymbol || globalSelectedSymbol;
     const { accessToken } = useUpstoxStore();
     const [data, setData] = useState<any[]>([]);
     const [isLoading, setIsLoading] = useState(false);
