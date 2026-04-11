@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import { Search, RotateCcw, Plus, AlertCircle, ChevronDown, Zap, Anchor, ShieldCheck, ShieldAlert, Key, Globe, MoreVertical, ExternalLink, Settings2, Power, Trash2, Activity } from 'lucide-react';
+import { Search, RotateCcw, Plus, AlertCircle, ChevronDown, Zap, Anchor, ShieldCheck, ShieldAlert, Key, Globe, MoreVertical, ExternalLink, Settings2, Power, Trash2, Activity, Server } from 'lucide-react';
 import { useUpstoxStore } from '../store/useUpstoxStore';
 import { useSettingsStore } from '../store/useSettingsStore';
 import { COLOR, BORDER, TYPE, SPACE } from '../ds/tokens';
@@ -23,7 +23,7 @@ export const ApiDashboard: React.FC = () => {
     const [searchQuery, setSearchQuery] = useState('');
     const [statusFilter, setStatusFilter] = useState<'ALL' | 'CONNECTED' | 'DISCONNECTED'>('ALL');
     const [typeFilter, setTypeFilter] = useState<'ALL' | 'BROKER' | 'DATA_FEED'>('ALL');
-    const [activeModal, setActiveModal] = useState<'UPSTOX' | 'AISSTREAM' | 'NASA' | 'CUSTOM' | null>(null);
+    const [activeModal, setActiveModal] = useState<'UPSTOX' | 'AISSTREAM' | 'NASA' | 'CUSTOM' | 'SELECT' | null>(null);
 
     // Master manifest of supported backends
     const masterConnections: ConnectionMeta[] = useMemo(() => [
@@ -161,7 +161,7 @@ export const ApiDashboard: React.FC = () => {
                         <RotateCcw size={14} />
                     </button>
                     <button 
-                        onClick={() => setActiveModal('CUSTOM')}
+                        onClick={() => setActiveModal('SELECT')}
                         style={{ 
                             height: '34px', 
                             background: COLOR.semantic.info, 
@@ -206,7 +206,7 @@ export const ApiDashboard: React.FC = () => {
                             <p style={{ fontSize: '12px', color: '#666', margin: 0 }}>Please connect your first backend to start receiving data.</p>
                         </div>
                         <button 
-                            onClick={() => setActiveModal('CUSTOM')}
+                            onClick={() => setActiveModal('SELECT')}
                             style={{ 
                                 background: 'transparent', 
                                 border: '1px solid #333', 
@@ -246,6 +246,90 @@ export const ApiDashboard: React.FC = () => {
             {activeModal && (
                 <div style={modalOverlayStyle} onClick={() => setActiveModal(null)}>
                     <div style={{ ...modalContentStyle, width: 'auto', maxWidth: 'none', background: 'transparent', border: 'none', boxShadow: 'none' }} onClick={e => e.stopPropagation()}>
+                        {activeModal === 'SELECT' && (
+                            <div style={{ 
+                                display: 'flex',
+                                width: '800px', 
+                                height: '500px',
+                                background: '#000', 
+                                border: '1px solid #333',
+                                boxShadow: '0 40px 100px rgba(0,0,0,0.9)',
+                                overflow: 'hidden'
+                            }}>
+                                {/* Left Image Column */}
+                                <div style={{ 
+                                    flex: 1.2, 
+                                    borderRight: '1px solid #222', 
+                                    background: '#050505',
+                                    position: 'relative'
+                                }}>
+                                    <img 
+                                        src="/cloud_infra_wide.png" 
+                                        alt="Cloud Infra" 
+                                        style={{ width: '100%', height: '100%', objectFit: 'cover', opacity: 0.4 }}
+                                        onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = 'none'; }}
+                                    />
+                                    <div style={{ position: 'absolute', bottom: 24, left: 24 }}>
+                                        <h1 style={{ color: '#fff', fontSize: '24px', fontWeight: '900', margin: 0, letterSpacing: '0.1em' }}>CLOUD_BACKEND</h1>
+                                        <div style={{ height: '4px', width: '40px', background: COLOR.semantic.info, marginTop: '8px' }} />
+                                    </div>
+                                </div>
+
+                                {/* Right Selection Column */}
+                                <div style={{ flex: 2, padding: '40px', display: 'flex', flexDirection: 'column', gap: '24px' }}>
+                                    <div>
+                                        <h2 style={{ color: '#fff', fontSize: '18px', margin: '0 0 4px 0', fontWeight: '900', letterSpacing: '0.05em' }}>SELECT INFRASTRUCTURE</h2>
+                                        <p style={{ color: '#666', fontSize: '11px', margin: 0 }}>Choose a protocol to authorize with the terminal.</p>
+                                    </div>
+
+                                    <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '12px', flex: 1, overflowY: 'auto' }} className="custom-scrollbar">
+                                        {[
+                                            { id: 'UPSTOX', title: 'Upstox Terminal Bridge', desc: 'Secure broker API for trade execution & live Nifty streams.', icon: <Zap size={18} />, color: COLOR.semantic.info },
+                                            { id: 'AISSTREAM', title: 'AISStream Global Marine', desc: 'Real-time WebSocket feed for global maritime vessel tracking.', icon: <Anchor size={18} />, color: COLOR.semantic.info },
+                                            { id: 'NASA', title: 'NASA FIRMS Protocol', desc: 'Thermal anomaly satellite data for global fire monitoring.', icon: <Activity size={18} />, color: COLOR.semantic.info },
+                                            { id: 'CUSTOM', title: 'Proprietary Backend', desc: 'Connect your own algorithmic infrastructure via WebSocket/REST.', icon: <Server size={18} />, color: '#fff' }
+                                        ].map(p => (
+                                            <div 
+                                                key={p.id}
+                                                onClick={() => setActiveModal(p.id as any)}
+                                                style={{ 
+                                                    background: '#0a0a0a', 
+                                                    border: '1px solid #1a1a1a', 
+                                                    padding: '16px 20px', 
+                                                    borderRadius: '4px',
+                                                    cursor: 'pointer',
+                                                    transition: 'all 0.1s linear',
+                                                    display: 'flex',
+                                                    alignItems: 'center',
+                                                    gap: '16px'
+                                                }}
+                                                onMouseOver={e => {
+                                                    e.currentTarget.style.borderColor = '#333';
+                                                    e.currentTarget.style.background = '#0f0f0f';
+                                                }}
+                                                onMouseOut={e => {
+                                                    e.currentTarget.style.borderColor = '#1a1a1a';
+                                                    e.currentTarget.style.background = '#0a0a0a';
+                                                }}
+                                            >
+                                                <div style={{ color: p.color }}>{p.icon}</div>
+                                                <div style={{ flex: 1 }}>
+                                                    <div style={{ color: '#fff', fontSize: '13px', fontWeight: 'bold' }}>{p.title}</div>
+                                                    <div style={{ color: '#666', fontSize: '10px' }}>{p.desc}</div>
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+
+                                    <button 
+                                        onClick={() => setActiveModal(null)}
+                                        style={{ alignSelf: 'flex-start', background: 'transparent', border: 'none', color: '#444', fontSize: '11px', fontWeight: 'bold', cursor: 'pointer' }}
+                                    >
+                                        RETURN_TO_DASHBOARD
+                                    </button>
+                                </div>
+                            </div>
+                        )}
                         {activeModal === 'UPSTOX' && <ApiConfigModal provider="UPSTOX" onClose={() => setActiveModal(null)} />}
                         {activeModal === 'AISSTREAM' && <ApiConfigModal provider="AISSTREAM" onClose={() => setActiveModal(null)} />}
                         {activeModal === 'NASA' && <ApiConfigModal provider="NASA" onClose={() => setActiveModal(null)} />}
