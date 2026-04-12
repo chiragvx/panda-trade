@@ -1,11 +1,11 @@
 import React, { useState } from 'react';
 import { useUpstoxStore } from '../store/useUpstoxStore';
 import { useSettingsStore } from '../store/useSettingsStore';
-import { ShieldCheck, ShieldAlert, Key, Globe, LogIn, ExternalLink, Lock, Zap, Anchor, Activity, Info, Eye, EyeOff, Server, Shield } from 'lucide-react';
+import { ShieldCheck, ShieldAlert, Key, Globe, LogIn, ExternalLink, Lock, Zap, Anchor, Activity, Info, Eye, EyeOff, Server, Shield, Plane } from 'lucide-react';
 import { COLOR, TYPE, BORDER, SPACE } from '../ds/tokens';
 
 interface ApiConfigModalProps {
-    provider: 'UPSTOX' | 'AISSTREAM' | 'NASA' | 'CUSTOM';
+    provider: 'UPSTOX' | 'AISSTREAM' | 'NASA' | 'OPENSKY';
     onClose: () => void;
 }
 
@@ -85,6 +85,8 @@ export const ApiConfigModal: React.FC<ApiConfigModalProps> = ({ provider, onClos
     const settings = useSettingsStore();
     const [aisKey, setAisKey] = useState(settings.aisStreamApiKey);
     const [nasaKey, setNasaKey] = useState(settings.nasaApiKey);
+    const [osUser, setOsUser] = useState(settings.openSkyUsername);
+    const [osPass, setOsPass] = useState(settings.openSkyPassword);
 
     const [isSaving, setIsSaving] = useState(false);
 
@@ -119,15 +121,14 @@ export const ApiConfigModal: React.FC<ApiConfigModalProps> = ({ provider, onClos
                 settings.setNasaApiKey(nasaKey);
             }
         },
-        CUSTOM: {
-            title: 'Custom Backend Infrastructure',
-            icon: <Server size={18} />,
-            image: '/custom_api_guide.png',
-            guide: 'Connect your own algorithmic backend or proprietary data stream via WebSocket/REST protocols.',
-            link: '#',
+        OPENSKY: {
+            title: 'OpenSky Network Protocol',
+            icon: <Plane size={18} />,
+            image: '/opensky_api_guide.png',
+            guide: 'Sign up for an OpenSky Network account to access higher rate limits and detailed state vectors for global flight tracking.',
+            link: 'https://opensky-network.org/',
             handleSave: () => {
-                // Custom logic if needed
-                settings.addConnection('custom');
+                settings.setOpenSkyCredentials(osUser, osPass);
             }
         }
     };
@@ -277,21 +278,31 @@ export const ApiConfigModal: React.FC<ApiConfigModalProps> = ({ provider, onClos
                         />
                     )}
 
-                    {provider === 'CUSTOM' && (
+                    {provider === 'NASA' && (
+                        <SecureInput 
+                            label="NASA FIRMS API KEY"
+                            icon={<Key size={12} />}
+                            value={nasaKey}
+                            onChange={setNasaKey}
+                            placeholder="Paste NASA FIRMS Token"
+                        />
+                    )}
+
+                    {provider === 'OPENSKY' && (
                         <>
                             <SecureInput 
-                                label="INFRASTRUCTURE URL"
+                                label="OPENSKY USERNAME"
                                 icon={<Globe size={12} />}
-                                value={aisKey} // Reusing aisKey as temp state or add new
-                                onChange={setAisKey}
-                                placeholder="http://api.yourdomain.com/v1"
+                                value={osUser}
+                                onChange={setOsUser}
+                                placeholder="Enter OpenSky username"
                             />
                             <SecureInput 
-                                label="SECURITY TOKEN"
-                                icon={<Shield size={12} />}
-                                value={nasaKey} // Reusing nasaKey
-                                onChange={setNasaKey}
-                                placeholder="Paste bearer token"
+                                label="OPENSKY PASSWORD"
+                                icon={<Lock size={12} />}
+                                value={osPass}
+                                onChange={setOsPass}
+                                placeholder="••••••••••••••••"
                             />
                         </>
                     )}

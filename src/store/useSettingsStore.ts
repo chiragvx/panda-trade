@@ -6,6 +6,9 @@ interface SettingsState {
   setAisStreamApiKey: (key: string) => void;
   nasaApiKey: string;
   setNasaApiKey: (key: string) => void;
+  openSkyUsername: string;
+  openSkyPassword: string;
+  setOpenSkyCredentials: (user: string, pass: string) => void;
   // List of connection IDs that the user has "added" to their dashboard
   enabledConnections: string[]; 
   addConnection: (id: string) => void;
@@ -19,8 +22,11 @@ export const useSettingsStore = create<SettingsState>()(
       setAisStreamApiKey: (aisStreamApiKey) => set({ aisStreamApiKey }),
       nasaApiKey: '',
       setNasaApiKey: (nasaApiKey) => set({ nasaApiKey }),
-      // Only Upstox is enabled by default. Others are opt-in.
-      enabledConnections: ['upstox-01'], 
+      openSkyUsername: '',
+      openSkyPassword: '',
+      setOpenSkyCredentials: (openSkyUsername, openSkyPassword) => set({ openSkyUsername, openSkyPassword }),
+      // Enabled connections
+      enabledConnections: ['upstox-01', 'aisstream-01', 'nasa-01', 'opensky-01'], 
       addConnection: (id) => set((state) => ({
         enabledConnections: state.enabledConnections.includes(id) 
           ? state.enabledConnections 

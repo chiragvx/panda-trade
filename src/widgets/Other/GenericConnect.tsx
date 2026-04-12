@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Key, Globe, Shield, Zap, Anchor, Activity, Server, ArrowRight, Check, AlertCircle, X } from 'lucide-react';
+import { Key, Globe, Shield, Zap, Anchor, Activity, Server, ArrowRight, Check, AlertCircle, X, Plane } from 'lucide-react';
 import { COLOR, TYPE, BORDER, SPACE } from '../../ds/tokens';
 import { useSettingsStore } from '../../store/useSettingsStore';
 import { useUpstoxStore } from '../../store/useUpstoxStore';
@@ -8,12 +8,11 @@ const PROVIDERS = [
     { id: 'upstox-01', name: 'Upstox', type: 'BROKER', icon: <Zap size={16} />, color: COLOR.semantic.info },
     { id: 'aisstream-01', name: 'AISStream', type: 'DATA_FEED', icon: <Anchor size={16} />, color: COLOR.semantic.info },
     { id: 'nasa-01', name: 'NASA FIRMS', type: 'DATA_FEED', icon: <Activity size={16} />, color: COLOR.semantic.down },
-    { id: 'opensky', name: 'OpenSky Network', type: 'DATA_FEED', icon: <Activity size={16} />, color: COLOR.semantic.info },
-    { id: 'custom', name: 'Custom Backend', type: 'GENERIC', icon: <Server size={16} />, color: COLOR.text.muted },
+    { id: 'opensky-01', name: 'OpenSky Network', type: 'DATA_FEED', icon: <Plane size={16} />, color: COLOR.semantic.info },
 ];
 
 export const GenericConnect: React.FC<{ onClose: () => void }> = ({ onClose }) => {
-    const { addConnection, setAisStreamApiKey, setNasaApiKey } = useSettingsStore();
+    const { addConnection, setAisStreamApiKey, setNasaApiKey, setOpenSkyCredentials } = useSettingsStore();
     const { setCredentials } = useUpstoxStore();
 
     const [step, setStep] = useState<1 | 2>(1);
@@ -46,6 +45,8 @@ export const GenericConnect: React.FC<{ onClose: () => void }> = ({ onClose }) =
             setAisStreamApiKey(formData.apiKey);
         } else if (selectedProvider.id === 'nasa-01') {
             setNasaApiKey(formData.apiKey);
+        } else if (selectedProvider.id === 'opensky-01') {
+            setOpenSkyCredentials(formData.apiKey, formData.apiSecret);
         }
 
         // Add to dashboard

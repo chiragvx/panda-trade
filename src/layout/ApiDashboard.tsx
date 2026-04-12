@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import { Search, RotateCcw, Plus, AlertCircle, ChevronDown, Zap, Anchor, ShieldCheck, ShieldAlert, Key, Globe, MoreVertical, ExternalLink, Settings2, Power, Trash2, Activity, Server } from 'lucide-react';
+import { Search, RotateCcw, Plus, AlertCircle, ChevronDown, Zap, Anchor, ShieldCheck, ShieldAlert, Key, Globe, MoreVertical, ExternalLink, Settings2, Power, Trash2, Activity, Server, Plane } from 'lucide-react';
 import { useUpstoxStore } from '../store/useUpstoxStore';
 import { useSettingsStore } from '../store/useSettingsStore';
 import { COLOR, BORDER, TYPE, SPACE } from '../ds/tokens';
@@ -23,7 +23,7 @@ export const ApiDashboard: React.FC = () => {
     const [searchQuery, setSearchQuery] = useState('');
     const [statusFilter, setStatusFilter] = useState<'ALL' | 'CONNECTED' | 'DISCONNECTED'>('ALL');
     const [typeFilter, setTypeFilter] = useState<'ALL' | 'BROKER' | 'DATA_FEED'>('ALL');
-    const [activeModal, setActiveModal] = useState<'UPSTOX' | 'AISSTREAM' | 'NASA' | 'CUSTOM' | 'SELECT' | null>(null);
+    const [activeModal, setActiveModal] = useState<'UPSTOX' | 'AISSTREAM' | 'NASA' | 'OPENSKY' | 'SELECT' | null>(null);
 
     // Master manifest of supported backends
     const masterConnections: ConnectionMeta[] = useMemo(() => [
@@ -56,8 +56,18 @@ export const ApiDashboard: React.FC = () => {
             icon: <Activity size={18} />,
             status: useSettingsStore.getState().nasaApiKey ? 'connected' : 'disconnected',
             lastActivity: useSettingsStore.getState().nasaApiKey ? 'Live Now' : 'Never'
+        },
+        {
+            id: 'opensky-01',
+            type: 'DATA_FEED',
+            provider: 'OPENSKY',
+            displayName: 'OpenSky Network Protocol',
+            description: 'High-fidelity global flight tracking and state vector data stream.',
+            icon: <Plane size={18} />,
+            status: useSettingsStore.getState().openSkyUsername ? 'connected' : 'disconnected',
+            lastActivity: useSettingsStore.getState().openSkyUsername ? 'Live Now' : 'Never'
         }
-    ], [upstoxStatus, upstoxKey, aisStreamApiKey, useSettingsStore.getState().nasaApiKey]);
+    ], [upstoxStatus, upstoxKey, aisStreamApiKey, useSettingsStore.getState().nasaApiKey, useSettingsStore.getState().openSkyUsername]);
 
     // Derived list based on what user has "added"
     const connections = useMemo(() => 
@@ -72,6 +82,8 @@ export const ApiDashboard: React.FC = () => {
             setAisStreamApiKey('');
         } else if (provider === 'NASA') {
             useSettingsStore.getState().setNasaApiKey('');
+        } else if (provider === 'OPENSKY') {
+            useSettingsStore.getState().setOpenSkyCredentials('', '');
         }
     };
 
@@ -287,7 +299,7 @@ export const ApiDashboard: React.FC = () => {
                                             { id: 'UPSTOX', title: 'Upstox Terminal Bridge', desc: 'Secure broker API for trade execution & live Nifty streams.', icon: <Zap size={18} />, color: COLOR.semantic.info },
                                             { id: 'AISSTREAM', title: 'AISStream Global Marine', desc: 'Real-time WebSocket feed for global maritime vessel tracking.', icon: <Anchor size={18} />, color: COLOR.semantic.info },
                                             { id: 'NASA', title: 'NASA FIRMS Protocol', desc: 'Thermal anomaly satellite data for global fire monitoring.', icon: <Activity size={18} />, color: COLOR.semantic.info },
-                                            { id: 'CUSTOM', title: 'Proprietary Backend', desc: 'Connect your own algorithmic infrastructure via WebSocket/REST.', icon: <Server size={18} />, color: '#fff' }
+                                            { id: 'OPENSKY', title: 'OpenSky Network Protocol', desc: 'Global high-precision flight tracking vectors and aircraft metadata.', icon: <Plane size={18} />, color: COLOR.semantic.info }
                                         ].map(p => (
                                             <div 
                                                 key={p.id}
@@ -333,7 +345,7 @@ export const ApiDashboard: React.FC = () => {
                         {activeModal === 'UPSTOX' && <ApiConfigModal provider="UPSTOX" onClose={() => setActiveModal(null)} />}
                         {activeModal === 'AISSTREAM' && <ApiConfigModal provider="AISSTREAM" onClose={() => setActiveModal(null)} />}
                         {activeModal === 'NASA' && <ApiConfigModal provider="NASA" onClose={() => setActiveModal(null)} />}
-                        {activeModal === 'CUSTOM' && <ApiConfigModal provider="CUSTOM" onClose={() => setActiveModal(null)} />}
+                        {activeModal === 'OPENSKY' && <ApiConfigModal provider="OPENSKY" onClose={() => setActiveModal(null)} />}
                     </div>
                 </div>
             )}

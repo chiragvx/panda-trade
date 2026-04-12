@@ -4,6 +4,7 @@ import { MapContainer, TileLayer, Marker, Popup, useMap, ZoomControl } from 'rea
 import L from 'leaflet';
 import { COLOR, TYPE, BORDER, SPACE } from '../../ds/tokens';
 import { WidgetShell } from '../../ds/components/WidgetShell';
+import { useSettingsStore } from '../../store/useSettingsStore';
 import axios from 'axios';
 
 // Aircraft interface matching OpenSky state vector format
@@ -67,6 +68,7 @@ const MapController: React.FC<{ center?: [number, number] }> = ({ center }) => {
 };
 
 const FlightMap: React.FC = () => {
+  const { openSkyUsername, openSkyPassword } = useSettingsStore();
   const [flights, setFlights] = useState<AircraftState[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedFlight, setSelectedFlight] = useState<AircraftState | null>(null);
@@ -82,7 +84,15 @@ const FlightMap: React.FC = () => {
 
   const fetchFlights = async () => {
     try {
-      const response = await axios.get('https://opensky-network.org/api/states/all?lamin=8.0&lomin=68.0&lamax=37.0&lomax=97.0');
+      const config: any = {};
+      if (openSkyUsername && openSkyPassword) {
+        config.auth = {
+          username: openSkyUsername,
+          password: openSkyPassword
+        };
+      }
+
+      const response = await axios.get('https://opensky-network.org/api/states/all?lamin=8.0&lomin=68.0&lamax=37.0&lomax=97.0', config);
       if (response.data && response.data.states) {
         const mapped: AircraftState[] = response.data.states.map((s: any[]) => {
           const callsign = (s[1]?.trim() || '').toUpperCase();
@@ -119,6 +129,7 @@ const FlightMap: React.FC = () => {
     const interval = setInterval(fetchFlights, 15000);
     return () => clearInterval(interval);
   }, []);
+
 
   const filteredFlights = useMemo(() => {
     return flights.filter(f => {
