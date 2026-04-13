@@ -101,68 +101,75 @@ const MarineMap: React.FC = () => {
             }));
         };
 
-        ws.onmessage = (event) => {
-            const data = JSON.parse(event.data);
-            const mType = data.MessageType;
+        ws.onmessage = async (event) => {
+            let messageData = event.data;
+            if (messageData instanceof Blob) {
+                messageData = await messageData.text();
+            }
             
-            // Handle multiple position report types
-            if (['PositionReport', 'StandardClassBPositionReport', 'ExtendedClassBPositionReport', 'StandardSearchAndRescueAircraftReport'].includes(mType)) {
-                const pos = data.Message[mType];
-                const meta = data.MetaData;
-                const mmsi = meta.MMSI;
+            try {
+                const data = JSON.parse(messageData);
+                const mType = data.MessageType;
                 
-                // AISStream occasionally uses different casing or field names for some types
-                const lat = pos.Latitude ?? pos.latitude;
-                const lon = pos.Longitude ?? pos.longitude;
-                const course = pos.TrueHeading ?? pos.Cog ?? pos.cog ?? 0;
-                const speed = pos.Sog ?? pos.sog ?? 0;
+                // Handle multiple position report types
+                if (['PositionReport', 'StandardClassBPositionReport', 'ExtendedClassBPositionReport', 'StandardSearchAndRescueAircraftReport'].includes(mType)) {
+                    const pos = data.Message[mType];
+                    const meta = data.MetaData;
+                    const mmsi = meta.MMSI;
+                    
+                    const lat = pos.Latitude ?? pos.latitude;
+                    const lon = pos.Longitude ?? pos.longitude;
+                    const course = pos.TrueHeading ?? pos.Cog ?? pos.cog ?? 0;
+                    const speed = pos.Sog ?? pos.sog ?? 0;
 
-                if (lat === undefined || lon === undefined) return;
+                    if (lat === undefined || lon === undefined) return;
 
-                setVessels(prev => ({
-                    ...prev,
-                    [mmsi]: {
-                        ...prev[mmsi],
-                        mmsi,
-                        name: meta.ShipName?.trim() || prev[mmsi]?.name || 'UNKNOWN',
-                        lat,
-                        lon,
-                        course: (course === 511) ? (prev[mmsi]?.course || 0) : course, // 511 means not available
-                        speed,
-                        type: prev[mmsi]?.type || 0,
-                        typeStr: prev[mmsi]?.typeStr || 'UNKNOWN',
-                        category: prev[mmsi]?.category || 'OTHER',
-                        lastSeen: Date.now(),
-                        country: meta.Country || meta.country || 'N/A',
-                        destination: meta.Destination || prev[mmsi]?.destination || '---'
-                    }
-                }));
-            } else if (mType === 'ShipStaticData') {
-                const stat = data.Message.ShipStaticData;
-                const mmsi = data.MetaData.MMSI;
-                const type = stat.Type;
-                
-                setVessels(prev => {
-                    // Initialize if not exists, but usually PositionReport comes first
-                    const current = prev[mmsi] || {
-                        mmsi,
-                        name: data.MetaData.ShipName?.trim() || 'UNKNOWN',
-                        lat: 0, lon: 0, course: 0, speed: 0,
-                        lastSeen: Date.now(), country: data.MetaData.Country || 'N/A',
-                        destination: '---'
-                    };
-
-                    return {
+                    setVessels(prev => ({
                         ...prev,
                         [mmsi]: {
-                            ...current,
-                            type,
-                            typeStr: getVesselTypeStr(type),
-                            category: getVesselCategory(type),
-                            name: data.MetaData.ShipName?.trim() || current.name
+                            ...prev[mmsi],
+                            mmsi,
+                            name: meta.ShipName?.trim() || prev[mmsi]?.name || 'UNKNOWN',
+                            lat,
+                            lon,
+                            course: (course === 511) ? (prev[mmsi]?.course || 0) : course,
+                            speed,
+                            type: prev[mmsi]?.type || 0,
+                            typeStr: prev[mmsi]?.typeStr || 'UNKNOWN',
+                            category: prev[mmsi]?.category || 'OTHER',
+                            lastSeen: Date.now(),
+                            country: meta.Country || meta.country || 'N/A',
+                            destination: meta.Destination || prev[mmsi]?.destination || '---'
                         }
-                    };
-                });
+                    }));
+                } else if (mType === 'ShipStaticData') {
+                    const stat = data.Message.ShipStaticData;
+                    const mmsi = data.MetaData.MMSI;
+                    const type = stat.Type;
+                    
+                    setVessels(prev => {
+                        const current = prev[mmsi] || {
+                            mmsi,
+                            name: data.MetaData.ShipName?.trim() || 'UNKNOWN',
+                            lat: 0, lon: 0, course: 0, speed: 0,
+                            lastSeen: Date.now(), country: data.MetaData.Country || 'N/A',
+                            destination: '---'
+                        };
+
+                        return {
+                            ...prev,
+                            [mmsi]: {
+                                ...current,
+                                type,
+                                typeStr: getVesselTypeStr(type),
+                                category: getVesselCategory(type),
+                                name: data.MetaData.ShipName?.trim() || current.name
+                            }
+                        };
+                    });
+                }
+            } catch (err) {
+                // Ignore parsing errors for non-AIS messages
             }
         };
 
