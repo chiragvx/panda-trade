@@ -15,6 +15,9 @@ interface DataTableProps<T> {
   data: T[];
   columns: Column<T>[];
   onRowClick?: (item: T, index: number) => void;
+  onRowContextMenu?: (e: React.MouseEvent, item: T, index: number) => void;
+  onRowMouseEnter?: (item: T, index: number) => void;
+  onRowMouseLeave?: (item: T, index: number) => void;
   sortCol?: string | null;
   sortDir?: 'asc' | 'desc';
   onSort?: (col: string) => void;
@@ -29,6 +32,9 @@ export const DataTable = <T extends Record<string, any>>({
   data, 
   columns, 
   onRowClick,
+  onRowContextMenu,
+  onRowMouseEnter,
+  onRowMouseLeave,
   sortCol,
   sortDir,
   onSort,
@@ -54,13 +60,13 @@ export const DataTable = <T extends Record<string, any>>({
                   style={{
                     padding: '0 12px',
                     fontSize: TYPE.size.xs,
-                    fontWeight: TYPE.weight.black,
+                    fontWeight: TYPE.weight.bold,
                     color: isActive ? COLOR.text.primary : COLOR.text.muted,
                     textTransform: 'uppercase',
                     letterSpacing: TYPE.letterSpacing.caps,
                     fontFamily: TYPE.family.mono,
                     borderRight: BORDER.standard,
-                    borderBottom: BORDER.standard,
+                    borderBottom: BORDER.strong,
                     cursor: col.sortable ? 'pointer' : 'default',
                     textAlign: col.align || 'left',
                     width: col.width,
@@ -70,7 +76,7 @@ export const DataTable = <T extends Record<string, any>>({
                     position: isSticky ? 'sticky' : 'static',
                     left: isSticky ? 0 : 'auto',
                     zIndex: isSticky ? 30 : 20,
-                    background: COLOR.bg.surface
+                    background: COLOR.bg.base
                   }}
                   className={col.sortable ? "hover:bg-interactive-hover" : ""}
                 >
@@ -89,6 +95,9 @@ export const DataTable = <T extends Record<string, any>>({
             <tr 
               key={rowIdx} 
               onClick={() => onRowClick?.(item, rowIdx)}
+              onMouseEnter={() => onRowMouseEnter?.(item, rowIdx)}
+              onMouseLeave={() => onRowMouseLeave?.(item, rowIdx)}
+              onContextMenu={(e) => onRowContextMenu?.(e, item, rowIdx)}
               style={{ 
                 height: ROW_HEIGHT[rowHeight], 
                 cursor: onRowClick ? 'pointer' : 'default',
@@ -115,7 +124,7 @@ export const DataTable = <T extends Record<string, any>>({
                       position: isSticky ? 'sticky' : 'static',
                       left: isSticky ? 0 : 'auto',
                       zIndex: isSticky ? 10 : 1,
-                      backgroundColor: 'inherit' // Ensures it picks up hover color or row color
+                      backgroundColor: 'inherit'
                     }}
                   >
                     {col.render ? col.render(item[col.key], item, rowIdx) : item[col.key]}

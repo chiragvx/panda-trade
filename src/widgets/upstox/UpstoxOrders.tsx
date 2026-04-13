@@ -82,7 +82,7 @@ const UpstoxOrders: React.FC = () => {
                 return (
                     <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
                         <Clock size={10} color={COLOR.text.muted} />
-                        <Text color="muted" size="xs" weight="bold" family="mono">{timeStr}</Text>
+                        <Text color="muted" size="xs" weight="medium" family="mono">{timeStr}</Text>
                     </div>
                 );
             }
@@ -92,10 +92,10 @@ const UpstoxOrders: React.FC = () => {
             label: 'SYMBOL', 
             render: (val: string, item: any) => (
                 <div style={{ display: 'flex', flexDirection: 'column' }}>
-                    <Text weight="black" size="md" color="primary">{val}</Text>
+                    <Text weight="bold" size="md" color="primary">{val}</Text>
                     <div style={{ display: 'flex', gap: '4px', alignItems: 'center' }}>
                         <Badge label={item.exchange} variant={item.exchange === 'NSE' ? 'exchange-nse' : 'exchange-bse'} />
-                        <Text size="xs" color="muted" weight="bold">{item.order_type}</Text>
+                        <Text size="xs" color="muted" weight="medium">{item.order_type}</Text>
                     </div>
                 </div>
             )
@@ -105,12 +105,12 @@ const UpstoxOrders: React.FC = () => {
             label: 'DIR', 
             width: 60,
             render: (val: string) => (
-                <Text weight="black" color={val === 'BUY' ? 'up' : 'down'} size="sm">
+                <Text weight="bold" color={val === 'BUY' ? 'up' : 'down'} size="sm">
                     {val}
                 </Text>
             )
         },
-        { key: 'quantity', label: 'QTY', align: 'right' as const, width: 80, render: (val: number) => <Text weight="bold" size="sm">{val}</Text> },
+        { key: 'quantity', label: 'QTY', align: 'right' as const, width: 80, render: (val: number) => <Text weight="medium" size="sm">{val}</Text> },
         { 
             key: 'price', 
             label: 'PX_EXEC', 
@@ -118,7 +118,7 @@ const UpstoxOrders: React.FC = () => {
             width: 90,
             render: (val: any, item: any) => {
                 const px = val || item.average_price || 0;
-                return px > 0 ? <Price value={px} size="sm" weight="black" /> : <Text color="muted" size="sm">--</Text>;
+                return px > 0 ? <Price value={px} size="sm" weight="bold" /> : <Text color="muted" size="sm">--</Text>;
             }
         },
         { 
@@ -133,7 +133,7 @@ const UpstoxOrders: React.FC = () => {
                     
                     <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                         <div style={{ width: '4px', height: '12px', background: COLOR.semantic[getStatusColor(val)] }} />
-                        <Text weight="black" color={getStatusColor(val)} size="xs" style={{ letterSpacing: '0.05em' }}>
+                        <Text weight="bold" color={getStatusColor(val)} size="xs" style={{ letterSpacing: '0.05em' }}>
                             {val.toUpperCase()}
                         </Text>
                     </div>
@@ -161,7 +161,7 @@ const UpstoxOrders: React.FC = () => {
                 <WidgetShell.Toolbar.Left>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                         <ShoppingBag size={14} color={COLOR.text.primary} />
-                        <Text size="xs" weight="black" style={{ letterSpacing: TYPE.letterSpacing.caps }}>
+                        <Text size="xs" weight="bold" style={{ letterSpacing: TYPE.letterSpacing.caps }}>
                             DLY_ORDER_BOOK
                         </Text>
                         <Badge label={orders.length.toString()} variant="muted" />
@@ -194,17 +194,17 @@ const UpstoxOrders: React.FC = () => {
             <div style={{ height: '32px', padding: '0 12px', background: COLOR.bg.surface, borderTop: BORDER.strong, display: 'flex', alignItems: 'center', gap: '16px' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
                     <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: COLOR.semantic.up }} />
-                    <Text size="xs" color="muted" weight="bold">FILLED</Text>
+                    <Text size="xs" color="muted" weight="medium">FILLED</Text>
                 </div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
                     <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: COLOR.semantic.info }} />
-                    <Text size="xs" color="muted" weight="bold">OPEN</Text>
+                    <Text size="xs" color="muted" weight="medium">OPEN</Text>
                 </div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
                     <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: COLOR.semantic.danger }} />
-                    <Text size="xs" color="muted" weight="bold">REJECTED</Text>
+                    <Text size="xs" color="muted" weight="medium">REJECTED</Text>
                 </div>
-                <Text size="xs" color="muted" weight="black" style={{ marginLeft: 'auto', letterSpacing: '0.05em' }}>SOURCE: UPSTOX_OMS_V3</Text>
+                <Text size="xs" color="muted" weight="bold" style={{ marginLeft: 'auto', letterSpacing: '0.05em' }}>SOURCE: UPSTOX_OMS_V3</Text>
             </div>
         </WidgetShell>
     );

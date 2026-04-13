@@ -103,11 +103,11 @@ const UpstoxPortfolio: React.FC = () => {
             label: 'SYMBOL', 
             render: (val: string, item: any) => (
                 <div style={{ display: 'flex', flexDirection: 'column' }}>
-                    <Text weight="black" size="md" color="primary">
+                    <Text weight="bold" size="md" color="primary">
                         {isIsin(val) ? (item.name || val) : val}
                     </Text>
                     <div style={{ display: 'flex', gap: '4px', alignItems: 'center' }}>
-                        <Text size="xs" color="muted" weight="bold">
+                        <Text size="xs" color="muted" weight="medium">
                             {item.product}
                         </Text>
                         <Badge label={item.exchange} variant={item.exchange === 'NSE' ? 'exchange-nse' : 'exchange-bse'} />
@@ -115,7 +115,7 @@ const UpstoxPortfolio: React.FC = () => {
                 </div>
             )
         },
-        { key: 'quantity', label: 'QTY', align: 'right' as const, width: 80, render: (val: number) => <Text weight="bold">{val}</Text> },
+        { key: 'quantity', label: 'QTY', align: 'right' as const, width: 80, render: (val: number) => <Text weight="medium">{val}</Text> },
         { 
             key: 'ltp', 
             label: 'LTP', 
@@ -123,7 +123,7 @@ const UpstoxPortfolio: React.FC = () => {
             width: 90,
             render: (_: any, item: any) => {
                 const ltp = prices[item.instrument_token]?.ltp || item.last_price;
-                return <Price value={ltp} size="sm" weight="black" />;
+                return <Price value={ltp} size="sm" weight="bold" />;
             }
         },
         { 
@@ -144,9 +144,9 @@ const UpstoxPortfolio: React.FC = () => {
                          onMouseLeave={() => setHoveredIndex(null)}>
                         
                         {activeTab === 'positions' ? (
-                            <Change value={pnlOrValue} format="absolute" size="md" weight="black" />
+                            <Change value={pnlOrValue} format="absolute" size="md" weight="bold" />
                         ) : (
-                            <Text weight="black" size="md">
+                            <Text weight="bold" size="md">
                                 ₹{pnlOrValue.toLocaleString('en-IN', { maximumFractionDigits: 0 })}
                             </Text>
                         )}
@@ -178,8 +178,8 @@ const UpstoxPortfolio: React.FC = () => {
                  <div style={{ background: COLOR.bg.surface, padding: '10px 14px', border: BORDER.standard, display: 'flex', alignItems: 'center', gap: '12px' }}>
                     <Wallet size={16} color={COLOR.semantic.info} />
                     <div>
-                        <Text variant="label" size="xs" weight="black" color="muted" block>AVBL MARGIN</Text>
-                        <Text size="lg" weight="black" color="primary" block>
+                        <Text variant="label" size="xs" weight="bold" color="muted" block>AVBL MARGIN</Text>
+                        <Text size="lg" weight="bold" color="primary" block>
                             ₹{funds ? (funds.available_margin).toLocaleString('en-IN') : '--'}
                         </Text>
                     </div>
@@ -190,9 +190,9 @@ const UpstoxPortfolio: React.FC = () => {
                         <RefreshCw size={16} className={loading ? 'animate-spin' : ''} />
                     </div>
                     <div>
-                        <Text variant="label" size="xs" weight="black" color="muted" block>DAY UNRLZD</Text>
+                        <Text variant="label" size="xs" weight="bold" color="muted" block>DAY UNRLZD</Text>
                         <div style={{ display: 'flex', alignItems: 'baseline', gap: '4px' }}>
-                             <Text size="lg" weight="black" color={totalPnL >= 0 ? 'up' : 'down'}>
+                             <Text size="lg" weight="bold" color={totalPnL >= 0 ? 'up' : 'down'}>
                                 {totalPnL >= 0 ? '+' : ''}₹{totalPnL.toLocaleString('en-IN', { maximumFractionDigits: 0 })}
                              </Text>
                         </div>

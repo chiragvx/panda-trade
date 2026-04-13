@@ -109,9 +109,9 @@ export const WidgetDropdown: React.FC<WidgetDropdownProps> = ({ isOpen, onOpenCh
                     <button key={cat} onClick={() => setActiveCategory(cat)} style={{
                       padding: '8px 12px', background: 'transparent', border: 'none',
                       borderBottom: activeCategory === cat ? `2px solid ${COLOR.semantic.info}` : '2px solid transparent',
-                      fontFamily: TYPE.family.mono, fontSize: TYPE.size.xs, textTransform: 'uppercase', cursor: 'pointer',
+                      fontFamily: TYPE.family.mono, fontSize: TYPE.size.xs, cursor: 'pointer',
                       color: activeCategory === cat ? COLOR.text.primary : COLOR.text.muted,
-                      transition: 'color 80ms linear', whiteSpace: 'nowrap', fontWeight: TYPE.weight.black, letterSpacing: TYPE.letterSpacing.caps
+                      transition: 'color 80ms linear', whiteSpace: 'nowrap', fontWeight: TYPE.weight.black, letterSpacing: '0.02em'
                     }}>{cat}</button>
                   ))}
                 </div>

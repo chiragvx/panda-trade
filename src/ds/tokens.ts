@@ -43,21 +43,21 @@ export const TYPE = {
     heading: '"Genos", sans-serif',
   },
   size: {
-    xs:    '11px',  // ← FLOOR — labels, captions, badges (was 10px)
-    sm:    '12px',  // table cells, supporting text (was 11px)
-    md:    '12px',  // base body text
-    lg:    '14px',  // emphasized text, active values (was 13px)
-    xl:    '16px',  // section headers, large values (was 14px)
-    '2xl': '18px',  // hero prices, P&L display
-    '3xl': '20px',  // featured display values
+    xs:    '12px',  // ← FLOOR (confirmed 12px min)
+    sm:    '12px',  
+    md:    '12px',  
+    lg:    '14px',  
+    xl:    '16px',  
+    '2xl': '18px',  
+    '3xl': '20px',  
   },
   weight: {
     regular:   '400',
     medium:    '500',
-    semibold:  '600',
-    bold:      '700',
-    extrabold: '800',
-    black:     '900',
+    semibold:  '500', // Slimmer
+    bold:      '600', // Slimmer
+    extrabold: '700', // Slimmer
+    black:     '700', // Slimmer
   },
   lineHeight: {
     tight:    '1.2',
@@ -87,7 +87,7 @@ export const SPACE = {
 } as const;
 
 export const ROW_HEIGHT = {
-  compact: '28px',  // dense secondary rows
+  compact: '32px',
   default: '32px',  // standard data rows — confirmed
   relaxed: '36px',  // spacious / modal rows
   header:  '32px',  // column headers — confirmed

@@ -36,7 +36,7 @@ import {
 import { IVChart } from './widgets/Other/IVChart';
 import { NLScreener } from './widgets/Other/NLScreener';
 import { MacroNews } from './widgets/News/MacroNews';
-import { Plus, Lock, Unlock, Settings2, RotateCcw, ChevronDown } from 'lucide-react';
+import { Plus, Lock, Unlock, Settings2, RotateCcw, ChevronDown, Maximize2, Minimize2, MoreVertical, X } from 'lucide-react';
 import { OptionChainWidget } from './widgets/OptionChain/OptionChainWidget';
 
 import FearIndex from './widgets/fear-index/FearIndex';
@@ -204,14 +204,7 @@ export const LayoutManager: React.FC<LayoutManagerProps> = ({ model }) => {
         renderValues.buttons.push(
             <div 
                 key="add-widget-btn"
-                style={{
-                  display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  height: '28px', width: '32px', cursor: 'pointer', flexShrink: 0,
-                  color: '#FFFFFF', borderLeft: BORDER.standard,
-                  transition: 'color 80ms linear, background 120ms linear',
-                }}
-                onMouseEnter={e => { (e.currentTarget as HTMLElement).style.color = '#FF7722'; (e.currentTarget as HTMLElement).style.background = '#111111'; }}
-                onMouseLeave={e => { (e.currentTarget as HTMLElement).style.color = '#FFFFFF'; (e.currentTarget as HTMLElement).style.background = 'transparent'; }}
+                className="flexlayout__tabset_header_button"
                 onClick={(e) => {
                     e.stopPropagation();
                     (window as any).activeTabsetId = id;
@@ -227,15 +220,10 @@ export const LayoutManager: React.FC<LayoutManagerProps> = ({ model }) => {
         renderValues.buttons.push(
             <div 
                 key="pin-button"
+                className="flexlayout__tabset_header_button"
                 style={{
-                  display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  height: '28px', width: '32px', cursor: 'pointer', flexShrink: 0,
                   color: isPinned ? '#FF7722' : '#FFFFFF',
-                  borderLeft: BORDER.standard,
-                  transition: 'color 80ms linear, background 120ms linear',
                 }}
-                onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = '#111111'; }}
-                onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = 'transparent'; }}
                 onClick={(e) => {
                     e.stopPropagation();
                     togglePin(id);
@@ -258,6 +246,12 @@ export const LayoutManager: React.FC<LayoutManagerProps> = ({ model }) => {
         factory={factory}
         onAction={onAction}
         onRenderTabSet={onRenderTabSet}
+        icons={{
+          maximize: <Maximize2 size={14} />,
+          restore: <Minimize2 size={14} />,
+          more: <MoreVertical size={14} />,
+          close: <X size={14} />
+        }}
         onModelChange={() => {
             const activeId = model.getActiveTabset()?.getId();
             if (activeId) (window as any).activeTabsetId = activeId;

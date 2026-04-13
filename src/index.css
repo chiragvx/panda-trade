@@ -93,19 +93,128 @@
 .flexlayout__tabset_header {
   background: #000000 !important;
   border-bottom: 1px solid var(--border) !important;
-  height: 28px !important;
-  min-height: 28px !important;
+  height: 32px !important;
+  min-height: 32px !important;
   padding: 0 !important;
 }
 
+.flexlayout__tabset_header--selected,
+div[class*="flexlayout__tabset_"] {
+  background-image: none !important;
+  background-color: #000000 !important;
+  box-shadow: none !important;
+}
+
+.flexlayout__tabset_header--selected {
+  background: #1c1c1c !important;
+}
+
+.flexlayout__tabset_header_toolbar,
+.flexlayout__tab_toolbar,
+.flexlayout__tabset_tabbar_outer,
+.flexlayout__tabset_tabbar_inner,
+.flexlayout__tabset_tabbar_inner_tab_container,
+.flexlayout__tab_toolbar_sticky_buttons_container {
+  gap: 0 !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  background: #000000 !important;
+  border: none !important;
+}
+
+/* Tabbar container bottom border - the header divider */
+.flexlayout__tabset_header,
+.flexlayout__tabset_tabbar_outer_top,
+.flexlayout__tabset_tabbar_inner_tab_container {
+  border-bottom: 1px solid var(--border) !important;
+}
+
+.flexlayout__tabset_tabbar_outer_top,
+.flexlayout__tabset_tabbar_outer_bottom {
+  gap: 0 !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  background: #000000 !important;
+  border-top: none !important;
+  border-left: none !important;
+  border-right: none !important;
+}
+
+.flexlayout__tab_toolbar,
+.flexlayout__tabset_header_toolbar {
+  display: flex !important;
+  align-items: center !important;
+  padding-left: 0 !important;
+  padding-right: 0 !important;
+}
+
+.flexlayout__tabset_header_toolbar *,
+.flexlayout__tab_toolbar * {
+  border: none !important;
+  outline: none !important;
+}
+
+/* Defeat dark.css nested specificity — force zero gap & padding on toolbars */
+html body :is(.flexlayout__tab_toolbar, .flexlayout__tabset_header_toolbar) {
+  gap: 0 !important;
+  padding: 0 !important;
+  padding-left: 0 !important;
+  padding-right: 0 !important;
+}
+
+html body :is(.flexlayout__tab_toolbar_button, .flexlayout__tab_toolbar_icon) {
+  padding: 0 !important;
+  margin: 0 !important;
+  gap: 0 !important;
+}
+
+html body .flexlayout__tab_toolbar_sticky_buttons_container {
+  gap: 0 !important;
+  padding: 0 !important;
+  padding-left: 0 !important;
+}
+
+.flexlayout__tabset_tab_divider,
+.flexlayout__tabset_header_toolbar *::before,
+.flexlayout__tabset_header_toolbar *::after,
+.flexlayout__tab_toolbar *::before,
+.flexlayout__tab_toolbar *::after,
+div[class*="separator"] {
+  display: none !important;
+}
+
+.flexlayout__tabset_header_button,
+.flexlayout__tab_toolbar_button {
+  background-color: transparent !important;
+  opacity: 1 !important;
+  color: inherit !important;
+  width: 32px !important;
+  height: 32px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  transition: all 120ms linear !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  border-radius: 0 !important;
+  border: none !important;
+  outline: none !important;
+  cursor: pointer !important;
+  box-sizing: border-box !important;
+}
+
+.flexlayout__tabset_header_button:hover,
+.flexlayout__tab_toolbar_button:hover {
+  background-color: #111111 !important;
+}
+
 .flexlayout__tab_button {
-  height: 28px !important;
+  height: 32px !important;
   padding: 0 12px !important;
   font-family: var(--font-mono) !important;
-  font-size: 10px !important;
+  font-size: 12px !important;
   font-weight: 700 !important;
-  letter-spacing: 0.1em !important;
-  text-transform: uppercase !important;
+  letter-spacing: 0.02em !important;
   color: var(--text-muted) !important;
   border: none !important;
   border-right: 1px solid var(--border) !important;
@@ -116,8 +225,8 @@
 
 .flexlayout__tab_button--selected {
   color: #FFFFFF !important;
-  background: #111111 !important;
-  border-bottom: 2px solid var(--color-info) !important;
+  background: #1c1c1c !important;
+  border-bottom: none !important;
 }
 
 .flexlayout__tab_button:hover:not(.flexlayout__tab_button--selected) {
@@ -139,7 +248,7 @@
 .flexlayout__tab {
   background: #000000 !important;
   border: none !important;
-  padding: var(--space-standard) !important;
+  padding: 0 !important;
   overflow: hidden !important;
 }
 
@@ -176,29 +285,7 @@
 }
 
 /* ─── WINDOW CONTROL ICONS ──────────────────────────────────────────────── */
-.flexlayout__tabset_header_button {
-  background-color: transparent !important;
-  opacity: 1 !important;
-  color: #FFFFFF !important;
-  width: 32px !important;
-  height: 28px !important;
-  display: flex !important;
-  align-items: center !important;
-  justify-content: center !important;
-  transition: background 120ms linear !important;
-}
-
-.flexlayout__tabset_header_button:hover {
-  background-color: #111111 !important;
-}
-
-/* Force white on native SVGs */
-.flexlayout__tabset_header_button > div,
-.flexlayout__tabset_header_button svg {
-  filter: brightness(0) invert(1) !important;
-  width: 14px !important;
-  height: 14px !important;
-}
+/* Legacy block removed - styles now handled in the main FlexLayout overrides block above */
 
 /* Close button on tabs */
 .flexlayout__tab_button_trailing {
