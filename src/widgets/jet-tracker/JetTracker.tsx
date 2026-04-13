@@ -92,10 +92,16 @@ const FlightMap: React.FC = () => {
         };
       }
 
-      const response = await axios.get('https://opensky-network.org/api/states/all?lamin=8.0&lomin=68.0&lamax=37.0&lomax=97.0', config);
-      if (response.data && response.data.states) {
-        const mapped: AircraftState[] = response.data.states.map((s: any[]) => {
-          const callsign = (s[1]?.trim() || '').toUpperCase();
+      const targetUrl = 'https://opensky-network.org/api/states/all?lamin=8.0&lomin=68.0&lamax=37.0&lomax=97.0';
+      const proxyUrl = `https://api.allorigins.win/get?url=${encodeURIComponent(targetUrl)}&timestamp=${Date.now()}`;
+      
+      const response = await axios.get(proxyUrl);
+      
+      if (response.data && response.data.contents) {
+        const rawData = JSON.parse(response.data.contents);
+        if (rawData && rawData.states) {
+          const mapped: AircraftState[] = rawData.states.map((s: any[]) => {
+            const callsign = (s[1]?.trim() || '').toUpperCase();
           return {
             icao24: s[0],
             callsign,
