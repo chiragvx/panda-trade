@@ -130,7 +130,7 @@ const FIIDIITracker: React.FC = () => {
                     <DataRow label="DOMESTIC INSTITUTIONS (DII)" buy={dii.buyValue} sell={dii.sellValue} net={dii.netValue} />
 
                     <div style={{ flex: 1, marginTop: SPACE[4], minHeight: '130px', background: COLOR.bg.base, border: BORDER.standard, padding: '8px' }}>
-                        <ResponsiveContainer width="100%" height="100%" minWidth={100} minHeight={100} aspect={2.5}>
+                        <ResponsiveContainer width="100%" aspect={2.5}>
                             <ComposedChart data={chartData}>
                                 <CartesianGrid strokeDasharray="3 3" stroke={COLOR.bg.elevated} vertical={false} />
                                 <XAxis dataKey="time" hide />

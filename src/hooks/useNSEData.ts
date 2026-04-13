@@ -1,6 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 
-const NSE_PROXY = 'https://corsproxy.io/?'; // Use a proxy because NSE blocks direct browser requests
+const NSE_PROXY = 'https://api.allorigins.win/raw?url='; 
 const BASE_URL = 'https://www.nseindia.com';
 
 export interface NSEDataOptions {
@@ -18,14 +18,7 @@ export const useNSEData = <T>(endpoint: string, options: NSEDataOptions = {}) =>
   return useQuery<T>({
     queryKey: ['nse', endpoint],
     queryFn: async () => {
-      const response = await fetch(`${NSE_PROXY}${encodeURIComponent(BASE_URL + endpoint)}`, {
-        headers: {
-          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-          'Accept': '*/*',
-          'Accept-Language': 'en-US,en;q=0.9',
-          'Referer': 'https://www.nseindia.com',
-        },
-      });
+      const response = await fetch(`${NSE_PROXY}${encodeURIComponent(BASE_URL + endpoint)}`);
 
       if (!response.ok) {
         throw new Error(`NSE API: ${response.statusText}`);

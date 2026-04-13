@@ -85,7 +85,7 @@ const MaxPainCalculator: React.FC = () => {
             </WidgetShell.Toolbar>
 
             <div style={{ flex: 1, padding: '4px', position: 'relative', minHeight: '150px' }}>
-                <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={0}>
+                <ResponsiveContainer width="100%" height="100%" minWidth={100} minHeight={150}>
                     <ComposedChart data={filteredData} layout="vertical" margin={{ left: -10, right: 10, top: 10, bottom: 0 }}>
                         <CartesianGrid strokeDasharray="3 3" stroke={COLOR.bg.elevated} horizontal={false} />
                         <XAxis type="number" hide />

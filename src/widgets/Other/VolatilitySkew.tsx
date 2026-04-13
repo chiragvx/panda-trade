@@ -69,7 +69,7 @@ export const VolatilitySkew: React.FC = () => {
 
             <div style={{ flex: 1, padding: SPACE[4], display: 'flex', flexDirection: 'column' }}>
                 <div style={{ flex: 1, minHeight: 0 }}>
-                    <ResponsiveContainer width="100%" height="100%">
+                    <ResponsiveContainer width="100%" height="100%" minWidth={100} minHeight={150}>
                         <LineChart data={data} margin={{ top: 10, right: 10, left: 0, bottom: 20 }}>
                             <CartesianGrid strokeDasharray="3 3" stroke={COLOR.bg.elevated} vertical={false} />
                             <XAxis 

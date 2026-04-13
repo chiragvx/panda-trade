@@ -111,7 +111,7 @@ const FearIndex: React.FC = () => {
         <div style={{ position: 'absolute', top: '-4px', right: 0, fontSize: '8px', fontWeight: TYPE.weight.bold, color: COLOR.text.muted, background: COLOR.bg.base, padding: '0 4px', textTransform: 'uppercase' }}>
           LAST_7D_AVERAGE
         </div>
-        <ResponsiveContainer width="100%" height="100%" debounce={1} minWidth={100} minHeight={30} aspect={4}>
+        <ResponsiveContainer width="100%" height={48}>
           <AreaChart data={history}>
             <Area type="stepAfter" dataKey="val" stroke={status.color} strokeWidth={1} fill={status.color} fillOpacity={0.05} baseValue="dataMin" isAnimationActive={false} />
           </AreaChart>

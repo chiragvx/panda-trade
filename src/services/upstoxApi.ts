@@ -320,9 +320,11 @@ export const upstoxApi = {
   getHistoricalVolatility: async (token: string, instrumentKey: string, lookback: number = 100) =>
     guardedRequest(`hist-vol:${token.slice(-8)}:${instrumentKey}:${lookback}`, 3600000, async () => {
       const now = new Date();
-      const past = new Date(now.getTime() - (lookback + 20) * 24 * 60 * 60 * 1000); // Buffer for market holidays
+      const past = new Date(now.getTime() - (lookback + 20) * 24 * 60 * 60 * 1000); 
       
-      const toDate = now.toISOString().split('T')[0];
+      // Use yesterday as toDate because today's historical candle may not be ready
+      const yesterday = new Date(now.getTime() - 24 * 60 * 60 * 1000);
+      const toDate = yesterday.toISOString().split('T')[0];
       const fromDate = past.toISOString().split('T')[0];
       
       const response = await api.get(
