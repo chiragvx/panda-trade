@@ -3,6 +3,7 @@ import { useSelectionStore } from '../../store/useStore';
 import { COLOR, BORDER, TYPE } from '../../ds/tokens';
 import { Change } from '../../ds/components/Change';
 import { Button } from '../../ds/components/Button';
+import { Text } from '../../ds/components/Text';
 import { useLayoutStore } from '../../store/useStore';
 import { useUpstoxStore } from '../../store/useUpstoxStore';
 import { isIsin } from '../../utils/liveSymbols';
