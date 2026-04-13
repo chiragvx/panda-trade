@@ -44,9 +44,9 @@ export const NLScreener: React.FC = () => {
                 }));
 
                 let sorted = [...mapped];
-                if (filter === 'GAINERS') sorted.sort((a, b) => b.change_percent - a.change_percent);
-                else if (filter === 'LOSERS') sorted.sort((a, b) => a.change_percent - b.change_percent);
-                else sorted.sort((a, b) => b.volume - a.volume);
+                if (filter === 'GAINERS') sorted.sort((a: ScreenerResult, b: ScreenerResult) => b.change_percent - a.change_percent);
+                else if (filter === 'LOSERS') sorted.sort((a: ScreenerResult, b: ScreenerResult) => a.change_percent - b.change_percent);
+                else sorted.sort((a: ScreenerResult, b: ScreenerResult) => b.volume - a.volume);
 
                 setResults(sorted);
             }

@@ -46,8 +46,8 @@ export const IVChart: React.FC = () => {
                         strike: item.strike_price,
                         iv: (item.call_options?.market_data?.iv || item.put_options?.market_data?.iv || 0),
                         type: item.call_options?.market_data?.iv ? 'CALL' : 'PUT'
-                    })).filter(d => d.iv > 0)
-                      .sort((a, b) => a.strike - b.strike);
+                    })).filter((d: any) => d.iv > 0)
+                      .sort((a: any, b: any) => a.strike - b.strike);
                     setData(processed);
                 }
             } catch (err) {

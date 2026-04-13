@@ -1,4 +1,5 @@
 import React, { useMemo } from 'react';
+import axios from 'axios';
 import { useSelectionStore } from '../../store/useStore';
 import { useUpstoxStore } from '../../store/useUpstoxStore';
 import { COLOR, TYPE, BORDER, SPACE } from '../../ds/tokens';
