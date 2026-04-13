@@ -247,7 +247,7 @@ export const upstoxApi = {
       }
 
       const response = await api.get(
-        `${BASE_URL}/historical-candle/${encodeURIComponent(instrumentKey)}/${interval}/${nFrom}/${finalToDate}`,
+        `${BASE_URL}/historical-candle/${encodeURIComponent(instrumentKey)}/${interval}/${finalToDate}/${nFrom}`,
         {
           headers: authHeaders(token),
         }
