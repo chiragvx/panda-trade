@@ -306,14 +306,14 @@ export const WatchlistWidget: React.FC = () => {
         
         <AnimatePresence>
             {showSearchDropdown && (
-                <motion.div initial={{ opacity: 0, y: -5 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} style={{ position: 'absolute', top: '100%', left: '8px', right: '8px', background: COLOR.bg.elevated, border: BORDER.standard, zIndex: 100, maxHeight: '300px', overflowY: 'auto' }}>
+                <motion.div initial={{ opacity: 0, y: -5 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} style={{ position: 'absolute', top: '100%', left: '0', right: '0', background: COLOR.bg.elevated, border: BORDER.standard, zIndex: 100, maxHeight: '300px', overflowY: 'auto', boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.4), 0 8px 10px -6px rgba(0, 0, 0, 0.4)' }}>
                     {searchResults.map((res) => (
-                        <div key={res.instrumentKey} onClick={() => handleSelectResult(res)} style={{ padding: 0, borderBottom: BORDER.standard, cursor: 'pointer', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }} className="hover:bg-zinc-900">
-                            <div style={{ display: 'flex', flexDirection: 'column' }}>
-                                <Text weight="medium" color="primary">{res.ticker}</Text>
-                                <Text size="xs" color="muted">{res.name}</Text>
+                        <div key={res.instrumentKey} onClick={() => handleSelectResult(res)} style={{ padding: '8px 12px', borderBottom: BORDER.standard, cursor: 'pointer', display: 'flex', justifyContent: 'space-between', alignItems: 'center', transition: 'background 0.1s linear' }} className="hover:bg-zinc-800">
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
+                                <Text weight="black" color="primary" size="sm">{res.ticker}</Text>
+                                <Text size="xs" color="muted" weight="bold" style={{ opacity: 0.7 }}>{res.name}</Text>
                             </div>
-                            <Badge label={res.exchange} variant="exchange-nse" />
+                            <Badge label={res.exchange} variant="info" />
                         </div>
                     ))}
                 </motion.div>

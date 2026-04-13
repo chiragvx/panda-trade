@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { useSelectionStore } from '../../store/useStore';
 import { COLOR, BORDER, TYPE } from '../../ds/tokens';
 import { Change } from '../../ds/components/Change';
@@ -7,25 +7,24 @@ import { useLayoutStore } from '../../store/useStore';
 import { useUpstoxStore } from '../../store/useUpstoxStore';
 import { isIsin } from '../../utils/liveSymbols';
 import { WidgetSymbolSearch } from '../../components/WidgetSearch/WidgetSymbolSearch';
-import { RotateCcw } from 'lucide-react';
+import { RotateCcw, LineChart, BarChart } from 'lucide-react';
 import { Tooltip } from '../../ds/components/Tooltip';
 import { NIFTY_50 } from '../../utils/defaultSymbol';
-
-declare global {
-  interface Window {
-    TradingView: any;
-  }
-}
+import { TradingViewChart } from './TradingViewChart';
+import { upstoxApi } from '../../services/upstoxApi';
+import { format, subDays } from 'date-fns';
 
 export const ChartWidget: React.FC = () => {
-  const containerRef = useRef<HTMLDivElement>(null);
-  const widgetRef = useRef<any>(null);
   const { selectedSymbol: globalSymbol } = useSelectionStore();
   const [localSymbol, setLocalSymbol] = useState<any>(null);
   
   const selectedSymbol = localSymbol || globalSymbol || NIFTY_50;
-  const { prices, setInstrumentMeta } = useUpstoxStore();
+  const { prices, setInstrumentMeta, accessToken } = useUpstoxStore();
   const { openOrderModal } = useLayoutStore();
+
+  const [loading, setLoading] = useState(false);
+  const [chartData, setChartData] = useState<any[]>([]);
+  const [interval, setInterval] = useState('1minute');
 
   const displayTicker = useMemo(() => {
     if (!selectedSymbol) return '--';
@@ -41,53 +40,41 @@ export const ChartWidget: React.FC = () => {
   const isIndex = selectedSymbol?.instrument_key?.startsWith('NSE_INDEX');
 
   useEffect(() => {
-    if (!containerRef.current || !window.TradingView) return;
+    if (!selectedSymbol?.instrument_key || !accessToken) return;
 
-    // Mapping Upstox ticker to TV Symbol
-    // Upstox: "NSE_EQ|INE062A01020" -> "NSE:RELIANCE"
-    let tvSymbol = 'NASDAQ:AAPL';
-    if (selectedSymbol) {
-      if (selectedSymbol.exchange === 'NSE') {
-        tvSymbol = `NSE:${selectedSymbol.ticker}`;
-      } else if (selectedSymbol.exchange === 'BSE') {
-        tvSymbol = `BSE:${selectedSymbol.ticker}`;
-      } else if (selectedSymbol.exchange === 'MCX') {
-        tvSymbol = `MCX:${selectedSymbol.ticker}`;
-      } else if (isIndex) {
-        // Map common indices
-        if (selectedSymbol.ticker.includes('Nifty 50')) tvSymbol = 'NSE:NIFTY';
-        else if (selectedSymbol.ticker.includes('Bank')) tvSymbol = 'NSE:BANKNIFTY';
-        else tvSymbol = `NSE:${selectedSymbol.ticker.split(' ')[0]}`;
+    const fetchHistory = async () => {
+      setLoading(true);
+      try {
+        const toDate = format(new Date(), 'yyyy-MM-dd');
+        const fromDate = format(subDays(new Date(), 30), 'yyyy-MM-dd');
+        
+        const response = await upstoxApi.getHistoricalData(
+            accessToken, 
+            selectedSymbol.instrument_key, 
+            '1minute', 
+            fromDate, 
+            toDate
+        );
+
+        if (response.status === 'success' && response.data?.candles) {
+            const formatted = response.data.candles.map((c: any) => ({
+                time: new Date(c[0]).getTime() / 1000,
+                open: c[1],
+                high: c[2],
+                low: c[3],
+                close: c[4],
+            })).sort((a: any, b: any) => a.time - b.time);
+            setChartData(formatted);
+        }
+      } catch (err) {
+        console.error('Failed to fetch historical data:', err);
+      } finally {
+        setLoading(false);
       }
-    }
-
-    widgetRef.current = new window.TradingView.widget({
-      autosize: true,
-      symbol: tvSymbol,
-      interval: '1',
-      timezone: 'Asia/Kolkata',
-      theme: 'dark',
-      style: '1',
-      locale: 'en',
-      toolbar_bg: COLOR.bg.base,
-      enable_publishing: false,
-      hide_side_toolbar: false,
-      allow_symbol_change: true,
-      container_id: 'tv_chart_container',
-      loading_screen: { backgroundColor: COLOR.bg.base },
-      disabled_features: ['header_saveload', 'use_localstorage_for_settings_events'],
-      enabled_features: ['side_toolbar_in_compact_mode', 'header_widget_dom_node'],
-      overrides: {
-        'paneProperties.background': COLOR.bg.base,
-        'paneProperties.vertGridProperties.color': 'rgba(255, 255, 255, 0.02)',
-        'paneProperties.horzGridProperties.color': 'rgba(255, 255, 255, 0.02)',
-      }
-    });
-
-    return () => {
-      widgetRef.current = null;
     };
-  }, [selectedSymbol]);
+
+    fetchHistory();
+  }, [selectedSymbol?.instrument_key, accessToken]);
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100%', background: COLOR.bg.base, overflow: 'hidden' }}>
@@ -98,6 +85,26 @@ export const ChartWidget: React.FC = () => {
           <span style={{ fontSize: TYPE.size.md, color: COLOR.text.primary, fontWeight: TYPE.weight.bold, fontFamily: TYPE.family.mono }}>₹{currentPrice.toFixed(2)}</span>
           <Change value={liveChangePct} format="percent" size="sm" />
           {isIndex && <span style={{ fontSize: TYPE.size.xs, color: COLOR.text.muted, padding: '1px 6px', border: BORDER.standard, fontWeight: TYPE.weight.black, letterSpacing: TYPE.letterSpacing.caps, borderRadius: '2px' }}>INDEX</span>}
+          <div style={{ width: '1px', height: '12px', background: COLOR.bg.border, margin: '0 4px' }} />
+          {['1minute', '5minute', '15minute', 'day'].map(int => (
+              <button 
+                key={int}
+                onClick={() => setInterval(int)}
+                style={{ 
+                    background: interval === int ? `${COLOR.semantic.info}22` : 'transparent',
+                    border: 'none',
+                    color: interval === int ? COLOR.semantic.info : COLOR.text.muted,
+                    fontSize: '10px',
+                    fontWeight: TYPE.weight.black,
+                    cursor: 'pointer',
+                    padding: '2px 6px',
+                    borderRadius: '2px',
+                    fontFamily: TYPE.family.mono
+                }}
+              >
+                  {int.replace('minute', 'M').replace('day', '1D').toUpperCase()}
+              </button>
+          ))}
         </div>
 
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
@@ -128,8 +135,9 @@ export const ChartWidget: React.FC = () => {
         </div>
       </div>
 
-      {/* TradingView Native Container */}
-      <div id="tv_chart_container" ref={containerRef} style={{ flex: 1, position: 'relative' }} />
+      <div style={{ flex: 1, position: 'relative' }}>
+          <TradingViewChart data={chartData} isLoading={loading} />
+      </div>
     </div>
   );
 };
