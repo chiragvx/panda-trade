@@ -26,6 +26,7 @@ export const ChartWidget: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [chartData, setChartData] = useState<any[]>([]);
   const [interval, setInterval] = useState('1minute');
+  const [chartType, setChartType] = useState<'candle' | 'line'>('candle');
 
   const displayTicker = useMemo(() => {
     if (!selectedSymbol) return '--';
@@ -48,10 +49,10 @@ export const ChartWidget: React.FC = () => {
       try {
         const toDate = format(new Date(), 'yyyy-MM-dd');
         
-        let daysBack = 2;
-        if (interval === '5minute') daysBack = 7;
-        else if (interval === '15minute') daysBack = 15;
-        else if (interval === 'day') daysBack = 365;
+        let daysBack = 1;
+        if (interval === '5minute') daysBack = 5;
+        else if (interval === '15minute') daysBack = 10;
+        else if (interval === 'day') daysBack = 200;
 
         const fromDate = format(subDays(new Date(), daysBack), 'yyyy-MM-dd');
         
@@ -115,6 +116,11 @@ export const ChartWidget: React.FC = () => {
                   {int.replace('minute', 'M').replace('day', '1D').toUpperCase()}
               </button>
           ))}
+          <div style={{ width: '1px', height: '12px', background: COLOR.bg.border, margin: '0 4px' }} />
+          <div style={{ display: 'flex', gap: '4px' }}>
+              <button onClick={() => setChartType('candle')} style={{ background: 'transparent', border: 'none', color: chartType === 'candle' ? COLOR.semantic.info : COLOR.text.muted, cursor: 'pointer', padding: '2px', display: 'flex', alignItems: 'center' }}><BarChart size={14} /></button>
+              <button onClick={() => setChartType('line')} style={{ background: 'transparent', border: 'none', color: chartType === 'line' ? COLOR.semantic.info : COLOR.text.muted, cursor: 'pointer', padding: '2px', display: 'flex', alignItems: 'center' }}><LineChart size={14} /></button>
+          </div>
         </div>
 
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
@@ -152,7 +158,7 @@ export const ChartWidget: React.FC = () => {
                   <Button size="sm" variant="primary" onClick={() => (window as any).replaceTab?.('api')}>CONNECT_API</Button>
               </div>
           ) : (
-              <TradingViewChart data={chartData} isLoading={loading} />
+              <TradingViewChart data={chartData} isLoading={loading} chartType={chartType} />
           )}
       </div>
     </div>
