@@ -70,11 +70,11 @@ export const ApiDashboard: React.FC = () => {
             id: 'opensky-01',
             type: 'DATA_FEED',
             provider: 'OPENSKY',
-            displayName: 'OpenSky Network Protocol',
-            description: 'High-fidelity global flight tracking and state vector data stream.',
+            displayName: 'OpenSky Public Network',
+            description: 'Free global flight tracking via OpenSky community vectors.',
             icon: <Plane size={18} />,
-            status: openSkyUsername ? 'connected' : 'disconnected',
-            lastActivity: openSkyUsername ? 'Live Now' : 'Never'
+            status: enabledConnections.includes('opensky-01') ? 'connected' : 'disconnected',
+            lastActivity: enabledConnections.includes('opensky-01') ? 'Live Now' : 'Never'
         },
         {
             id: 'rapidapi-01',
@@ -320,7 +320,7 @@ export const ApiDashboard: React.FC = () => {
                                             { id: 'UPSTOX', title: 'Upstox Terminal Bridge', desc: 'Secure broker API for trade execution & live Nifty streams.', icon: <Zap size={18} />, color: COLOR.semantic.info },
                                             { id: 'AISSTREAM', title: 'AISStream Global Marine', desc: 'Real-time WebSocket feed for global maritime vessel tracking.', icon: <Anchor size={18} />, color: COLOR.semantic.info },
                                             { id: 'NASA', title: 'NASA FIRMS Protocol', desc: 'Thermal anomaly satellite data for global fire monitoring.', icon: <Activity size={18} />, color: COLOR.semantic.info },
-                                            { id: 'OPENSKY', title: 'OpenSky Network Protocol', desc: 'Global high-precision flight tracking vectors and aircraft metadata.', icon: <Plane size={18} />, color: COLOR.semantic.info },
+                                            { id: 'OPENSKY', title: 'OpenSky Public Radar', desc: 'Global high-precision flight tracking vectors and aircraft metadata.', icon: <Plane size={18} />, color: COLOR.semantic.info },
                                             { id: 'RAPIDAPI', title: 'RapidAPI Economic Intel', desc: 'Global economic events and macro-calendar data stream.', icon: <Globe size={18} />, color: COLOR.semantic.info }
                                         ].map(p => (
                                             <div 
@@ -367,7 +367,23 @@ export const ApiDashboard: React.FC = () => {
                         {activeModal === 'UPSTOX' && <ApiConfigModal provider="UPSTOX" onClose={() => setActiveModal(null)} />}
                         {activeModal === 'AISSTREAM' && <ApiConfigModal provider="AISSTREAM" onClose={() => setActiveModal(null)} />}
                         {activeModal === 'NASA' && <ApiConfigModal provider="NASA" onClose={() => setActiveModal(null)} />}
-                        {activeModal === 'OPENSKY' && <ApiConfigModal provider="OPENSKY" onClose={() => setActiveModal(null)} />}
+                        {activeModal === 'OPENSKY' && (
+                            <div style={{ 
+                                padding: '20px', 
+                                background: '#0a0a0a', 
+                                border: '1px solid #222', 
+                                borderRadius: '4px',
+                                display: 'flex',
+                                flexDirection: 'column',
+                                alignItems: 'center',
+                                gap: '12px',
+                                textAlign: 'center'
+                            }}>
+                                 <Globe size={32} color={COLOR.semantic.info} />
+                                 <div style={{ fontSize: '11px', color: '#fff', fontWeight: 'bold' }}>PUBLIC_DATA_ACTIVE</div>
+                                 <div style={{ fontSize: '10px', color: '#666' }}>Using OpenSky community-sourced ADSB vectors. No further configuration is required to activate the Flight Map.</div>
+                            </div>
+                        )}
                         {activeModal === 'RAPIDAPI' && <ApiConfigModal provider="RAPIDAPI" onClose={() => setActiveModal(null)} />}
                     </div>
                 </div>

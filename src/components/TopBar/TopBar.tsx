@@ -191,7 +191,10 @@ export const TopBar: React.FC<TopBarProps> = ({ model }) => {
           </button>
           <button
             onClick={() => {
-              localStorage.removeItem('opentrader_layout');
+              const workspaces = ['CASUAL', 'OPTIONS', 'RESEARCH', 'PM', 'QUANT', 'CHART', 'PSYCHO', 'CUSTOM'];
+              workspaces.forEach(ws => localStorage.removeItem(`opentrader_layout_${ws}`));
+              localStorage.removeItem('opentrader_workspace');
+              localStorage.removeItem('opentrader_layout'); // legacy key
               window.location.reload();
             }}
             style={{

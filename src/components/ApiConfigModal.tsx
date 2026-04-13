@@ -125,13 +125,12 @@ export const ApiConfigModal: React.FC<ApiConfigModalProps> = ({ provider, onClos
             }
         },
         OPENSKY: {
-            title: 'OpenSky Network Protocol',
+            title: 'OpenSky Public Radar',
             icon: <Plane size={18} />,
             image: '/opensky_api_guide.png',
-            guide: 'Sign up for an OpenSky Network account to access higher rate limits and detailed state vectors for global flight tracking.',
+            guide: 'Accessing global flight vectors via OpenSky Network public API. No credentials required for standard community access. Authenticated sessions are optional for high-frequency data.',
             link: 'https://opensky-network.org/',
             handleSave: () => {
-                settings.setOpenSkyCredentials(osUser, osPass);
                 settings.addConnection('opensky-01');
             }
         },
@@ -304,22 +303,22 @@ export const ApiConfigModal: React.FC<ApiConfigModalProps> = ({ provider, onClos
                     )}
 
                     {provider === 'OPENSKY' && (
-                        <>
-                            <SecureInput 
-                                label="OPENSKY USERNAME"
-                                icon={<Globe size={12} />}
-                                value={osUser}
-                                onChange={setOsUser}
-                                placeholder="Enter OpenSky username"
-                            />
-                            <SecureInput 
-                                label="OPENSKY PASSWORD"
-                                icon={<Lock size={12} />}
-                                value={osPass}
-                                onChange={setOsPass}
-                                placeholder="••••••••••••••••"
-                            />
-                        </>
+                        <div style={{ 
+                            padding: '40px 20px', 
+                            background: '#0a0a0a', 
+                            border: '1px solid #222', 
+                            borderRadius: '4px',
+                            display: 'flex',
+                            flexDirection: 'column',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            gap: '12px',
+                            textAlign: 'center'
+                        }}>
+                             <Globe size={32} color={COLOR.semantic.info} />
+                             <div style={{ fontSize: '11px', color: '#fff', fontWeight: 'bold' }}>PUBLIC_DATA_ACTIVE</div>
+                             <div style={{ fontSize: '10px', color: '#666', lineHeight: '1.5' }}>Using OpenSky community-sourced ADSB vectors.<br/>No further configuration is required.</div>
+                        </div>
                     )}
 
                     {provider === 'RAPIDAPI' && (

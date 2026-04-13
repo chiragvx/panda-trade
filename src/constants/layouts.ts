@@ -48,7 +48,7 @@ export const RESEARCH_LAYOUT: IJsonModel = {
         children: [
             { type: "tabset", weight: 25, children: [{ type: "tab", name: "Fundamentals", component: "fundamentals" }, { type: "tab", name: "Technicals", component: "technicals" }] },
             { type: "tabset", weight: 50, children: [{ type: "tab", name: "Multi-Chart", component: "chart" }] },
-            { type: "tabset", weight: 25, children: [{ type: "tab", name: "Macro News", component: "news" }, { type: "tab", name: "Corporate Actions", component: "corporate-actions" }] }
+            { type: "tabset", weight: 25, children: [{ type: "tab", name: "Macro News", component: "macro-news" }, { type: "tab", name: "Corporate Actions", component: "corporate-actions" }] }
         ]
     }
 };

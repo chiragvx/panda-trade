@@ -153,8 +153,21 @@ const FlightMap: React.FC = () => {
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flex: 1 }}>
                 <Plane size={12} color={COLOR.semantic.info} />
                 <span style={{ fontSize: '9px', fontWeight: TYPE.weight.bold, color: COLOR.text.secondary, textTransform: 'uppercase', letterSpacing: TYPE.letterSpacing.caps }}>
-                    FLIGHT_MAP_LIVE
+                    PUBLIC_ADSB_RADAR
                 </span>
+                <div style={{ 
+                    fontSize: '8px', 
+                    padding: '1px 6px', 
+                    background: '#00ffff10', 
+                    color: COLOR.semantic.info, 
+                    borderRadius: '2px', 
+                    fontWeight: 'bold',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '4px'
+                }}>
+                    <Radio size={8} /> PUBLIC_FEED
+                </div>
             </div>
             <div style={{ fontSize: '9px', color: COLOR.text.muted, display: 'flex', alignItems: 'center', gap: '8px' }}>
                 <div style={{ width: '6px', height: '6px', borderRadius: '50%', background: COLOR.semantic.up, animation: 'pulse 2s infinite' }} />

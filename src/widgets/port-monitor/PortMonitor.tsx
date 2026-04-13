@@ -78,6 +78,8 @@ const MarineMap: React.FC = () => {
   const [status, setStatus] = useState<'IDLE' | 'CONNECTING' | 'LIVE' | 'ERROR'>('IDLE');
   
   const wsRef = useRef<WebSocket | null>(null);
+  const bufferRef = useRef<Record<number, VesselState>>({});
+  const lastSyncRef = useRef<number>(0);
 
   useEffect(() => {
     if (!aisStreamApiKey) {
@@ -94,10 +96,12 @@ const MarineMap: React.FC = () => {
             if (ws.readyState !== WebSocket.OPEN) return;
             console.log('AISStream Connected');
             setStatus('LIVE');
-            // Global subscription (Major hubs and oceans)
+            
+            // Regional Subscription (Indian Ocean / SE Asia) to prevent global overload
+            // Format: [[[lat_min, lon_min], [lat_max, lon_max]]]
             ws.send(JSON.stringify({
                 APIKey: aisStreamApiKey,
-                BoundingBoxes: [[[-90, -180], [90, 180]]]
+                BoundingBoxes: [[[-10, 40], [30, 100]]] 
             }));
         };
 
@@ -111,7 +115,6 @@ const MarineMap: React.FC = () => {
                 const data = JSON.parse(messageData);
                 const mType = data.MessageType;
                 
-                // Handle multiple position report types
                 if (['PositionReport', 'StandardClassBPositionReport', 'ExtendedClassBPositionReport', 'StandardSearchAndRescueAircraftReport'].includes(mType)) {
                     const pos = data.Message[mType];
                     const meta = data.MetaData;
@@ -124,52 +127,53 @@ const MarineMap: React.FC = () => {
 
                     if (lat === undefined || lon === undefined) return;
 
-                    setVessels(prev => ({
-                        ...prev,
-                        [mmsi]: {
-                            ...prev[mmsi],
-                            mmsi,
-                            name: meta.ShipName?.trim() || prev[mmsi]?.name || 'UNKNOWN',
-                            lat,
-                            lon,
-                            course: (course === 511) ? (prev[mmsi]?.course || 0) : course,
-                            speed,
-                            type: prev[mmsi]?.type || 0,
-                            typeStr: prev[mmsi]?.typeStr || 'UNKNOWN',
-                            category: prev[mmsi]?.category || 'OTHER',
-                            lastSeen: Date.now(),
-                            country: meta.Country || meta.country || 'N/A',
-                            destination: meta.Destination || prev[mmsi]?.destination || '---'
-                        }
-                    }));
+                    // Buffer update instead of immediate state set
+                    bufferRef.current[mmsi] = {
+                        ...(bufferRef.current[mmsi] || {}),
+                        mmsi,
+                        name: meta.ShipName?.trim() || bufferRef.current[mmsi]?.name || 'UNKNOWN',
+                        lat,
+                        lon,
+                        course: (course === 511) ? (bufferRef.current[mmsi]?.course || 0) : course,
+                        speed,
+                        lastSeen: Date.now(),
+                        country: meta.Country || meta.country || 'N/A',
+                        destination: meta.Destination || bufferRef.current[mmsi]?.destination || '---',
+                        type: bufferRef.current[mmsi]?.type || 0,
+                        typeStr: bufferRef.current[mmsi]?.typeStr || 'UNKNOWN',
+                        category: bufferRef.current[mmsi]?.category || 'OTHER',
+                    };
+
+                    // Sync buffer to state every 1.5 seconds to keep UI smooth
+                    const now = Date.now();
+                    if (now - lastSyncRef.current > 1500) {
+                        setVessels(prev => {
+                            const next = { ...prev, ...bufferRef.current };
+                            // Cleanup: Remove vessels not seen in 10 minutes to prevent memory leaks
+                            const expiry = now - 600000;
+                            Object.keys(next).forEach(key => {
+                                if (next[Number(key)].lastSeen < expiry) {
+                                    delete next[Number(key)];
+                                    delete bufferRef.current[Number(key)];
+                                }
+                            });
+                            return next;
+                        });
+                        lastSyncRef.current = now;
+                    }
                 } else if (mType === 'ShipStaticData') {
                     const stat = data.Message.ShipStaticData;
                     const mmsi = data.MetaData.MMSI;
                     const type = stat.Type;
                     
-                    setVessels(prev => {
-                        const current = prev[mmsi] || {
-                            mmsi,
-                            name: data.MetaData.ShipName?.trim() || 'UNKNOWN',
-                            lat: 0, lon: 0, course: 0, speed: 0,
-                            lastSeen: Date.now(), country: data.MetaData.Country || 'N/A',
-                            destination: '---'
-                        };
-
-                        return {
-                            ...prev,
-                            [mmsi]: {
-                                ...current,
-                                type,
-                                typeStr: getVesselTypeStr(type),
-                                category: getVesselCategory(type),
-                                name: data.MetaData.ShipName?.trim() || current.name
-                            }
-                        };
-                    });
+                    if (bufferRef.current[mmsi]) {
+                        bufferRef.current[mmsi].type = type;
+                        bufferRef.current[mmsi].typeStr = getVesselTypeStr(type);
+                        bufferRef.current[mmsi].category = getVesselCategory(type);
+                    }
                 }
             } catch (err) {
-                // Ignore parsing errors for non-AIS messages
+                // Ignore parsing errors
             }
         };
 
