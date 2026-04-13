@@ -1,7 +1,7 @@
 import React, { useMemo, useState, useEffect, useRef } from 'react';
 import { useUpstoxStore } from '../../store/useUpstoxStore';
 import { useLayoutStore, useSelectionStore } from '../../store/useStore';
-import { COLOR, TYPE } from '../../ds/tokens';
+import { COLOR, TYPE, BORDER, SPACE } from '../../ds/tokens';
 import { motion } from 'framer-motion';
 
 export const HeatmapWidget: React.FC = () => {
@@ -141,13 +141,13 @@ export const HeatmapWidget: React.FC = () => {
                         {showDetails && (
                             <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center' }}>
                                 <span style={{ 
-                                    fontSize: Math.max(TYPE.size.xs, Math.min(h.w / 5.5, 14)), fontWeight: TYPE.weight.black, color: COLOR.text.primary, 
+                                    fontSize: Math.max(parseInt(TYPE.size.xs), Math.min(h.w / 5.5, 14)), fontWeight: TYPE.weight.black, color: COLOR.text.primary, 
                                     fontFamily: TYPE.family.mono, letterSpacing: '-0.02em', lineHeight: '1.1' 
                                 }}>
                                     {h.trading_symbol}
                                 </span>
                                 <span style={{ 
-                                    fontSize: Math.max(TYPE.size.xs, Math.min(h.w / 11, 11)), fontWeight: TYPE.weight.bold, color: COLOR.text.primary, 
+                                    fontSize: Math.max(parseInt(TYPE.size.xs), Math.min(h.w / 11, 11)), fontWeight: TYPE.weight.bold, color: COLOR.text.primary, 
                                     fontFamily: TYPE.family.mono, marginTop: '2px', letterSpacing: '0.05em' 
                                 }}>
                                     {h.pnlPct > 0 ? '+' : ''}{h.pnlPct.toFixed(2)}%

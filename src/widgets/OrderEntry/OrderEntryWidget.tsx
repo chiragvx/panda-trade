@@ -163,7 +163,7 @@ export const OrderEntryWidget: React.FC<OrderEntryWidgetProps> = ({ node }) => {
                             fontSize: TYPE.size.xs, 
                             fontWeight: TYPE.weight.black, 
                             background: type === 'LIMIT' ? `${COLOR.semantic.info}20` : COLOR.bg.surface, 
-                            border: type === 'LIMIT' ? BORDER.active : BORDER.standard,
+                            border: type === 'LIMIT' ? BORDER.info : BORDER.standard,
                             color: type === 'LIMIT' ? COLOR.semantic.info : COLOR.text.muted,
                             cursor: 'pointer',
                             letterSpacing: TYPE.letterSpacing.caps,

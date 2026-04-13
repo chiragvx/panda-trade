@@ -62,12 +62,12 @@ export const OIGraphWidget: React.FC = () => {
                             <Text size="xs" weight="black" color="muted" block>TOTAL CALL OI</Text>
                             <Text size="lg" weight="black" color="down" family="mono">{stats.totalCallOI.toLocaleString()}</Text>
                         </div>
-                        <div style={{ width: '1px', background: COLOR.border.standard }} />
+                        <div style={{ width: '1px', background: COLOR.bg.border }} />
                         <div style={{ flex: 1 }}>
                             <Text size="xs" weight="black" color="muted" block>TOTAL PUT OI</Text>
                             <Text size="lg" weight="black" color="up" family="mono">{stats.totalPutOI.toLocaleString()}</Text>
                         </div>
-                        <div style={{ width: '1px', background: COLOR.border.standard }} />
+                        <div style={{ width: '1px', background: COLOR.bg.border }} />
                         <div style={{ flex: 1 }}>
                             <Text size="xs" weight="black" color="muted" block>OVERALL PCR</Text>
                             <Text size="lg" weight="black" color="primary" family="mono">{stats.pcr.toFixed(2)}</Text>

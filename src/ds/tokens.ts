@@ -24,9 +24,12 @@ export const COLOR = {
   semantic: {
     up:      '#00d084',
     down:    '#ff3b57',
+    danger:  '#ff3b57',
     warning: '#f5a623',
     info:    '#FF7722',
     purple:  '#b06aff',
+    muted:   '#666666',
+    primary: '#FFFFFF',
   },
   interactive: {
     hover:    '#111111',
@@ -126,6 +129,6 @@ export const Z = {
   topbar:       1000,
   modal:        5000,
   modalTop:     6000,
-  disclaimer:   9000,
   critical:     9999,
+  tooltip:      10000,
 } as const;

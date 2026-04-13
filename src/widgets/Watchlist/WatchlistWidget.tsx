@@ -36,6 +36,14 @@ export function usePriceFlash(price: number) {
   return flash;
 }
 
+const PriceCell = ({ symbol }: { symbol: SymbolData }) => {
+  const { prices } = useUpstoxStore();
+  const livePrice = symbol.instrument_key ? prices[symbol.instrument_key]?.ltp : undefined;
+  const price = livePrice !== undefined && livePrice !== null ? Number(livePrice) : Number(symbol.ltp || 0);
+  const flash = usePriceFlash(price);
+  return <Price value={price} currency="" size="md" flash={flash} weight="bold" />;
+};
+
 export const WatchlistWidget: React.FC = () => {
   const { 
     watchlists, 
@@ -189,12 +197,7 @@ export const WatchlistWidget: React.FC = () => {
       width: 90,
       align: 'right' as const,
       sortable: true,
-      render: (val: any, symbol: SymbolData) => {
-        const livePrice = symbol.instrument_key ? prices[symbol.instrument_key]?.ltp : undefined;
-        const price = livePrice !== undefined && livePrice !== null ? Number(livePrice) : Number(symbol.ltp || 0);
-        const flash = usePriceFlash(price);
-        return <Price value={price} currency="" size="md" flash={flash} weight="bold" />;
-      }
+      render: (_: any, symbol: SymbolData) => <PriceCell symbol={symbol} />
     },
     {
       key: 'change',

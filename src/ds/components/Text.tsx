@@ -57,6 +57,9 @@ interface TextProps {
   weight?:    TextWeight;
   uppercase?: boolean;
   noWrap?:    boolean;
+  block?:     boolean;
+  ellipsis?:  boolean;
+  family?:    string;
   as?:        TextTag;
   className?: string;
   style?:     React.CSSProperties;
@@ -70,6 +73,9 @@ export const Text: React.FC<TextProps> = ({
   weight,
   uppercase,
   noWrap,
+  block,
+  ellipsis,
+  family,
   as: Tag = 'span',
   className,
   style,
@@ -89,6 +95,14 @@ export const Text: React.FC<TextProps> = ({
         ...(weight  && { fontWeight:    TYPE.weight[weight] }),
         ...(uppercase && { textTransform: 'uppercase', letterSpacing: TYPE.letterSpacing.caps }),
         ...(noWrap  && { whiteSpace:    'nowrap' }),
+        ...(block   && { display:       'block' }),
+        ...(ellipsis && { 
+          display: 'block', 
+          overflow: 'hidden', 
+          textOverflow: 'ellipsis', 
+          whiteSpace: 'nowrap' 
+        }),
+        ...(family  && { fontFamily:    family }),
         ...style,
       }}
     >

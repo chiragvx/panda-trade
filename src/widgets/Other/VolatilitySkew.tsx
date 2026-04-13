@@ -99,7 +99,7 @@ export const VolatilitySkew: React.FC = () => {
                                     domain={['auto', 'auto']}
                                 />
                                 <Tooltip 
-                                    cursor={{ stroke: COLOR.border.standard, strokeWidth: 1 }}
+                                    cursor={{ stroke: COLOR.bg.border, strokeWidth: 1 }}
                                     contentStyle={{ 
                                         backgroundColor: COLOR.bg.surface, 
                                         border: BORDER.standard,

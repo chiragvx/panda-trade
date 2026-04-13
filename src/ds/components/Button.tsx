@@ -1,8 +1,9 @@
 import React from 'react';
+import { Loader2 } from 'lucide-react';
 import { COLOR, TYPE, ROW_HEIGHT } from '../tokens';
 
 interface ButtonProps {
-  variant?: 'ghost' | 'filled' | 'buy' | 'sell' | 'danger';
+  variant?: 'ghost' | 'filled' | 'buy' | 'sell' | 'danger' | 'primary' | 'secondary' | 'outline';
   size?: 'xs' | 'sm' | 'md';
   disabled?: boolean;
   onClick?: (e: React.MouseEvent) => void;
@@ -10,6 +11,7 @@ interface ButtonProps {
   title?: string;
   style?: React.CSSProperties;
   className?: string;
+  loading?: boolean;
 }
 
 const SIZE_STYLES = {
@@ -43,6 +45,7 @@ export const Button: React.FC<ButtonProps> = ({
   title,
   style,
   className,
+  loading,
 }) => {
   const [hovered, setHovered] = React.useState(false);
 
@@ -78,6 +81,24 @@ export const Button: React.FC<ButtonProps> = ({
           border: `1px solid ${COLOR.semantic.down}`,
           color: COLOR.semantic.down,
         };
+      case 'primary':
+        return {
+          background: hovered ? COLOR.interactive.hover : COLOR.bg.overlay,
+          border: `1px solid ${COLOR.bg.border}`,
+          color: COLOR.text.primary,
+        };
+      case 'secondary':
+        return {
+          background: 'transparent',
+          border: `1px solid ${COLOR.bg.border}`,
+          color: COLOR.text.secondary,
+        };
+      case 'outline':
+        return {
+          background: 'transparent',
+          border: `1px solid ${COLOR.text.muted}`,
+          color: COLOR.text.muted,
+        };
       default:
         return {};
     }
@@ -94,13 +115,14 @@ export const Button: React.FC<ButtonProps> = ({
         ...BASE,
         ...SIZE_STYLES[size],
         ...variantStyle(),
-        opacity: disabled ? 0.4 : 1,
-        cursor: disabled ? 'not-allowed' : 'pointer',
+        opacity: (disabled || loading) ? 0.4 : 1,
+        cursor: (disabled || loading) ? 'not-allowed' : 'pointer',
         transition: 'background 80ms linear, color 80ms linear, border-color 80ms linear',
         ...style,
       }}
       className={className}
     >
+      {loading ? <Loader2 className="animate-spin" size={14} style={{ marginRight: children ? '8px' : '0' }} /> : null}
       {children}
     </button>
   );

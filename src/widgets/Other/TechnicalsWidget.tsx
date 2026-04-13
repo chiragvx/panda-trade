@@ -74,8 +74,8 @@ export const TechnicalsWidget: React.FC = () => {
                                     top: 0, 
                                     bottom: 0, 
                                     background: 'rgba(255,255,255,0.05)',
-                                    borderLeft: `1px solid ${COLOR.border.standard}`,
-                                    borderRight: `1px solid ${COLOR.border.standard}`
+                                    borderLeft: `1px solid ${COLOR.bg.border}`,
+                                    borderRight: `1px solid ${COLOR.bg.border}`
                                 }} />
                                 <div style={{ 
                                     position: 'absolute', 
@@ -105,8 +105,8 @@ export const TechnicalsWidget: React.FC = () => {
                                         <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
                                             <Price value={ma.val} size="sm" weight="black" />
                                             <div style={{ display: 'flex', alignItems: 'center', gap: '4px', minWidth: '70px', justifyContent: 'flex-end' }}>
-                                                <div style={{ color: COLOR.semantic[rel.color] }}>{rel.icon}</div>
-                                                <Text size="xs" weight="black" color={rel.color}>{rel.label}</Text>
+                                            <div style={{ color: COLOR.semantic[rel.color as keyof typeof COLOR.semantic] }}>{rel.icon}</div>
+                                            <Text size="xs" weight="black" color={rel.color as any}>{rel.label}</Text>
                                             </div>
                                         </div>
                                     </div>

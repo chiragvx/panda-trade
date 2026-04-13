@@ -81,7 +81,7 @@ export const VWapWidget: React.FC = () => {
                                     top: '-4px', 
                                     width: '1px', 
                                     height: '12px', 
-                                    background: COLOR.border.standard 
+                                    background: COLOR.bg.border 
                                 }} />
                                 <div style={{ 
                                     position: 'absolute', 

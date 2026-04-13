@@ -2,7 +2,8 @@ import React from 'react';
 import { COLOR, TYPE } from '../tokens';
 
 type BadgeVariant = 'exchange-nse' | 'exchange-bse' | 'status-live' | 'status-closed' | 
-                    'status-pending' | 'status-executed' | 'status-cancelled' | 'default';
+                    'status-pending' | 'status-executed' | 'status-cancelled' | 'default' |
+                    'info' | 'muted' | 'up' | 'down' | 'warning' | 'purple';
 
 interface BadgeProps {
   label: string;
@@ -18,6 +19,12 @@ const VARIANT_STYLES: Record<BadgeVariant, React.CSSProperties> = {
   'status-executed':   { color: COLOR.semantic.up,    borderColor: COLOR.semantic.up },
   'status-cancelled':  { color: COLOR.text.muted,     borderColor: COLOR.text.muted },
   'default':           { color: COLOR.text.secondary,  borderColor: COLOR.bg.border },
+  'info':              { color: COLOR.semantic.info,    borderColor: COLOR.semantic.info },
+  'muted':             { color: COLOR.text.muted,       borderColor: COLOR.bg.border },
+  'up':                { color: COLOR.semantic.up,      borderColor: COLOR.semantic.up },
+  'down':              { color: COLOR.semantic.down,    borderColor: COLOR.semantic.down },
+  'warning':           { color: COLOR.semantic.warning, borderColor: COLOR.semantic.warning },
+  'purple':            { color: COLOR.semantic.purple,  borderColor: COLOR.semantic.purple },
 };
 
 export const Badge: React.FC<BadgeProps> = ({ label, variant = 'default' }) => (
