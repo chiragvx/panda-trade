@@ -84,45 +84,41 @@ const FlightMap: React.FC = () => {
 
   const fetchFlights = async () => {
     try {
-      const config: any = {};
-      if (openSkyUsername && openSkyPassword) {
-        config.auth = {
-          username: openSkyUsername,
-          password: openSkyPassword
-        };
-      }
+      // Use adsb.lol API - Centered on India (21, 78) with 1500nm radius
+      const response = await axios.get('https://api.adsb.lol/v2/point/21/78/1500');
+      
+      if (response.data && response.data.ac) {
+        const mapped: AircraftState[] = response.data.ac.map((s: any) => {
+          const callsign = (s.flight?.trim() || 'N/A').toUpperCase();
+          
+          // Heuristic for military if not explicitly provided
+          let cat: 'MILITARY' | 'CIVILIAN' | 'OTHER' = classifyAircraft(callsign);
+          if (s.desc?.toUpperCase().includes('MILITARY') || s.mil === 1) cat = 'MILITARY';
 
-      const targetUrl = 'https://opensky-network.org/api/states/all?lamin=8.0&lomin=68.0&lamax=37.0&lomax=97.0';
-      const proxyUrl = `https://corsproxy.io/?${encodeURIComponent(targetUrl)}`;
-      
-      const response = await axios.get(proxyUrl);
-      
-      if (response.data && response.data.states) {
-        const mapped: AircraftState[] = response.data.states.map((s: any[]) => {
-          const callsign = (s[1]?.trim() || '').toUpperCase();
           return {
-            icao24: s[0],
+            icao24: s.hex,
             callsign,
-            origin_country: s[2],
-            time_position: s[3],
-            last_contact: s[4],
-            longitude: s[5],
-            latitude: s[6],
-            baro_altitude: s[7],
-            on_ground: s[8],
-            velocity: s[9],
-            true_track: s[10] || 0,
-            vertical_rate: s[11],
-            geo_altitude: s[13],
-            squawk: s[14],
-            category: classifyAircraft(callsign)
+            origin_country: s.dbFlags === 1 ? 'REDACTED' : 'GLOBAL', // adsb.lol doesn't provide country directly in this endpoint
+            time_position: Date.now() / 1000,
+            last_contact: Date.now() / 1000,
+            longitude: s.lon,
+            latitude: s.lat,
+            baro_altitude: (s.alt_baro || 0) / 3.28084, // convert ft to meters for interface consistency
+            on_ground: s.alt_baro === 'ground',
+            velocity: (s.gs || 0) / 1.94384, // convert kt to m/s
+            true_track: s.track || 0,
+            vertical_rate: s.baro_rate || 0,
+            geo_altitude: (s.alt_geo || 0) / 3.28084,
+            squawk: s.squawk,
+            category: cat
           };
         }).filter((f: AircraftState) => f.latitude !== null && f.longitude !== null);
+        
         setFlights(mapped);
         setLastUpdate(new Date());
-        }
+      }
     } catch (err) {
-      console.error('Failed to fetch flight data:', err);
+      console.error('Failed to fetch flight data from adsb.lol:', err);
     } finally {
       setLoading(false);
     }
