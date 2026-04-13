@@ -113,9 +113,8 @@ export const PSYCHO_LAYOUT: IJsonModel = {
             { 
               type: "column", weight: 30, 
               children: [
-                { type: "tabset", weight: 33, children: [{ type: "tab", name: "FII/DII", component: "fii-dii-activity" }] },
-                { type: "tabset", weight: 33, children: [{ type: "tab", name: "Blocks", component: "block-deals" }] },
-                { type: "tabset", weight: 34, children: [{ type: "tab", name: "Screener", component: "stock-screener" }] }
+                { type: "tabset", weight: 50, children: [{ type: "tab", name: "Marine Traffic", component: "marine-map" }] },
+                { type: "tabset", weight: 50, children: [{ type: "tab", name: "News Feed", component: "news" }] }
               ] 
             }
         ]

@@ -91,12 +91,13 @@ const MarineMap: React.FC = () => {
         wsRef.current = ws;
 
         ws.onopen = () => {
+            if (ws.readyState !== WebSocket.OPEN) return;
             console.log('AISStream Connected');
             setStatus('LIVE');
-            // Subscribe to India region for performance
+            // Global subscription (Major hubs and oceans)
             ws.send(JSON.stringify({
                 APIKey: aisStreamApiKey,
-                BoundingBoxes: [[[8.0, 68.0], [30.0, 90.0]]]
+                BoundingBoxes: [[[-90, -180], [90, 180]]]
             }));
         };
 

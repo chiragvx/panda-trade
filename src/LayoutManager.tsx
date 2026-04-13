@@ -29,25 +29,21 @@ import { StraddleChainWidget } from './widgets/Other/StraddleChainWidget';
 import { VolatilitySkew } from './widgets/Other/VolatilitySkew';
 import { 
   HeatmapStub, 
-  IVChartStub, 
   FuturesChainStub, 
   NotificationsStub, 
   CorpActionsStub, 
-  FundamentalsStub 
 } from './widgets/Other/Stubs';
+import { IVChart } from './widgets/Other/IVChart';
+import { NLScreener } from './widgets/Other/NLScreener';
+import { MacroNews } from './widgets/News/MacroNews';
 import { Plus, Lock, Unlock, Settings2, RotateCcw, ChevronDown } from 'lucide-react';
 import { OptionChainWidget } from './widgets/OptionChain/OptionChainWidget';
 
-import FIIDIITracker from './widgets/fii-dii/FIIDIITracker';
-import BlockDealFeed from './widgets/block-deals/BlockDealFeed';
 import FearIndex from './widgets/fear-index/FearIndex';
-import MaxPainCalculator from './widgets/max-pain/MaxPainCalculator';
-import NLScreener from './widgets/nl-screener/NLScreener';
-import FilingReader from './widgets/filing-reader/FilingReader';
 import PortMonitor from './widgets/port-monitor/PortMonitor';
 import JetTracker from './widgets/jet-tracker/JetTracker';
 import FireMap from './widgets/fire-map/FireMap';
-import AccumulationScreener from './widgets/accumulation-screener/AccumulationScreener';
+// Intelligence Widgets Removed Scrapers
 
 import { SnakeGame } from './widgets/Games/Snake';
 import { Minesweeper } from './widgets/Games/Minesweeper';
@@ -81,7 +77,7 @@ const renderWidget = (id: string, node: TabNode) => {
         case 'etf-scanner': return <ETFScanner />;
         case 'holdings-heatmap': return <HeatmapWidget />;
         case 'oi-graph': return <OIGraphWidget />;
-        case 'iv-chart': return <IVChartStub />;
+        case 'iv-chart': return <IVChart />;
         case 'volatility-skew': return <VolatilitySkew />;
         case 'technicals': return <TechnicalsWidget />;
         case 'vwap-indicator': return <VWapWidget />;
@@ -91,6 +87,8 @@ const renderWidget = (id: string, node: TabNode) => {
         case 'notifications': return <NotificationsStub />;
         case 'corporate-actions': return <CorpActionsStub />;
         case 'fundamentals': return <FundamentalsWidget />;
+        case 'macro-news': return <MacroNews />;
+        case 'stock-screener': return <NLScreener />;
         case 'vol-surface-3d': return (
             <React.Suspense fallback={<div className="h-full w-full bg-black flex items-center justify-center text-[10px] text-muted-foreground">LOADING 3D ENGINE...</div>}>
                 <VolSurface3DWidget />
@@ -98,16 +96,10 @@ const renderWidget = (id: string, node: TabNode) => {
         );
         
         // Intelligence Widgets
-        case 'fii-dii-activity': return <FIIDIITracker />;
-        case 'block-deals': return <BlockDealFeed />;
         case 'fear-greed-index': return <FearIndex />;
-        case 'max-pain': return <MaxPainCalculator />;
-        case 'stock-screener': return <NLScreener />;
-        case 'filing-reader': return <FilingReader />;
         case 'marine-map': return <PortMonitor />;
         case 'flight-map': return <JetTracker />;
         case 'fire-map': return <FireMap />;
-        case 'accumulation-finder': return <AccumulationScreener />;
 
         case 'snake': return <SnakeGame />;
         case 'minesweeper': return <Minesweeper />;

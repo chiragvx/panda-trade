@@ -53,21 +53,44 @@ export const FundamentalsWidget: React.FC = () => {
     return activeSymbol.name || 'INSTRUMENT OVERVIEW';
   }, [activeSymbol]);
 
-  const fundamentals = useMemo(() => {
-    if (!activeSymbol) return null;
-    return {
-        marketCap: '---',
-        pe: '---',
-        pb: '---',
-        divYield: '---',
-        beta: '---',
-        eps: '---',
-        sector: 'NOT_AVAILABLE',
-        industry: 'NOT_AVAILABLE',
-        high52: '---',
-        low52: '---',
+  const [data, setData] = React.useState<any>(null);
+  const [isLoading, setIsLoading] = React.useState(false);
+
+  React.useEffect(() => {
+    if (!activeSymbol?.ticker) return;
+    
+    const fetchTradient = async () => {
+      setIsLoading(true);
+      try {
+        // Tradient direct API (guessing symbol param or check documentation)
+        // Most Indian market APIs at Tradient take the ticker without prefix
+        const cleanTicker = activeSymbol.ticker.split('|').pop() || activeSymbol.ticker;
+        const resp = await axios.get(`https://api.tradient.org/v1/api/market/fundamentals`, {
+            params: { symbol: cleanTicker }
+        });
+        if (resp.data?.data) setData(resp.data.data);
+      } catch (err) {
+        console.error('Tradient fetch failed:', err);
+      } finally {
+        setIsLoading(false);
+      }
     };
+    fetchTradient();
   }, [activeSymbol]);
+
+  const fundamentals = useMemo(() => {
+    if (!data) return null;
+    return {
+        marketCap: data.market_cap || '---',
+        pe: data.pe_ratio || '---',
+        pb: data.pb_ratio || '---',
+        divYield: data.dividend_yield ? `${data.dividend_yield}%` : '---',
+        beta: data.beta || '---',
+        eps: data.eps || '---',
+        high52: data.high_52week || '---',
+        low52: data.low_52week || '---',
+    };
+  }, [data]);
 
 
   return (
@@ -107,37 +130,48 @@ export const FundamentalsWidget: React.FC = () => {
         </WidgetShell.Toolbar>
 
         <div style={{ flex: 1, overflowY: 'auto', padding: SPACE[4] }} className="custom-scrollbar">
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '8px', marginBottom: SPACE[4] }}>
-                <MetricCard label="MARKET CAP" value={fundamentals?.marketCap || ''} icon={<PieChart size={12} style={{ color: COLOR.text.muted }} />} />
-                <MetricCard label="P/E RATIO" value={fundamentals?.pe || ''} icon={<Activity size={12} style={{ color: COLOR.text.muted }} />} />
-                <MetricCard label="P/B RATIO" value={fundamentals?.pb || ''} icon={<BarChart3 size={12} style={{ color: COLOR.text.muted }} />} />
-                <MetricCard label="DIV YIELD" value={fundamentals?.divYield || ''} icon={<DollarSign size={12} style={{ color: COLOR.text.muted }} />} />
-            </div>
-
-            <div style={{ marginBottom: SPACE[4] }}>
-                <span style={{ fontSize: '9px', fontWeight: TYPE.weight.black, color: COLOR.text.muted, letterSpacing: '0.15em', display: 'block', marginBottom: '8px' }}>52 WEEK RANGE</span>
-                <div style={{ background: COLOR.bg.surface, padding: '16px', border: BORDER.standard }}>
-                    <div style={{ textAlign: 'center' }}>
-                        <span style={{ fontSize: '10px', color: COLOR.text.muted, fontFamily: TYPE.family.mono, fontWeight: TYPE.weight.bold }}>UPSTOX_FUNDAMENTALS_API: DISCONNECTED</span>
+            {isLoading ? (
+                <div style={{ height: '100px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    <span style={{ fontSize: '10px', color: COLOR.text.muted, fontFamily: TYPE.family.mono }}>FETCHING_TRADIENT_DATA...</span>
+                </div>
+            ) : !data ? (
+                <div style={{ padding: '24px', textAlign: 'center', background: '#0a0a0a', border: BORDER.standard }}>
+                    <AlertCircle size={24} color={COLOR.text.muted} style={{ margin: '0 auto 12px' }} />
+                    <div style={{ fontSize: '10px', color: COLOR.text.muted, fontWeight: 'bold' }}>FUNDAMENTALS_NOT_FOUND</div>
+                    <div style={{ fontSize: '9px', color: COLOR.text.muted, marginTop: '4px' }}>Symbol "{activeSymbol.ticker}" not indexed in Tradient API.</div>
+                </div>
+            ) : (
+                <>
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '8px', marginBottom: SPACE[4] }}>
+                        <MetricCard label="MARKET CAP" value={fundamentals?.marketCap || ''} icon={<PieChart size={12} style={{ color: COLOR.text.muted }} />} />
+                        <MetricCard label="P/E RATIO" value={fundamentals?.pe || ''} icon={<Activity size={12} style={{ color: COLOR.text.muted }} />} />
+                        <MetricCard label="P/B RATIO" value={fundamentals?.pb || ''} icon={<BarChart3 size={12} style={{ color: COLOR.text.muted }} />} />
+                        <MetricCard label="DIV YIELD" value={fundamentals?.divYield || ''} icon={<DollarSign size={12} style={{ color: COLOR.text.muted }} />} />
                     </div>
-                </div>
-            </div>
 
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '8px', marginBottom: SPACE[4] }}>
-                <MetricCard label="BETA (1Y)" value={fundamentals?.beta || ''} icon={<Shield size={12} style={{ color: COLOR.text.muted }} />} />
-                <MetricCard label="EPS (TTM)" value={fundamentals?.eps || ''} icon={<TrendingUp size={12} style={{ color: COLOR.text.muted }} />} />
-            </div>
+                    <div style={{ marginBottom: SPACE[4] }}>
+                        <span style={{ fontSize: '9px', fontWeight: TYPE.weight.black, color: COLOR.text.muted, letterSpacing: '0.15em', display: 'block', marginBottom: '8px' }}>52 WEEK RANGE</span>
+                        <div style={{ background: COLOR.bg.surface, padding: '16px', border: BORDER.standard, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                            <div>
+                                <div style={{ fontSize: '8px', color: COLOR.text.muted }}>LOW</div>
+                                <div style={{ fontSize: '11px', fontWeight: 'bold', color: COLOR.semantic.down }}>{fundamentals?.low52}</div>
+                            </div>
+                            <div style={{ flex: 1, height: '4px', background: '#222', margin: '0 16px', borderRadius: '4px', position: 'relative' }}>
+                                 {/* Progress indicator could go here */}
+                            </div>
+                            <div>
+                                <div style={{ fontSize: '8px', color: COLOR.text.muted }}>HIGH</div>
+                                <div style={{ fontSize: '11px', fontWeight: 'bold', color: COLOR.semantic.up }}>{fundamentals?.high52}</div>
+                            </div>
+                        </div>
+                    </div>
 
-            <div style={{ padding: '16px', background: `${COLOR.semantic.info}05`, border: `1px dashed ${COLOR.semantic.info}40`, display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                    <AlertCircle size={14} style={{ color: COLOR.semantic.info }} />
-                    <span style={{ fontSize: '10px', fontWeight: TYPE.weight.black, color: COLOR.semantic.info, letterSpacing: '0.1em' }}>AWAITING DATA SOURCE</span>
-                </div>
-                <p style={{ fontSize: '11px', color: COLOR.text.muted, lineHeight: '1.4', margin: 0 }}>
-                    Fundamental data (Balance Sheet and Income Metrics) are not available via the basic Upstox V2 Quote stream. 
-                    Full integration requires a TickerTape or AlphaVantage API key.
-                </p>
-            </div>
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '8px', marginBottom: SPACE[4] }}>
+                        <MetricCard label="BETA (1Y)" value={fundamentals?.beta || ''} icon={<Shield size={12} style={{ color: COLOR.text.muted }} />} />
+                        <MetricCard label="EPS (TTM)" value={fundamentals?.eps || ''} icon={<TrendingUp size={12} style={{ color: COLOR.text.muted }} />} />
+                    </div>
+                </>
+            )}
         </div>
 
         <div style={{ padding: '8px 12px', borderTop: BORDER.standard, display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: COLOR.bg.surface }}>

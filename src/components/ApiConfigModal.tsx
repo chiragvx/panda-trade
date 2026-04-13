@@ -5,7 +5,7 @@ import { ShieldCheck, ShieldAlert, Key, Globe, LogIn, ExternalLink, Lock, Zap, A
 import { COLOR, TYPE, BORDER, SPACE } from '../ds/tokens';
 
 interface ApiConfigModalProps {
-    provider: 'UPSTOX' | 'AISSTREAM' | 'NASA' | 'OPENSKY';
+    provider: 'UPSTOX' | 'AISSTREAM' | 'NASA' | 'OPENSKY' | 'RAPIDAPI';
     onClose: () => void;
 }
 
@@ -87,6 +87,7 @@ export const ApiConfigModal: React.FC<ApiConfigModalProps> = ({ provider, onClos
     const [nasaKey, setNasaKey] = useState(settings.nasaApiKey);
     const [osUser, setOsUser] = useState(settings.openSkyUsername);
     const [osPass, setOsPass] = useState(settings.openSkyPassword);
+    const [rapidKey, setRapidKey] = useState(settings.rapidApiKey);
 
     const [isSaving, setIsSaving] = useState(false);
 
@@ -132,6 +133,17 @@ export const ApiConfigModal: React.FC<ApiConfigModalProps> = ({ provider, onClos
             handleSave: () => {
                 settings.setOpenSkyCredentials(osUser, osPass);
                 settings.addConnection('opensky-01');
+            }
+        },
+        RAPIDAPI: {
+            title: 'RapidAPI Economic Intel',
+            icon: <Globe size={18} />,
+            image: '/rapidapi_guide.png',
+            guide: 'Access global economic events and macro news via the Ultimate Economic Calendar on RapidAPI. Secure a personal application key to enable live calendar sync.',
+            link: 'https://rapidapi.com/toplistaai/api/ultimate-economic-calendar',
+            handleSave: () => {
+                settings.setRapidApiKey(rapidKey);
+                settings.addConnection('rapidapi-01');
             }
         }
     };
@@ -308,6 +320,16 @@ export const ApiConfigModal: React.FC<ApiConfigModalProps> = ({ provider, onClos
                                 placeholder="••••••••••••••••"
                             />
                         </>
+                    )}
+
+                    {provider === 'RAPIDAPI' && (
+                        <SecureInput 
+                            label="RAPIDAPI KEY"
+                            icon={<Key size={12} />}
+                            value={rapidKey}
+                            onChange={setRapidKey}
+                            placeholder="Paste X-RapidAPI-Key"
+                        />
                     )}
                 </div>
 

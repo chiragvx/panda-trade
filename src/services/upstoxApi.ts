@@ -226,8 +226,18 @@ export const upstoxApi = {
 
   getHistoricalData: async (token: string, instrumentKey: string, interval: string, fromDate: string, toDate: string) =>
     guardedRequest(`hist:${token.slice(-8)}:${instrumentKey}:${interval}:${fromDate}:${toDate}`, 750, async () => {
+      let finalToDate = toDate;
+      const today = new Date().toISOString().split('T')[0];
+      
+      // If we're requesting daily historical data and the toDate is today or later, 
+      // cap it to yesterday to avoid 400 errors from unclosed candles.
+      if ((interval === 'day' || interval === '1day') && toDate >= today) {
+          const yesterday = new Date(Date.now() - 86400000);
+          finalToDate = yesterday.toISOString().split('T')[0];
+      }
+
       const response = await api.get(
-        `${BASE_URL}/historical-candle/${encodeURIComponent(instrumentKey)}/${interval}/${toDate}/${fromDate}`,
+        `${BASE_URL}/historical-candle/${encodeURIComponent(instrumentKey)}/${interval}/${fromDate}/${finalToDate}`,
         {
           headers: authHeaders(token),
         }
@@ -328,7 +338,7 @@ export const upstoxApi = {
       const fromDate = past.toISOString().split('T')[0];
       
       const response = await api.get(
-        `${BASE_URL}/historical-candle/${encodeURIComponent(instrumentKey)}/day/${toDate}/${fromDate}`,
+        `${BASE_URL}/historical-candle/${encodeURIComponent(instrumentKey)}/day/${fromDate}/${toDate}`,
         {
           headers: authHeaders(token),
         }
@@ -342,7 +352,8 @@ export const upstoxApi = {
       if (key.toUpperCase().includes('NIFTY 50') || key.toUpperCase() === 'NIFTY') key = 'NSE_INDEX|Nifty 50';
       else if (key.toUpperCase().includes('BANK') || key.toUpperCase() === 'BANKNIFTY') key = 'NSE_INDEX|Nifty Bank';
       else if (key.toUpperCase().includes('FIN') || key.toUpperCase() === 'FINNIFTY') key = 'NSE_INDEX|Nifty Fin Service';
-      else if (key.toUpperCase().includes('MIDCAP') || key.toUpperCase() === 'MIDCPNIFTY') key = 'NSE_INDEX|Nifty Midcap 150';
+      else if (key.toUpperCase().includes('MIDCAP') || key.toUpperCase() === 'MIDCPNIFTY') key = 'NSE_INDEX|Nifty Midcap Select';
+      else if (key.toUpperCase().includes('SENSEX')) key = 'BSE_INDEX|SENSEX';
       
       const response = await api.get(`${BASE_URL}/option/chain`, {
           params: { instrument_key: key, expiry_date: expiry },
@@ -365,7 +376,7 @@ export const upstoxApi = {
       if (key.toUpperCase().includes('NIFTY 50') || key.toUpperCase() === 'NIFTY') key = 'NSE_INDEX|Nifty 50';
       else if (key.toUpperCase().includes('BANK') || key.toUpperCase() === 'BANKNIFTY') key = 'NSE_INDEX|Nifty Bank';
       else if (key.toUpperCase().includes('FIN') || key.toUpperCase() === 'FINNIFTY') key = 'NSE_INDEX|Nifty Fin Service';
-      else if (key.toUpperCase().includes('MIDCAP') || key.toUpperCase() === 'MIDCPNIFTY') key = 'NSE_INDEX|Nifty Midcap 150';
+      else if (key.toUpperCase().includes('MIDCAP') || key.toUpperCase() === 'MIDCPNIFTY') key = 'NSE_INDEX|Nifty Midcap Select';
 
       // Use /option/contract to get ACTIVE contracts and extract their expiries
       const response = await api.get(`${BASE_URL}/option/contract`, {

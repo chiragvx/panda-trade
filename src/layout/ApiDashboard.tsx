@@ -21,8 +21,10 @@ export const ApiDashboard: React.FC = () => {
     const { 
         aisStreamApiKey, 
         nasaApiKey, 
+        rapidApiKey,
         openSkyUsername, 
         setAisStreamApiKey, 
+        setRapidApiKey,
         enabledConnections, 
         removeConnection 
     } = useSettingsStore();
@@ -30,7 +32,7 @@ export const ApiDashboard: React.FC = () => {
     const [searchQuery, setSearchQuery] = useState('');
     const [statusFilter, setStatusFilter] = useState<'ALL' | 'CONNECTED' | 'DISCONNECTED'>('ALL');
     const [typeFilter, setTypeFilter] = useState<'ALL' | 'BROKER' | 'DATA_FEED'>('ALL');
-    const [activeModal, setActiveModal] = useState<'UPSTOX' | 'AISSTREAM' | 'NASA' | 'OPENSKY' | 'SELECT' | null>(null);
+    const [activeModal, setActiveModal] = useState<'UPSTOX' | 'AISSTREAM' | 'NASA' | 'OPENSKY' | 'RAPIDAPI' | 'SELECT' | null>(null);
 
     // Master manifest of supported backends
     const masterConnections: ConnectionMeta[] = useMemo(() => [
@@ -73,8 +75,18 @@ export const ApiDashboard: React.FC = () => {
             icon: <Plane size={18} />,
             status: openSkyUsername ? 'connected' : 'disconnected',
             lastActivity: openSkyUsername ? 'Live Now' : 'Never'
+        },
+        {
+            id: 'rapidapi-01',
+            type: 'DATA_FEED',
+            provider: 'RAPIDAPI',
+            displayName: 'RapidAPI Economic Intel',
+            description: 'Live global economic calendar and macro-event data stream.',
+            icon: <Globe size={18} />,
+            status: rapidApiKey ? 'connected' : 'disconnected',
+            lastActivity: rapidApiKey ? 'Live Now' : 'Never'
         }
-    ], [upstoxStatus, upstoxKey, aisStreamApiKey, nasaApiKey, openSkyUsername]);
+    ], [upstoxStatus, upstoxKey, aisStreamApiKey, nasaApiKey, openSkyUsername, rapidApiKey]);
 
     // Derived list based on what user has "added"
     const connections = useMemo(() => 
@@ -91,6 +103,8 @@ export const ApiDashboard: React.FC = () => {
             useSettingsStore.getState().setNasaApiKey('');
         } else if (provider === 'OPENSKY') {
             useSettingsStore.getState().setOpenSkyCredentials('', '');
+        } else if (provider === 'RAPIDAPI') {
+            setRapidApiKey('');
         }
     };
 
@@ -306,7 +320,8 @@ export const ApiDashboard: React.FC = () => {
                                             { id: 'UPSTOX', title: 'Upstox Terminal Bridge', desc: 'Secure broker API for trade execution & live Nifty streams.', icon: <Zap size={18} />, color: COLOR.semantic.info },
                                             { id: 'AISSTREAM', title: 'AISStream Global Marine', desc: 'Real-time WebSocket feed for global maritime vessel tracking.', icon: <Anchor size={18} />, color: COLOR.semantic.info },
                                             { id: 'NASA', title: 'NASA FIRMS Protocol', desc: 'Thermal anomaly satellite data for global fire monitoring.', icon: <Activity size={18} />, color: COLOR.semantic.info },
-                                            { id: 'OPENSKY', title: 'OpenSky Network Protocol', desc: 'Global high-precision flight tracking vectors and aircraft metadata.', icon: <Plane size={18} />, color: COLOR.semantic.info }
+                                            { id: 'OPENSKY', title: 'OpenSky Network Protocol', desc: 'Global high-precision flight tracking vectors and aircraft metadata.', icon: <Plane size={18} />, color: COLOR.semantic.info },
+                                            { id: 'RAPIDAPI', title: 'RapidAPI Economic Intel', desc: 'Global economic events and macro-calendar data stream.', icon: <Globe size={18} />, color: COLOR.semantic.info }
                                         ].map(p => (
                                             <div 
                                                 key={p.id}
@@ -353,6 +368,7 @@ export const ApiDashboard: React.FC = () => {
                         {activeModal === 'AISSTREAM' && <ApiConfigModal provider="AISSTREAM" onClose={() => setActiveModal(null)} />}
                         {activeModal === 'NASA' && <ApiConfigModal provider="NASA" onClose={() => setActiveModal(null)} />}
                         {activeModal === 'OPENSKY' && <ApiConfigModal provider="OPENSKY" onClose={() => setActiveModal(null)} />}
+                        {activeModal === 'RAPIDAPI' && <ApiConfigModal provider="RAPIDAPI" onClose={() => setActiveModal(null)} />}
                     </div>
                 </div>
             )}

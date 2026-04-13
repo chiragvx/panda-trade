@@ -42,6 +42,14 @@ export const WIDGET_REGISTRY: Record<string, WidgetConfig> = {
     singleton: true,
     category: 'Market Data',
   },
+  'stock-screener': {
+    id: 'stock-screener',
+    displayName: 'Momentum Screener',
+    icon: 'Search',
+    shortcut: '',
+    singleton: true,
+    category: 'Market Data',
+  },
 
   // CHARTS & ANALYTICS
   chart: {
@@ -62,7 +70,7 @@ export const WIDGET_REGISTRY: Record<string, WidgetConfig> = {
   },
   'iv-chart': {
     id: 'iv-chart',
-    displayName: 'IV Chart',
+    displayName: 'IV Profile (Beta)',
     icon: 'TrendingUp',
     shortcut: '',
     singleton: false,
@@ -195,6 +203,14 @@ export const WIDGET_REGISTRY: Record<string, WidgetConfig> = {
     singleton: false,
     category: 'Tools',
   },
+  'macro-news': {
+    id: 'macro-news',
+    displayName: 'Global Macro Intel',
+    icon: 'Globe',
+    shortcut: '',
+    singleton: true,
+    category: 'Tools',
+  },
 
   // GAMES
   snake: {
@@ -223,50 +239,10 @@ export const WIDGET_REGISTRY: Record<string, WidgetConfig> = {
   },
 
   // INSTITUTIONAL INTEL (Ecosystem Pack 2)
-  'fii-dii-activity': {
-    id: 'fii-dii-activity',
-    displayName: 'FII/DII Activity',
-    icon: 'TrendingUp',
-    shortcut: '',
-    singleton: true,
-    category: 'Institutional Intel',
-  },
-  'block-deals': {
-    id: 'block-deals',
-    displayName: 'Block Deals',
-    icon: 'Zap',
-    shortcut: '',
-    singleton: true,
-    category: 'Institutional Intel',
-  },
   'fear-greed-index': {
     id: 'fear-greed-index',
     displayName: 'Fear & Greed Index',
     icon: 'Activity',
-    shortcut: '',
-    singleton: true,
-    category: 'Institutional Intel',
-  },
-  'max-pain': {
-    id: 'max-pain',
-    displayName: 'Max Pain',
-    icon: 'Target',
-    shortcut: '',
-    singleton: true,
-    category: 'Institutional Intel',
-  },
-  'stock-screener': {
-    id: 'stock-screener',
-    displayName: 'Stock Screener',
-    icon: 'Search',
-    shortcut: '',
-    singleton: true,
-    category: 'Institutional Intel',
-  },
-  'filing-reader': {
-    id: 'filing-reader',
-    displayName: 'Filing Reader',
-    icon: 'FileText',
     shortcut: '',
     singleton: true,
     category: 'Institutional Intel',
@@ -291,14 +267,6 @@ export const WIDGET_REGISTRY: Record<string, WidgetConfig> = {
     id: 'fire-map',
     displayName: 'Thermal Fire Map',
     icon: 'Flame',
-    shortcut: '',
-    singleton: true,
-    category: 'Institutional Intel',
-  },
-  'accumulation-finder': {
-    id: 'accumulation-finder',
-    displayName: 'Accumulation Finder',
-    icon: 'Filter',
     shortcut: '',
     singleton: true,
     category: 'Institutional Intel',
