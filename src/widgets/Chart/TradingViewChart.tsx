@@ -11,6 +11,8 @@ export const TradingViewChart: React.FC<TradingViewChartProps> = ({ data, isLoad
   const chartContainerRef = useRef<HTMLDivElement>(null);
   const chartRef = useRef<IChartApi | null>(null);
 
+  const candlestickSeriesRef = useRef<any>(null);
+
   useEffect(() => {
     if (!chartContainerRef.current) return;
 
@@ -24,8 +26,8 @@ export const TradingViewChart: React.FC<TradingViewChartProps> = ({ data, isLoad
         vertLines: { color: 'rgba(255, 255, 255, 0.03)' },
         horzLines: { color: 'rgba(255, 255, 255, 0.03)' },
       },
-      width: chartContainerRef.current.clientWidth,
-      height: chartContainerRef.current.clientHeight,
+      width: chartContainerRef.current.clientWidth || 600,
+      height: chartContainerRef.current.clientHeight || 400,
       timeScale: {
         borderColor: COLOR.bg.border,
         timeVisible: true,
@@ -36,6 +38,8 @@ export const TradingViewChart: React.FC<TradingViewChartProps> = ({ data, isLoad
       },
       crosshair: {
         mode: 0,
+        vertLine: { labelBackgroundColor: COLOR.semantic.info },
+        horzLine: { labelBackgroundColor: COLOR.semantic.info },
       },
     });
 
@@ -47,11 +51,13 @@ export const TradingViewChart: React.FC<TradingViewChartProps> = ({ data, isLoad
       wickDownColor: COLOR.semantic.down,
     });
 
+    candlestickSeriesRef.current = candlestickSeries;
+    chartRef.current = chart;
+
     if (data && data.length > 0) {
         candlestickSeries.setData(data);
+        chart.timeScale().fitContent();
     }
-
-    chartRef.current = chart;
 
     const handleResize = () => {
       if (chartContainerRef.current) {
@@ -71,10 +77,11 @@ export const TradingViewChart: React.FC<TradingViewChartProps> = ({ data, isLoad
   }, []);
 
   useEffect(() => {
-    if (chartRef.current && data) {
-       // Find and update/reset data
-       // Since the library doesn't easily let us find existing series by type without tracking them,
-       // and this is a simple implementation, we assume just one series for now.
+    if (candlestickSeriesRef.current && data) {
+        candlestickSeriesRef.current.setData(data);
+        if (data.length > 0) {
+            chartRef.current?.timeScale().fitContent();
+        }
     }
   }, [data]);
 

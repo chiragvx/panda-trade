@@ -46,12 +46,18 @@ export const ChartWidget: React.FC = () => {
       setLoading(true);
       try {
         const toDate = format(new Date(), 'yyyy-MM-dd');
-        const fromDate = format(subDays(new Date(), 30), 'yyyy-MM-dd');
+        
+        let daysBack = 2;
+        if (interval === '5minute') daysBack = 7;
+        else if (interval === '15minute') daysBack = 15;
+        else if (interval === 'day') daysBack = 365;
+
+        const fromDate = format(subDays(new Date(), daysBack), 'yyyy-MM-dd');
         
         const response = await upstoxApi.getHistoricalData(
             accessToken, 
             selectedSymbol.instrument_key, 
-            '1minute', 
+            interval, 
             fromDate, 
             toDate
         );
@@ -65,16 +71,19 @@ export const ChartWidget: React.FC = () => {
                 close: c[4],
             })).sort((a: any, b: any) => a.time - b.time);
             setChartData(formatted);
+        } else {
+            setChartData([]);
         }
       } catch (err) {
         console.error('Failed to fetch historical data:', err);
+        setChartData([]);
       } finally {
         setLoading(false);
       }
     };
 
     fetchHistory();
-  }, [selectedSymbol?.instrument_key, accessToken]);
+  }, [selectedSymbol?.instrument_key, accessToken, interval]);
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100%', background: COLOR.bg.base, overflow: 'hidden' }}>
@@ -136,7 +145,14 @@ export const ChartWidget: React.FC = () => {
       </div>
 
       <div style={{ flex: 1, position: 'relative' }}>
-          <TradingViewChart data={chartData} isLoading={loading} />
+          {!accessToken ? (
+              <div style={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '16px', background: COLOR.bg.base }}>
+                  <Text color="muted" weight="bold">API_DISCONNECTED</Text>
+                  <Button size="sm" variant="primary" onClick={() => (window as any).replaceTab?.('api')}>CONNECT_API</Button>
+              </div>
+          ) : (
+              <TradingViewChart data={chartData} isLoading={loading} />
+          )}
       </div>
     </div>
   );

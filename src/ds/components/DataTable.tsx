@@ -44,6 +44,7 @@ export const DataTable = <T extends Record<string, any>>({
   className,
   style
 }: DataTableProps<T>) => {
+  const [hoveredRow, setHoveredRow] = React.useState<number | null>(null);
     
   return (
     <div className={className} style={{ width: '100%', overflow: 'auto', flex: 1, ...style }}>
@@ -95,18 +96,22 @@ export const DataTable = <T extends Record<string, any>>({
             <tr 
               key={rowIdx} 
               onClick={() => onRowClick?.(item, rowIdx)}
-              onMouseEnter={() => onRowMouseEnter?.(item, rowIdx)}
-              onMouseLeave={() => onRowMouseLeave?.(item, rowIdx)}
+              onMouseEnter={() => { setHoveredRow(rowIdx); onRowMouseEnter?.(item, rowIdx); }}
+              onMouseLeave={() => { setHoveredRow(null); onRowMouseLeave?.(item, rowIdx); }}
               onContextMenu={(e) => onRowContextMenu?.(e, item, rowIdx)}
               style={{ 
                 height: ROW_HEIGHT[rowHeight], 
                 cursor: onRowClick ? 'pointer' : 'default',
                 transition: 'background 60ms linear',
+                background: hoveredRow === rowIdx ? 'rgba(255, 255, 255, 0.05)' : 'transparent',
               }}
-              className="group hover:bg-interactive-hover"
             >
               {columns.map((col, colIdx) => {
                 const isSticky = colIdx === 0 && stickyFirstColumn;
+                const cellBg = isSticky 
+                    ? (hoveredRow === rowIdx ? 'rgba(40, 40, 40, 1)' : COLOR.bg.base) 
+                    : 'transparent';
+
                 return (
                   <td 
                     key={col.key}
@@ -124,7 +129,7 @@ export const DataTable = <T extends Record<string, any>>({
                       position: isSticky ? 'sticky' : 'static',
                       left: isSticky ? 0 : 'auto',
                       zIndex: isSticky ? 10 : 1,
-                      backgroundColor: 'inherit'
+                      backgroundColor: cellBg
                     }}
                   >
                     {col.render ? col.render(item[col.key], item, rowIdx) : item[col.key]}
