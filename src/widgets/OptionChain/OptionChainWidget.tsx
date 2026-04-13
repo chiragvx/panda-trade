@@ -268,9 +268,8 @@ export const OptionChainWidget: React.FC = () => {
                                         <div key={res.instrumentKey} onClick={() => { 
                                             setLocalKey(res.instrumentKey); 
                                             setLocalTicker(res.ticker);
-                                            setShowSearch(false); 
                                             setSearch(''); 
-                                        }} style={{ padding: '8px 12px', cursor: 'pointer', display: 'flex', justifyContent: 'space-between' }} className="hover:bg-interactive-hover">
+                                        }} style={{ padding: '8px 12px', cursor: 'pointer', display: 'flex', justifyContent: 'space-between', boxSizing: 'border-box' }} className="hover:bg-interactive-hover">
                                             <div style={{ display: 'flex', flexDirection: 'column' }}><span style={{ fontWeight: TYPE.weight.black, fontSize: TYPE.size.xs }}>{res.ticker}</span><span style={{ fontSize: TYPE.size.xs, color: COLOR.text.muted, fontWeight: TYPE.weight.bold }}>{res.name}</span></div>
                                             <Badge label={res.exchange} variant="exchange-nse" />
                                         </div>
@@ -347,7 +346,7 @@ export const OptionChainWidget: React.FC = () => {
                                 {peCols.map(c => renderCell(row.pe, row.strike, c, 'PE'))}
                             </div>
                         ))}
-                        {hasMoreBelow && <div onClick={() => setStrikeLimit(p => p + 20)} style={{ height: FINAL_ROW_HEIGHT, minHeight: FINAL_ROW_HEIGHT, flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', background: COLOR.semantic.info, color: COLOR.text.inverse, fontSize: TYPE.size.xs, fontWeight: TYPE.weight.black, cursor: 'pointer', boxSisizing: 'border-box', letterSpacing: TYPE.letterSpacing.caps }}>LOAD_MORE_STRIKES</div>}
+                        {hasMoreBelow && <div onClick={() => setStrikeLimit(p => p + 20)} style={{ height: FINAL_ROW_HEIGHT, minHeight: FINAL_ROW_HEIGHT, flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', background: COLOR.semantic.info, color: COLOR.text.inverse, fontSize: TYPE.size.xs, fontWeight: TYPE.weight.black, cursor: 'pointer', boxSizing: 'border-box', letterSpacing: TYPE.letterSpacing.caps }}>LOAD_MORE_STRIKES</div>}
                     </div>
                 </div>
 

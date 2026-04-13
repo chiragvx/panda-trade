@@ -99,7 +99,7 @@ export const GenericConnect: React.FC<{ onClose: () => void }> = ({ onClose }) =
                                 transition: 'all 0.1s linear'
                             }}
                             onMouseOver={e => (e.currentTarget.style.borderColor = p.color)}
-                            onMouseOut={e => (e.currentTarget.style.borderColor = COLOR.border.standard)}
+                            onMouseOut={e => (e.currentTarget.style.borderColor = COLOR.bg.border)}
                         >
                             <div style={{ color: p.color, marginBottom: SPACE[2] }}>{p.icon}</div>
                             <Text size="sm" weight="black" block>{p.name}</Text>

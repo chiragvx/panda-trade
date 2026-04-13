@@ -1,9 +1,10 @@
 import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useNavigate } from 'react-router-dom';
 import { useSelectionStore, useLayoutStore, useWatchlistStore } from '../../store/useStore';
 import { useUpstoxStore } from '../../store/useUpstoxStore';
 import { buildSymbolFromFeed } from '../../utils/liveSymbols';
-import { COLOR, TYPE, BORDER } from '../../ds/tokens';
+import { COLOR, TYPE, BORDER, SPACE } from '../../ds/tokens';
 import { Search, Zap, ArrowRight, TrendingUp } from 'lucide-react';
 
 export const CommandPalette: React.FC = () => {
@@ -13,7 +14,7 @@ export const CommandPalette: React.FC = () => {
   const inputRef = useRef<HTMLInputElement>(null);
 
   const { setSelectedSymbol } = useSelectionStore();
-  const { setApiPanelOpen } = useLayoutStore();
+  const navigate = useNavigate();
   const { watchlists } = useWatchlistStore();
   const { prices, instrumentMeta } = useUpstoxStore();
 
@@ -29,7 +30,7 @@ export const CommandPalette: React.FC = () => {
 
     if (parts[1] === '<GO>' || parts[1] === 'GO') {
       const target = first.toUpperCase();
-      if (target === 'API') setApiPanelOpen(true);
+      if (target === 'API') navigate('/api');
       setIsOpen(false);
       return true;
     }
@@ -155,6 +156,9 @@ export const CommandPalette: React.FC = () => {
                       cursor: 'pointer',
                       background: active ? COLOR.interactive.selected : 'transparent',
                       transition: 'background 80ms linear',
+                      boxSizing: 'border-box',
+                      borderLeft: active ? BORDER.standard : 'none',
+                      borderRight: active ? BORDER.standard : 'none'
                     }}
                   >
                     <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>

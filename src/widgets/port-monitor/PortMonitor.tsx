@@ -314,7 +314,7 @@ const VesselRow: React.FC<{ vessel: VesselState, active: boolean, onClick: () =>
             </div>
             <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
                 <Text family="mono" size="xs" color="muted" weight="bold">{vessel.speed.toFixed(1)} KN</Text>
-                <div style={{ width: '4px', height: '4px', borderRadius: '50%', background: COLOR.border.strong }} />
+                <div style={{ width: '4px', height: '4px', borderRadius: '50%', background: COLOR.bg.border }} />
                 <Text family="mono" size="xs" color="muted" weight="bold">HDG {vessel.course}°</Text>
                 <Text family="mono" size="xs" color="muted" weight="black" style={{ marginLeft: 'auto' }}>#{vessel.mmsi}</Text>
             </div>

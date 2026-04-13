@@ -1,5 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { motion } from 'framer-motion';
+import { Loader2 } from 'lucide-react';
 import { useSelectionStore } from '../../store/useStore';
 import { useUpstoxStore } from '../../store/useUpstoxStore';
 import { COLOR, TYPE, BORDER } from '../../ds/tokens';
@@ -82,7 +83,7 @@ export const NewsWidget: React.FC = () => {
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100%', background: COLOR.bg.surface, overflow: 'hidden' }}>
-      <div style={{ height: '32px', padding: '0 8px', borderBottom: BORDER.standard, display: 'flex', alignItems: 'center', justifyContent: spaceBetween, background: COLOR.bg.elevated }}>
+      <div style={{ height: '32px', padding: '0 8px', borderBottom: BORDER.standard, display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: COLOR.bg.elevated }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
           <span style={{ fontFamily: TYPE.family.mono, fontSize: TYPE.size.xs, color: COLOR.text.primary, fontWeight: TYPE.weight.black, letterSpacing: TYPE.letterSpacing.caps }}>NEWS_FEED</span>
           <div style={{ width: '1px', height: '12px', background: COLOR.bg.border }} />
@@ -196,7 +197,7 @@ export const NewsWidget: React.FC = () => {
                     <span style={{ fontSize: TYPE.size.xs, color: COLOR.text.muted, fontFamily: TYPE.family.mono, fontWeight: TYPE.weight.bold }}>SOURCE: {item.source}</span>
                     <div style={{ display: 'flex', gap: '8px' }}>
                       <Button size="xs" variant="outline">RESEARCH_REPORT</Button>
-                      <Button size="xs" variant="outline" tone="info">ALERT</Button>
+                      <Button size="xs" variant="outline">ALERT</Button>
                     </div>
                   </div>
                 </motion.div>

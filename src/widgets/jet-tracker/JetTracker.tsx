@@ -245,7 +245,7 @@ const FlightRow: React.FC<{ flight: AircraftState, active: boolean, onClick: () 
             </div>
             <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
                 <Text family="mono" size="xs" color="muted" weight="bold">{(Math.round((flight.baro_altitude || 0) * 3.28084)).toLocaleString()} FT</Text>
-                <div style={{ width: '4px', height: '4px', borderRadius: '50%', background: COLOR.border.strong }} />
+                <div style={{ width: '4px', height: '4px', borderRadius: '50%', background: COLOR.bg.border }} />
                 <Text family="mono" size="xs" color="muted" weight="bold">{flight.velocity ? Math.round(flight.velocity * 1.94384) : 0} KT</Text>
                 <Text family="mono" size="xs" color="muted" weight="black" style={{ marginLeft: 'auto' }}>{flight.icao24.toUpperCase()}</Text>
             </div>

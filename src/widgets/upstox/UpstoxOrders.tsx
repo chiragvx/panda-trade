@@ -132,8 +132,8 @@ const UpstoxOrders: React.FC = () => {
                      onMouseLeave={() => setHoveredIndex(null)}>
                     
                     <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                        <div style={{ width: '4px', height: '12px', background: COLOR.semantic[getStatusColor(val)] }} />
-                        <Text weight="bold" color={getStatusColor(val)} size="xs" style={{ letterSpacing: '0.05em' }}>
+                        <div style={{ width: '4px', height: '12px', background: COLOR.semantic[getStatusColor(val) as keyof typeof COLOR.semantic] }} />
+                        <Text weight="bold" color={getStatusColor(val) as any} size="xs" style={{ letterSpacing: '0.05em' }}>
                             {val.toUpperCase()}
                         </Text>
                     </div>
