@@ -122,6 +122,7 @@ const FlightMap: React.FC = () => {
         }).filter((f: AircraftState) => f.latitude !== null && f.longitude !== null);
         setFlights(mapped);
         setLastUpdate(new Date());
+        }
       }
     } catch (err) {
       console.error('Failed to fetch flight data:', err);
