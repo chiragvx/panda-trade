@@ -121,7 +121,6 @@ const FlightMap: React.FC = () => {
         setFlights(mapped);
         setLastUpdate(new Date());
         }
-      }
     } catch (err) {
       console.error('Failed to fetch flight data:', err);
     } finally {
