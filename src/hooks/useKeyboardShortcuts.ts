@@ -4,7 +4,7 @@ import { useLayoutStore } from '../store/useStore';
 
 export const useKeyboardShortcuts = () => {
   const { activeSymbol, addToWatchlist } = useGlobalStore();
-  const { openOrderModal, setWorkspace } = useLayoutStore();
+  const { openOrderModal } = useLayoutStore();
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -38,12 +38,7 @@ export const useKeyboardShortcuts = () => {
       switch (e.key) {
         case '/':
           e.preventDefault();
-          // Logic to focus NL screener - could use a global ref or state
-          setWorkspace('ANALYSIS');
-          setTimeout(() => {
-             const nlInput = document.querySelector('input[placeholder*="TYPE_QUERY"]') as HTMLInputElement;
-             nlInput?.focus();
-          }, 100);
+          // Logic for NL screener could go here
           break;
         case ' ':
           if (e.target === document.body) {
@@ -58,5 +53,5 @@ export const useKeyboardShortcuts = () => {
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [activeSymbol, addToWatchlist, openOrderModal, setWorkspace]);
+  }, [activeSymbol, addToWatchlist, openOrderModal]);
 };

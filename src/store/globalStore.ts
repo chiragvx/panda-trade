@@ -5,18 +5,15 @@ interface GlobalState {
   activeSymbol: string;
   watchlist: string[];
   positions: Position[];
-  workspace: "intraday" | "research" | "fno";
   setActiveSymbol: (symbol: string) => void;
   addToWatchlist: (symbol: string) => void;
   removeFromWatchlist: (symbol: string) => void;
-  setWorkspace: (workspace: "intraday" | "research" | "fno") => void;
 }
 
 export const useGlobalStore = create<GlobalState>((set) => ({
   activeSymbol: "",
   watchlist: [],
   positions: [],
-  workspace: "intraday",
   setActiveSymbol: (symbol) => set({ activeSymbol: symbol }),
   addToWatchlist: (symbol) => 
     set((state) => ({ 
@@ -28,5 +25,4 @@ export const useGlobalStore = create<GlobalState>((set) => ({
     set((state) => ({ 
       watchlist: state.watchlist.filter((s) => s !== symbol) 
     })),
-  setWorkspace: (workspace) => set({ workspace }),
 }));

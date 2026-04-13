@@ -13,7 +13,7 @@ export const CommandPalette: React.FC = () => {
   const inputRef = useRef<HTMLInputElement>(null);
 
   const { setSelectedSymbol } = useSelectionStore();
-  const { setWorkspace } = useLayoutStore();
+  const { setApiPanelOpen } = useLayoutStore();
   const { watchlists } = useWatchlistStore();
   const { prices, instrumentMeta } = useUpstoxStore();
 
@@ -29,14 +29,7 @@ export const CommandPalette: React.FC = () => {
 
     if (parts[1] === '<GO>' || parts[1] === 'GO') {
       const target = first.toUpperCase();
-      if (target === 'CASUAL') setWorkspace('CASUAL');
-      if (target === 'OPTIONS' || target === 'OPT' || target === 'DERIVATIVES') setWorkspace('OPTIONS');
-      if (target === 'RESEARCH' || target === 'RES' || target === 'ANALYSIS') setWorkspace('RESEARCH');
-      if (target === 'PM' || target === 'PORTFOLIO') setWorkspace('PM');
-      if (target === 'QUANT' || target === 'QNT') setWorkspace('QUANT');
-      if (target === 'CHART' || target === 'CHT') setWorkspace('CHART');
-      if (target === 'PSYCHO') setWorkspace('PSYCHO');
-      if (target === 'API') setWorkspace('API');
+      if (target === 'API') setApiPanelOpen(true);
       setIsOpen(false);
       return true;
     }

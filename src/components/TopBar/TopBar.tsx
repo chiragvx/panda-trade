@@ -7,7 +7,7 @@ import { WidgetDropdown } from '../WidgetDropdown/WidgetDropdown';
 import { COLOR, TYPE, BORDER } from '../../ds/tokens';
 import { Change } from '../../ds/components/Change';
 import { Layout as LayoutIcon, Zap, Activity, Clock, ShieldAlert } from 'lucide-react';
-import { WorkspaceSelector } from './WorkspaceSelector';
+import { useNavigate } from 'react-router-dom';
 import logoSvg from '../../../svg/Pandatrade.svg';
 
 interface TopBarProps {
@@ -30,10 +30,11 @@ export const TopBar: React.FC<TopBarProps> = ({ model }) => {
   const [isWidgetDropdownOpen, setIsWidgetDropdownOpen] = useState(false);
   const widgetBtnRef = useRef<HTMLButtonElement>(null);
 
-  const { openOrderModal, workspace, setWorkspace } = useLayoutStore();
+  const { openOrderModal } = useLayoutStore();
   const { status, checkTokenValidity, prices, funds, instrumentMeta } = useUpstoxStore();
   const { setSelectedSymbol } = useSelectionStore();
   const controls = useAnimation();
+  const navigate = useNavigate();
 
   useEffect(() => {
     const timer = setInterval(() => setCurrentTime(new Date()), 1000);
@@ -165,7 +166,23 @@ export const TopBar: React.FC<TopBarProps> = ({ model }) => {
         </div>
 
         <div style={{ display: 'flex', alignItems: 'center', padding: '0 12px' }}>
-          <WorkspaceSelector model={model} />
+          <button
+            onClick={() => navigate('/api')}
+            style={{
+              ...cell,
+              background: 'transparent',
+              border: `1px solid ${COLOR.bg.border}`,
+              color: COLOR.text.secondary,
+              cursor: 'pointer',
+              fontSize: '10px',
+              fontWeight: '900',
+              fontFamily: TYPE.family.mono,
+              padding: '2px 12px',
+              borderRadius: '2px',
+            }}
+          >
+            API_MOD
+          </button>
         </div>
 
         <div style={{ flex: 1 }} />
@@ -173,7 +190,7 @@ export const TopBar: React.FC<TopBarProps> = ({ model }) => {
         <div style={{ display: 'flex', alignItems: 'stretch' }}>
           <button
             onClick={() => {
-              localStorage.setItem(`opentrader_layout_${workspace}`, JSON.stringify(model.toJson()));
+              localStorage.setItem('opentrader_layout', JSON.stringify(model.toJson()));
             }}
             style={{
               ...cell,
@@ -191,10 +208,7 @@ export const TopBar: React.FC<TopBarProps> = ({ model }) => {
           </button>
           <button
             onClick={() => {
-              const workspaces = ['CASUAL', 'OPTIONS', 'RESEARCH', 'PM', 'QUANT', 'CHART', 'PSYCHO', 'CUSTOM'];
-              workspaces.forEach(ws => localStorage.removeItem(`opentrader_layout_${ws}`));
-              localStorage.removeItem('opentrader_workspace');
-              localStorage.removeItem('opentrader_layout'); // legacy key
+              localStorage.removeItem('opentrader_layout');
               window.location.reload();
             }}
             style={{
@@ -214,7 +228,7 @@ export const TopBar: React.FC<TopBarProps> = ({ model }) => {
         </div>
 
         {status === 'expired' && (
-          <div style={{ ...cell, background: '#450a0a', borderRight: 'none', cursor: 'pointer' }} onClick={() => setWorkspace('API')}>
+          <div style={{ ...cell, background: '#450a0a', borderRight: 'none', cursor: 'pointer' }} onClick={() => navigate('/api')}>
             <ShieldAlert size={14} color={COLOR.semantic.down} />
             <span style={{ fontSize: '10px', fontWeight: '900', color: COLOR.semantic.down }}>TOKEN_EXPIRED</span>
           </div>

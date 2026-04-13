@@ -11,18 +11,14 @@ export const useSelectionStore = create<SelectionStore>((set) => ({
   setSelectedSymbol: (symbol) => set({ selectedSymbol: symbol }),
 }));
 
-export type WorkspaceType = 'CASUAL' | 'OPTIONS' | 'RESEARCH' | 'PM' | 'QUANT' | 'CHART' | 'PSYCHO' | 'CUSTOM' | 'API' | 'ANALYSIS';
-
 interface LayoutStore {
   pinnedTabsets: Record<string, boolean>;
   activeTabsetId: string | null;
-  workspace: WorkspaceType;
   isOrderModalOpen: boolean;
   orderMode: 'BUY' | 'SELL';
   editingOrder: any | null;
   viewingOrder: any | null;
   viewingHolding: any | null;
-  setWorkspace: (ws: WorkspaceType) => void;
   togglePin: (tabsetId: string) => void;
   setActiveTabsetId: (id: string | null) => void;
   openOrderModal: (mode: 'BUY' | 'SELL') => void;
@@ -35,8 +31,6 @@ interface LayoutStore {
 export const useLayoutStore = create<LayoutStore>((set) => ({
   pinnedTabsets: {},
   activeTabsetId: null,
-  workspace: 'CASUAL',
-  setWorkspace: (ws) => set({ workspace: ws }),
   togglePin: (tabsetId) => set((state) => ({
     pinnedTabsets: {
       ...state.pinnedTabsets,

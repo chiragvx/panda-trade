@@ -8,7 +8,7 @@ import { ToastContainer } from './components/ToastContainer';
 import { CommandPalette } from './components/CommandPalette/CommandPalette';
 import { ContextMenu } from './ds/components/ContextMenu';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { Routes, Route } from 'react-router-dom';
 import UpstoxCallback from './components/UpstoxCallback';
 import LandingPage from './layout/LandingPage';
 import { useSelectionStore, useLayoutStore } from './store/useStore';
@@ -21,16 +21,9 @@ import { DVDEasterEgg } from './components/EasterEgg/DVDVideo';
 import { ShieldAlert, X } from 'lucide-react';
 import { TYPE } from './ds/tokens';
 import { motion, AnimatePresence } from 'framer-motion';
-import {
-  CASUAL_LAYOUT,
-  OPTIONS_TRADER_LAYOUT,
-  RESEARCH_LAYOUT,
-  PORTFOLIO_MANAGER_LAYOUT,
-  QUANT_LAYOUT,
-  CHART_TRADER_LAYOUT,
-  PSYCHO_LAYOUT
-} from './constants/layouts';
-import { ApiDashboard } from './layout/ApiDashboard';
+import { CASUAL_LAYOUT } from './constants/layouts';
+import { ApiPage } from './layout/ApiPage';
+import { useNavigate } from 'react-router-dom';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -42,12 +35,12 @@ const queryClient = new QueryClient({
 });
 
 const App: React.FC = () => {
-  const { workspace, setWorkspace } = useLayoutStore();
   const { status, accessToken, apiKey, apiSecret } = useUpstoxStore();
   const { aisStreamApiKey, nasaApiKey, enabledConnections } = useSettingsStore();
   const [dismissedApis, setDismissedApis] = useState<string[]>([]);
   const [dismissedNetworkMsg, setDismissedNetworkMsg] = useState(false);
   const [isOnline, setIsOnline] = useState(window.navigator.onLine);
+  const navigate = useNavigate();
 
   useEffect(() => {
     const handleOnline = () => setIsOnline(true);
@@ -66,10 +59,10 @@ const App: React.FC = () => {
   
   const apiFailures = useMemo(() => {
     const fails: string[] = [];
-    if (enabledConnections.includes('aisstream-01') && !aisStreamApiKey && workspace !== 'API') fails.push('AISSTREAM_FEED');
-    if (enabledConnections.includes('nasa-01') && !nasaApiKey && workspace !== 'API') fails.push('NASA_FIRMS_SCANNER');
+    if (enabledConnections.includes('aisstream-01') && !aisStreamApiKey) fails.push('AISSTREAM_FEED');
+    if (enabledConnections.includes('nasa-01') && !nasaApiKey) fails.push('NASA_FIRMS_SCANNER');
     return fails.filter(f => !dismissedApis.includes(f));
-  }, [aisStreamApiKey, nasaApiKey, enabledConnections, workspace, dismissedApis]);
+  }, [aisStreamApiKey, nasaApiKey, enabledConnections, dismissedApis]);
 
   const [isIdle, setIsIdle] = useState(false);
   const idleTimerRef = useRef<NodeJS.Timeout | null>(null);
@@ -98,13 +91,9 @@ const App: React.FC = () => {
   useUpstoxBridge();
 
   const [model, setModel] = useState<Model>(() => {
-    const savedWs = localStorage.getItem('opentrader_workspace') || 'CASUAL';
-    const savedLayout = localStorage.getItem(`opentrader_layout_${savedWs}`);
+    const savedLayout = localStorage.getItem('opentrader_layout');
     if (savedLayout) return Model.fromJson(JSON.parse(savedLayout));
-
-    // Fallback to constants
-    const mapping: Record<string, IJsonModel> = { 'CASUAL': CASUAL_LAYOUT, 'OPTIONS': OPTIONS_TRADER_LAYOUT, 'RESEARCH': RESEARCH_LAYOUT, 'PM': PORTFOLIO_MANAGER_LAYOUT, 'QUANT': QUANT_LAYOUT, 'CHART': CHART_TRADER_LAYOUT, 'PSYCHO': PSYCHO_LAYOUT };
-    return Model.fromJson(mapping[savedWs] || CASUAL_LAYOUT);
+    return Model.fromJson(CASUAL_LAYOUT);
   });
 
   const [isTransitioning, setIsTransitioning] = useState(false);
@@ -125,33 +114,8 @@ const App: React.FC = () => {
     }, 200);
   }, []);
 
-  const mapping: Record<string, IJsonModel> = { 'CASUAL': CASUAL_LAYOUT, 'OPTIONS': OPTIONS_TRADER_LAYOUT, 'RESEARCH': RESEARCH_LAYOUT, 'PM': PORTFOLIO_MANAGER_LAYOUT, 'QUANT': QUANT_LAYOUT, 'CHART': CHART_TRADER_LAYOUT, 'PSYCHO': PSYCHO_LAYOUT };
-
-  /* Workspace listener */
-  useEffect(() => {
-    localStorage.setItem('opentrader_workspace', workspace);
-
-    if (workspace === 'CUSTOM') {
-      const saved = localStorage.getItem('opentrader_custom_layout');
-      if (saved) loadLayout(JSON.parse(saved));
-      return;
-    }
-
-    if (workspace === 'API') return; // Handled by ApiDashboard
-
-    const saved = localStorage.getItem(`opentrader_layout_${workspace}`);
-    if (saved) {
-      loadLayout(JSON.parse(saved));
-    } else if (mapping[workspace]) {
-      loadLayout(mapping[workspace]);
-    }
-  }, [workspace, loadLayout]);
-
   useEffect(() => {
     const handleGlobalContextMenu = (e: MouseEvent) => {
-      // Check if we already handled this via our custom logic
-      // Most of our custom ones already call preventDefault, 
-      // but this catch-all ensures the browser menu never appears.
       e.preventDefault();
     };
     window.addEventListener('contextmenu', handleGlobalContextMenu);
@@ -186,11 +150,11 @@ const App: React.FC = () => {
 
   return (
     <QueryClientProvider client={queryClient}>
-      <Router>
         <div className="flex flex-col min-h-screen w-screen bg-bg-base selection:bg-accent-info/30 selection:text-text-primary">
           <Routes>
             <Route path="/" element={<LandingPage />} />
             <Route path="/callback" element={<UpstoxCallback />} />
+            <Route path="/api" element={<ApiPage />} />
             <Route path="/app" element={
               <div className="h-screen w-screen overflow-hidden flex flex-col">
                 <AnimatePresence>
@@ -251,7 +215,7 @@ const App: React.FC = () => {
                         borderLeftWidth: '4px',
                         padding: '10px 16px',
                         display: 'flex',
-                        alignItems: 'center',
+                         alignItems: 'center',
                         gap: '12px',
                         boxShadow: '0 8px 24px rgba(0,0,0,0.4)',
                         pointerEvents: 'none'
@@ -299,7 +263,7 @@ const App: React.FC = () => {
                         : 'SESSION_EXPIRED: HANDSHAKE_INVALID • RECONNECT_REQUIRED'}
                     </span>
                     <button 
-                      onClick={() => setWorkspace('API')}
+                      onClick={() => navigate('/api')}
                       style={{
                         background: '#fff',
                         border: 'none',
@@ -318,11 +282,7 @@ const App: React.FC = () => {
                 <TopBar model={model} />
 
                 <main className={`flex-1 flex flex-col overflow-hidden transition-opacity duration-150 ${isTransitioning ? 'opacity-0' : 'opacity-100'}`}>
-                  {workspace === 'API' ? (
-                    <ApiDashboard />
-                  ) : (
-                    <LayoutManager model={model} />
-                  )}
+                  <LayoutManager model={model} />
                 </main>
 
                 <OrderEntryModal />
@@ -338,7 +298,6 @@ const App: React.FC = () => {
           </Routes>
           <Analytics />
         </div>
-      </Router>
     </QueryClientProvider>
   );
 };
