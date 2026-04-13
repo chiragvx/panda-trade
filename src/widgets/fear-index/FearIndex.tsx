@@ -10,9 +10,9 @@ const FearIndex: React.FC = () => {
 
   const getStatus = (s: number) => {
     if (s < 20) return { label: 'EXTREME FEAR', color: COLOR.semantic.down };
-    if (s < 40) return { label: 'FEAR', color: '#ff7700' };
-    if (s < 60) return { label: 'NEUTRAL', color: COLOR.semantic.warning };
-    if (s < 80) return { label: 'GREED', color: '#88ff00' };
+    if (s < 40) return { label: 'FEAR', color: COLOR.semantic.warning };
+    if (s < 60) return { label: 'NEUTRAL', color: COLOR.text.muted };
+    if (s < 80) return { label: 'GREED', color: COLOR.semantic.info };
     return { label: 'EXTREME GREED', color: COLOR.semantic.up };
   };
 
@@ -31,8 +31,8 @@ const FearIndex: React.FC = () => {
     return (
         <div style={{ height: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', background: COLOR.bg.base, padding: '20px', textAlign: 'center' }}>
           <AlertCircle size={32} color={COLOR.semantic.down} style={{ marginBottom: '12px' }} />
-          <div style={{ fontSize: '11px', fontWeight: 'bold', color: COLOR.text.primary, marginBottom: '4px' }}>CALCULATION_ERROR</div>
-          <div style={{ fontSize: '9px', color: COLOR.text.muted }}>{error}</div>
+          <div style={{ fontSize: TYPE.size.xs, fontWeight: TYPE.weight.black, color: COLOR.text.primary, marginBottom: '4px', letterSpacing: TYPE.letterSpacing.caps }}>CALCULATION_ERROR</div>
+          <div style={{ fontSize: TYPE.size.xs, color: COLOR.text.muted, fontWeight: TYPE.weight.bold }}>{error}</div>
         </div>
     );
   }
@@ -69,8 +69,8 @@ const FearIndex: React.FC = () => {
           </div>
           <div
             style={{
-              fontSize: '9px',
-              fontWeight: TYPE.weight.bold,
+              fontSize: TYPE.size.xs,
+              fontWeight: TYPE.weight.black,
               color: status.color,
               border: `1px solid ${status.color}40`,
               background: COLOR.bg.surface,
@@ -90,8 +90,8 @@ const FearIndex: React.FC = () => {
         {Object.entries(components).map(([key, val]) => (
           <div key={key} style={{ padding: '6px 8px', borderLeft: `2px solid ${getStatus(val).color}`, background: COLOR.bg.surface }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px' }}>
-              <span style={{ fontSize: '9px', fontWeight: TYPE.weight.bold, color: COLOR.text.muted, textTransform: 'uppercase' }}>{componentLabels[key] || key}</span>
-              <span style={{ fontSize: '10px', fontWeight: TYPE.weight.bold, color: COLOR.text.primary }}>{Math.round(val)}%</span>
+              <span style={{ fontSize: TYPE.size.xs, fontWeight: TYPE.weight.black, color: COLOR.text.muted, textTransform: 'uppercase', letterSpacing: TYPE.letterSpacing.tight }}>{componentLabels[key] || key}</span>
+              <span style={{ fontSize: TYPE.size.xs, fontWeight: TYPE.weight.black, color: COLOR.text.primary, fontFamily: TYPE.family.mono }}>{Math.round(val)}%</span>
             </div>
             <div style={{ height: '2px', background: COLOR.bg.elevated, width: '100%' }}>
               <div
@@ -108,8 +108,8 @@ const FearIndex: React.FC = () => {
       </div>
 
       <div style={{ marginTop: 'auto', paddingTop: SPACE[4], borderTop: BORDER.standard, height: '48px', minHeight: '48px', position: 'relative', overflow: 'hidden' }}>
-        <div style={{ position: 'absolute', top: '-4px', right: 0, fontSize: '8px', fontWeight: TYPE.weight.bold, color: COLOR.text.muted, background: COLOR.bg.base, padding: '0 4px', textTransform: 'uppercase' }}>
-          LAST_7D_AVERAGE
+        <div style={{ position: 'absolute', top: '-4px', right: 0, fontSize: TYPE.size.xs, fontWeight: TYPE.weight.black, color: COLOR.text.muted, background: COLOR.bg.base, padding: '0 4px', textTransform: 'uppercase', letterSpacing: TYPE.letterSpacing.caps }}>
+          LAST_7D_TREND
         </div>
         <ResponsiveContainer width="100%" height={48}>
           <AreaChart data={history}>

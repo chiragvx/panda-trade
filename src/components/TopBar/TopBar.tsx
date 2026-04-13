@@ -4,9 +4,9 @@ import { motion, useAnimation } from 'framer-motion';
 import { useLayoutStore, useSelectionStore } from '../../store/useStore';
 import { useUpstoxStore } from '../../store/useUpstoxStore';
 import { WidgetDropdown } from '../WidgetDropdown/WidgetDropdown';
-import { COLOR, TYPE, BORDER } from '../../ds/tokens';
+import { COLOR, TYPE, BORDER, Text, Tooltip } from '../../ds';
 import { Change } from '../../ds/components/Change';
-import { Layout as LayoutIcon, Zap, Activity, Clock, ShieldAlert } from 'lucide-react';
+import { Layout as LayoutIcon, Zap, Activity, Clock, ShieldAlert, Settings, Save, RotateCcw, Wallet, Plus, PlusSquare } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import logoSvg from '../../../svg/Pandatrade.svg';
 
@@ -107,7 +107,7 @@ export const TopBar: React.FC<TopBarProps> = ({ model }) => {
         flexShrink: 0,
       }}
     >
-      <div style={{ height: '40px', display: 'flex', alignItems: 'stretch', background: '#000', borderBottom: BORDER.standard, overflow: 'hidden' }}>
+      <div style={{ height: '40px', display: 'flex', alignItems: 'stretch', background: COLOR.bg.base, borderBottom: BORDER.standard, overflow: 'hidden' }}>
 
         <div style={{ flex: 1, position: 'relative', display: 'flex', alignItems: 'center', overflow: 'hidden' }}>
           <motion.div 
@@ -142,20 +142,22 @@ export const TopBar: React.FC<TopBarProps> = ({ model }) => {
                 }}
                 style={{ display: 'flex', alignItems: 'center', gap: '8px', fontFamily: TYPE.family.mono, cursor: 'pointer', padding: '0 4px' }}
               >
-                <span style={{ color: COLOR.text.muted, fontSize: '11px', fontWeight: 'bold' }}>{item.sym}</span>
-                <span style={{ color: '#fff', fontSize: '13px', fontWeight: '900' }}>{item.price.toFixed(2)}</span>
-                <Change value={item.pct} format="percent" size="xs" weight="bold" />
+                <Text size="xs" color="muted" weight="black">{item.sym}</Text>
+                <Text size="md" weight="black" color="primary">{item.price.toFixed(2)}</Text>
+                <Change value={item.pct} format="percent" size="xs" weight="black" />
               </div>
             ))}
           </motion.div>
         </div>
 
-        <div style={{ display: 'flex', alignItems: 'center', padding: '0 20px', gap: '16px', borderLeft: BORDER.standard, background: '#000000' }}>
+        <div style={{ display: 'flex', alignItems: 'center', padding: '0 20px', gap: '16px', borderLeft: BORDER.standard, background: COLOR.bg.base }}>
           <div style={{ display: 'flex', gap: '8px', alignItems: 'baseline' }}>
-            <span style={{ fontSize: '10px', color: COLOR.text.muted, fontWeight: 'bold' }}>ADV/DEC</span>
-            <span style={{ fontSize: '13px', color: COLOR.semantic.up, fontWeight: '900' }}>{advDec.adv}</span>
-            <span style={{ fontSize: '11px', color: '#666666' }}>/</span>
-            <span style={{ fontSize: '13px', color: COLOR.semantic.down, fontWeight: '900' }}>{advDec.dec}</span>
+          <div style={{ display: 'flex', gap: '8px', alignItems: 'baseline' }}>
+            <Text size="xs" color="muted" weight="black">ADV/DEC</Text>
+            <Text size="md" color="up" weight="black">{advDec.adv}</Text>
+            <Text size="xs" color="muted">/</Text>
+            <Text size="md" color="down" weight="black">{advDec.dec}</Text>
+          </div>
           </div>
         </div>
       </div>
@@ -166,79 +168,80 @@ export const TopBar: React.FC<TopBarProps> = ({ model }) => {
         </div>
 
         <div style={{ display: 'flex', alignItems: 'center', padding: '0 12px' }}>
-          <button
-            onClick={() => navigate('/api')}
-            style={{
-              ...cell,
-              background: 'transparent',
-              border: `1px solid ${COLOR.bg.border}`,
-              color: COLOR.text.secondary,
-              cursor: 'pointer',
-              fontSize: '10px',
-              fontWeight: '900',
-              fontFamily: TYPE.family.mono,
-              padding: '2px 12px',
-              borderRadius: '2px',
-            }}
-          >
-            API_MOD
-          </button>
+          <Tooltip content="API_CONFIG_MANAGER" position="bottom">
+            <button
+              onClick={() => navigate('/api')}
+              style={{
+                ...cell,
+                background: 'transparent',
+                border: `1px solid ${COLOR.bg.border}`,
+                color: COLOR.text.secondary,
+                cursor: 'pointer',
+                padding: '0 10px',
+                borderRadius: '2px',
+                height: '28px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+              }}
+            >
+              <Settings size={14} />
+            </button>
+          </Tooltip>
         </div>
 
         <div style={{ flex: 1 }} />
 
         <div style={{ display: 'flex', alignItems: 'stretch' }}>
-          <button
-            onClick={() => {
-              localStorage.setItem('opentrader_layout', JSON.stringify(model.toJson()));
-            }}
-            style={{
-              ...cell,
-              background: 'transparent',
-              borderLeft: BORDER.standard,
-              color: COLOR.semantic.info,
-              cursor: 'pointer',
-              fontSize: '10px',
-              fontWeight: '900',
-              fontFamily: TYPE.family.mono,
-              padding: '0 16px',
-            }}
-          >
-            SAVE_VIEW
-          </button>
-          <button
-            onClick={() => {
-              localStorage.removeItem('opentrader_layout');
-              window.location.reload();
-            }}
-            style={{
-              ...cell,
-              background: 'transparent',
-              borderLeft: BORDER.standard,
-              color: COLOR.text.muted,
-              cursor: 'pointer',
-              fontSize: '10px',
-              fontWeight: '900',
-              fontFamily: TYPE.family.mono,
-              padding: '0 16px',
-            }}
-          >
-            RESET_SYS
-          </button>
+          <Tooltip content="SAVE_LAYOUT_LOCALLY" position="bottom">
+            <button
+              onClick={() => {
+                localStorage.setItem('opentrader_layout', JSON.stringify(model.toJson()));
+              }}
+              style={{
+                ...cell,
+                background: 'transparent',
+                borderLeft: BORDER.standard,
+                color: COLOR.semantic.info,
+                cursor: 'pointer',
+                padding: '0 16px',
+              }}
+            >
+              <Save size={16} />
+            </button>
+          </Tooltip>
+          <Tooltip content="RESET_SYSTEM_STATE" position="bottom">
+            <button
+              onClick={() => {
+                localStorage.removeItem('opentrader_layout');
+                window.location.reload();
+              }}
+              style={{
+                ...cell,
+                background: 'transparent',
+                borderLeft: BORDER.standard,
+                color: COLOR.text.muted,
+                cursor: 'pointer',
+                padding: '0 16px',
+              }}
+            >
+              <RotateCcw size={16} />
+            </button>
+          </Tooltip>
         </div>
 
         {status === 'expired' && (
-          <div style={{ ...cell, background: '#450a0a', borderRight: 'none', cursor: 'pointer' }} onClick={() => navigate('/api')}>
+          <div style={{ ...cell, background: `${COLOR.semantic.down}22`, borderRight: 'none', cursor: 'pointer' }} onClick={() => navigate('/api')}>
             <ShieldAlert size={14} color={COLOR.semantic.down} />
-            <span style={{ fontSize: '10px', fontWeight: '900', color: COLOR.semantic.down }}>TOKEN_EXPIRED</span>
+            <Text size="xs" color="down" weight="black">TOKEN_EXPIRED</Text>
           </div>
         )}
 
         <div style={cell}>
           <div style={{ width: '4px', height: '4px', background: status === 'connected' ? COLOR.semantic.up : COLOR.text.muted }} />
-          <span style={{ fontSize: '9px', fontFamily: TYPE.family.mono, color: status === 'connected' ? COLOR.semantic.up : COLOR.text.muted }}>
+          <Text size="xs" color={status === 'connected' ? 'up' : 'muted'} weight="black" family="mono">
             {status === 'connected' ? 'LIVE' : 'OFFLINE'}
-          </span>
+          </Text>
         </div>
 
         <div style={cell}>
@@ -249,43 +252,52 @@ export const TopBar: React.FC<TopBarProps> = ({ model }) => {
         </div>
 
         <div style={cell}>
-          <span style={{ fontSize: '9px', color: COLOR.text.muted }}>FUNDS:</span>
-          <span style={{ fontSize: '11px', fontWeight: 'bold', color: COLOR.text.primary, marginRight: '8px' }}>
+          <Text size="xs" color="muted" weight="bold" style={{ marginRight: '4px' }}>FUNDS:</Text>
+          <Text size="sm" weight="black" color="primary" style={{ marginRight: '8px' }}>
             ₹{margin.toLocaleString('en-IN', { maximumFractionDigits: 0 })}
-          </span>
-          <button 
-            onClick={() => window.open('https://pro.upstox.com/funds/securities/wallet', '_blank')}
-            style={{ 
-              background: 'transparent', 
-              border: `1px solid ${COLOR.semantic.info}`, 
-              color: COLOR.semantic.info, 
-              fontSize: '8px', 
-              fontWeight: 'bold', 
-              padding: '2px 6px', 
-              cursor: 'pointer',
-              fontFamily: TYPE.family.mono
-            }}
-          >
-            ADD_FUNDS
-          </button>
+          </Text>
+          <Tooltip content="ADD_FUNDS_PORTAL" position="bottom">
+            <button 
+              onClick={() => window.open('https://pro.upstox.com/funds/securities/wallet', '_blank')}
+              style={{ 
+                background: 'transparent', 
+                border: `1px solid ${COLOR.semantic.info}`, 
+                color: COLOR.semantic.info, 
+                padding: '2px 8px', 
+                cursor: 'pointer',
+                height: '24px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                borderRadius: '2px'
+              }}
+            >
+              <Wallet size={14} />
+            </button>
+          </Tooltip>
         </div>
 
         <div style={{ ...cell, borderRight: 'none', padding: '0 8px' }}>
-          <button
-            ref={widgetBtnRef}
-            onClick={() => setIsWidgetDropdownOpen((p) => !p)}
-            style={{
-              background: isWidgetDropdownOpen ? `${COLOR.semantic.info}22` : 'transparent',
-              border: `1px solid ${isWidgetDropdownOpen ? COLOR.semantic.info : COLOR.bg.border}`,
-              padding: '2px 8px',
-              cursor: 'pointer',
-              fontFamily: TYPE.family.mono,
-              fontSize: '10px',
-              color: isWidgetDropdownOpen ? COLOR.semantic.info : COLOR.text.primary,
-            }}
-          >
-            + ADD
-          </button>
+          <Tooltip content="ADD_NEW_WIDGET" position="bottom">
+            <button
+              ref={widgetBtnRef}
+              onClick={() => setIsWidgetDropdownOpen((p) => !p)}
+              style={{
+                background: isWidgetDropdownOpen ? `${COLOR.semantic.info}22` : 'transparent',
+                border: `1px solid ${isWidgetDropdownOpen ? COLOR.semantic.info : COLOR.bg.border}`,
+                padding: '4px 8px',
+                cursor: 'pointer',
+                color: isWidgetDropdownOpen ? COLOR.semantic.info : COLOR.text.primary,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                borderRadius: '2px',
+                height: '28px'
+              }}
+            >
+              <PlusSquare size={16} />
+            </button>
+          </Tooltip>
           <WidgetDropdown isOpen={isWidgetDropdownOpen} onOpenChange={setIsWidgetDropdownOpen} anchorEl={widgetBtnRef.current} />
         </div>
       </div>

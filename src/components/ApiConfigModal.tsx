@@ -23,22 +23,22 @@ const SecureInput: React.FC<{
     background: 'transparent',
     border: 'none',
     padding: '10px 12px',
-    fontSize: '12px',
+    fontSize: TYPE.size.xs,
     fontFamily: TYPE.family.mono,
-    color: '#fff',
+    color: COLOR.text.primary,
     outline: 'none',
   };
 
   const labelStyle: React.CSSProperties = {
-    fontSize: '10px',
-    fontWeight: 'bold',
-    color: '#666',
+    fontSize: TYPE.size.xs,
+    fontWeight: TYPE.weight.black,
+    color: COLOR.text.muted,
     textTransform: 'uppercase',
-    letterSpacing: '0.1em',
+    letterSpacing: TYPE.letterSpacing.caps,
     display: 'flex',
     alignItems: 'center',
     gap: '6px',
-    marginBottom: '8px'
+    marginBottom: SPACE[2]
   };
 
   return (
@@ -47,9 +47,9 @@ const SecureInput: React.FC<{
       <div style={{ 
         display: 'flex', 
         alignItems: 'center', 
-        background: '#0a0a0a', 
-        border: '1px solid #222', 
-        borderRadius: '4px' 
+        background: COLOR.bg.elevated, 
+        border: BORDER.standard, 
+        borderRadius: '2px' 
       }}>
         <input 
           type={visible ? 'text' : 'password'}
@@ -61,11 +61,11 @@ const SecureInput: React.FC<{
         <button 
           onClick={() => setVisible(!visible)}
           style={{ 
-            background: 'transparent', border: 'none', color: '#444', 
+            background: 'transparent', border: 'none', color: COLOR.text.muted, 
             padding: '0 12px', cursor: 'pointer', transition: 'color 0.1s' 
           }}
-          onMouseEnter={e => e.currentTarget.style.color = '#fff'}
-          onMouseLeave={e => e.currentTarget.style.color = '#444'}
+          onMouseEnter={e => e.currentTarget.style.color = COLOR.text.primary}
+          onMouseLeave={e => e.currentTarget.style.color = COLOR.text.muted}
         >
           {visible ? <EyeOff size={14} /> : <Eye size={14} />}
         </button>
@@ -160,27 +160,27 @@ export const ApiConfigModal: React.FC<ApiConfigModalProps> = ({ provider, onClos
 
     const inputStyle: React.CSSProperties = {
         width: '100%',
-        background: '#0a0a0a',
-        border: '1px solid #222',
+        background: COLOR.bg.base,
+        border: BORDER.standard,
         padding: '10px 12px',
-        fontSize: '12px',
+        fontSize: TYPE.size.xs,
         fontFamily: TYPE.family.mono,
-        color: '#fff',
+        color: COLOR.text.primary,
         outline: 'none',
-        borderRadius: '4px',
-        marginBottom: '16px'
+        borderRadius: '2px',
+        marginBottom: SPACE[4]
     };
 
     const labelStyle: React.CSSProperties = {
-        fontSize: '10px',
-        fontWeight: 'bold',
-        color: '#666',
+        fontSize: TYPE.size.xs,
+        fontWeight: TYPE.weight.black,
+        color: COLOR.text.muted,
         textTransform: 'uppercase',
-        letterSpacing: '0.1em',
+        letterSpacing: TYPE.letterSpacing.caps,
         display: 'flex',
         alignItems: 'center',
         gap: '6px',
-        marginBottom: '8px'
+        marginBottom: SPACE[2]
     };
 
     return (
@@ -188,20 +188,20 @@ export const ApiConfigModal: React.FC<ApiConfigModalProps> = ({ provider, onClos
             display: 'flex', 
             width: '800px', 
             height: '500px', 
-            background: '#000', 
-            border: '1px solid #333',
+            background: COLOR.bg.surface, 
+            border: BORDER.standard,
             overflow: 'hidden',
-            boxShadow: '0 30px 100px rgba(0,0,0,0.8)'
+            boxShadow: '0 32px 64px -12px rgba(0,0,0,0.8)'
         }}>
             {/* Left Column: Info & Image */}
             <div style={{ 
                 flex: 1.2, 
-                borderRight: '1px solid #222', 
-                background: '#050505',
+                borderRight: BORDER.standard, 
+                background: COLOR.bg.elevated,
                 display: 'flex',
                 flexDirection: 'column'
             }}>
-                <div style={{ flex: 1, position: 'relative', background: '#000', overflow: 'hidden' }}>
+                <div style={{ flex: 1, position: 'relative', background: COLOR.bg.base, overflow: 'hidden' }}>
                     <img 
                         src={config.image} 
                         alt="API Guide" 
@@ -221,14 +221,14 @@ export const ApiConfigModal: React.FC<ApiConfigModalProps> = ({ provider, onClos
                         flexDirection: 'column',
                         gap: '8px'
                     }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#fff' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: COLOR.text.primary }}>
                             {config.icon}
-                            <span style={{ fontSize: '13px', fontWeight: 'bold', textTransform: 'uppercase', letterSpacing: '0.1em' }}>{config.title}</span>
+                            <span style={{ fontSize: TYPE.size.md, fontWeight: TYPE.weight.black, textTransform: 'uppercase', letterSpacing: TYPE.letterSpacing.caps }}>{config.title}</span>
                         </div>
                     </div>
                 </div>
-                <div style={{ padding: '24px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
-                    <p style={{ fontSize: '12px', color: '#888', lineHeight: '1.6', margin: 0 }}>
+                <div style={{ padding: SPACE[6], display: 'flex', flexDirection: 'column', gap: SPACE[4] }}>
+                    <p style={{ fontSize: TYPE.size.xs, color: COLOR.text.muted, lineHeight: '1.6', margin: 0, fontWeight: TYPE.weight.bold }}>
                         {config.guide}
                     </p>
                     <a 
@@ -236,13 +236,14 @@ export const ApiConfigModal: React.FC<ApiConfigModalProps> = ({ provider, onClos
                         target="_blank" 
                         rel="noreferrer"
                         style={{ 
-                            fontSize: '11px', 
+                            fontSize: TYPE.size.xs, 
                             color: COLOR.semantic.info, 
                             textDecoration: 'none', 
-                            fontWeight: 'bold',
+                            fontWeight: TYPE.weight.black,
                             display: 'flex',
                             alignItems: 'center',
-                            gap: '6px'
+                            gap: '6px',
+                            letterSpacing: TYPE.letterSpacing.caps
                         }}
                     >
                         GET API KEY FROM SOURCE <ExternalLink size={12} />
@@ -251,9 +252,9 @@ export const ApiConfigModal: React.FC<ApiConfigModalProps> = ({ provider, onClos
             </div>
 
             {/* Right Column: Inputs */}
-            <div style={{ flex: 1, padding: '32px', display: 'flex', flexDirection: 'column' }}>
+            <div style={{ flex: 1, padding: SPACE[8], display: 'flex', flexDirection: 'column' }}>
                 <div style={{ flex: 1, overflowY: 'auto' }} className="custom-scrollbar">
-                    <h3 style={{ fontSize: '14px', color: '#fff', fontWeight: 'bold', margin: '0 0 24px 0', textTransform: 'uppercase', letterSpacing: '0.1em' }}>Configuration</h3>
+                    <h3 style={{ fontSize: TYPE.size.sm, color: COLOR.text.primary, fontWeight: TYPE.weight.black, margin: `0 0 ${SPACE[6]} 0`, textTransform: 'uppercase', letterSpacing: TYPE.letterSpacing.caps }}>Configuration</h3>
                     
                     {provider === 'UPSTOX' && (
                         <>
@@ -305,8 +306,8 @@ export const ApiConfigModal: React.FC<ApiConfigModalProps> = ({ provider, onClos
                     {provider === 'OPENSKY' && (
                         <div style={{ 
                             padding: '40px 20px', 
-                            background: '#0a0a0a', 
-                            border: '1px solid #222', 
+                            background: COLOR.bg.base, 
+                            border: BORDER.standard, 
                             borderRadius: '4px',
                             display: 'flex',
                             flexDirection: 'column',
@@ -316,8 +317,8 @@ export const ApiConfigModal: React.FC<ApiConfigModalProps> = ({ provider, onClos
                             textAlign: 'center'
                         }}>
                              <Globe size={32} color={COLOR.semantic.info} />
-                             <div style={{ fontSize: '11px', color: '#fff', fontWeight: 'bold' }}>PUBLIC_DATA_ACTIVE</div>
-                             <div style={{ fontSize: '10px', color: '#666', lineHeight: '1.5' }}>Using OpenSky community-sourced ADSB vectors.<br/>No further configuration is required.</div>
+                             <div style={{ fontSize: TYPE.size.xs, color: COLOR.text.primary, fontWeight: TYPE.weight.black }}>PUBLIC_DATA_ACTIVE</div>
+                             <div style={{ fontSize: TYPE.size.xs, color: COLOR.text.muted, lineHeight: '1.5', fontWeight: TYPE.weight.bold }}>Using OpenSky community-sourced ADSB vectors.<br/>No further configuration is required.</div>
                         </div>
                     )}
 
@@ -339,17 +340,18 @@ export const ApiConfigModal: React.FC<ApiConfigModalProps> = ({ provider, onClos
                         style={{ 
                             width: '100%', 
                             height: '40px', 
-                            background: isSaving ? '#222' : COLOR.semantic.info, 
-                            color: '#fff', 
+                            background: isSaving ? COLOR.bg.elevated : COLOR.semantic.info, 
+                            color: COLOR.text.inverse, 
                             border: 'none', 
-                            fontWeight: 'bold', 
-                            fontSize: '12px',
+                            fontWeight: TYPE.weight.black, 
+                            fontSize: TYPE.size.xs,
                             cursor: 'pointer',
-                            borderRadius: '4px',
-                            transition: 'all 0.1s'
+                            borderRadius: '2px',
+                            transition: 'all 0.1s',
+                            letterSpacing: TYPE.letterSpacing.caps
                         }}
                     >
-                        {isSaving ? 'STORAGE_UPDATING...' : 'SAVE CONFIGURATION'}
+                        {isSaving ? 'STORAGE_UPDATING...' : 'SAVE_CONFIGURATION'}
                     </button>
 
                     {provider === 'UPSTOX' && upstox.apiKey && (
@@ -361,20 +363,21 @@ export const ApiConfigModal: React.FC<ApiConfigModalProps> = ({ provider, onClos
                             style={{ 
                                 width: '100%', 
                                 height: '40px', 
-                                background: '#fff', 
-                                color: '#000', 
+                                background: COLOR.text.primary, 
+                                color: COLOR.bg.base, 
                                 border: 'none', 
-                                fontWeight: '900', 
-                                fontSize: '12px',
+                                fontWeight: TYPE.weight.black, 
+                                fontSize: TYPE.size.xs,
                                 cursor: 'pointer',
-                                borderRadius: '4px',
+                                borderRadius: '2px',
                                 display: 'flex',
                                 alignItems: 'center',
                                 justifyContent: 'center',
-                                gap: '8px'
+                                gap: '8px',
+                                letterSpacing: TYPE.letterSpacing.caps
                             }}
                         >
-                            <LogIn size={16} /> INITIALIZE SESSION
+                            <LogIn size={16} /> INITIALIZE_SESSION
                         </button>
                     )}
 
@@ -383,15 +386,16 @@ export const ApiConfigModal: React.FC<ApiConfigModalProps> = ({ provider, onClos
                         style={{ 
                             width: '100%', 
                             background: 'transparent', 
-                            color: '#666', 
+                            color: COLOR.text.muted, 
                             border: 'none', 
-                            fontSize: '11px',
-                            fontWeight: 'bold',
+                            fontSize: TYPE.size.xs,
+                            fontWeight: TYPE.weight.black,
                             cursor: 'pointer',
-                            marginTop: '8px'
+                            marginTop: SPACE[2],
+                            letterSpacing: TYPE.letterSpacing.caps
                         }}
                     >
-                        CANCEL
+                        CANCEL_PROCEDURE
                     </button>
                 </div>
             </div>

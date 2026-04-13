@@ -46,14 +46,14 @@ export const VolSurfaceControls: React.FC<VolSurfaceControlsProps> = ({
       <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
           <MonitorPlay size={14} color={COLOR.semantic.info} />
-          <span style={{ fontSize: '11px', fontWeight: 'bold', textTransform: 'uppercase' }}>{symbolName}</span>
-          <span style={{ fontSize: '11px', color: COLOR.text.muted }}>Volatility Surface (3D)</span>
+          <span style={{ fontSize: TYPE.size.xs, fontWeight: TYPE.weight.black, textTransform: 'uppercase', color: COLOR.text.primary, letterSpacing: TYPE.letterSpacing.caps }}>{symbolName}</span>
+          <span style={{ fontSize: TYPE.size.xs, color: COLOR.text.muted, fontWeight: TYPE.weight.bold, letterSpacing: TYPE.letterSpacing.tight }}>VOL_SURFACE_3D</span>
         </div>
       </div>
 
       <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
         {lastSync && (
-            <span style={{ fontSize: '9px', color: COLOR.text.muted, fontVariantNumeric: 'tabular-nums' }}>
+            <span style={{ fontSize: TYPE.size.xs, color: COLOR.text.muted, fontVariantNumeric: 'tabular-nums', fontWeight: TYPE.weight.black, fontFamily: TYPE.family.mono }}>
                 {lastSync.toLocaleTimeString()}
             </span>
         )}
@@ -61,18 +61,20 @@ export const VolSurfaceControls: React.FC<VolSurfaceControlsProps> = ({
         <div style={{ height: '16px', width: '1px', background: COLOR.bg.border, margin: '0 4px' }} />
 
         {/* Option Side Toggle */}
-        <div style={{ display: 'flex', background: COLOR.bg.elevated, border: BORDER.standard, borderRadius: '4px', overflow: 'hidden' }}>
+        <div style={{ display: 'flex', background: COLOR.bg.elevated, border: BORDER.standard, borderRadius: '2px', overflow: 'hidden' }}>
             {(['CE', 'PE', 'BOTH'] as const).map(s => (
                 <button 
                     key={s} 
                     onClick={() => setOptionSide(s)}
                     style={{ 
-                        padding: '2px 8px', 
-                        fontSize: '9px', 
+                        padding: '2px 10px', 
+                        fontSize: TYPE.size.xs, 
+                        fontWeight: TYPE.weight.black,
                         background: optionSide === s ? COLOR.semantic.info : 'transparent',
-                        color: optionSide === s ? '#fff' : COLOR.text.muted,
+                        color: optionSide === s ? COLOR.text.inverse : COLOR.text.muted,
                         border: 'none',
-                        cursor: 'pointer'
+                        cursor: 'pointer',
+                        letterSpacing: TYPE.letterSpacing.caps
                     }}
                 >
                     {s}
@@ -89,11 +91,13 @@ export const VolSurfaceControls: React.FC<VolSurfaceControlsProps> = ({
             style={{ 
                 color: isWireframe ? COLOR.semantic.info : COLOR.text.muted,
                 background: isWireframe ? `${COLOR.semantic.info}15` : 'transparent',
-                borderColor: isWireframe ? COLOR.semantic.info : 'transparent'
+                borderColor: isWireframe ? COLOR.semantic.info : 'transparent',
+                fontWeight: TYPE.weight.black,
+                fontSize: TYPE.size.xs
             }}
         >
             <LayoutPanelTop size={12} />
-            <span style={{ marginLeft: '4px' }}>WIRE</span>
+            <span style={{ marginLeft: '4px', letterSpacing: TYPE.letterSpacing.caps }}>WIRE</span>
         </Button>
 
         <Button 
@@ -103,11 +107,13 @@ export const VolSurfaceControls: React.FC<VolSurfaceControlsProps> = ({
             style={{ 
                 color: isSmooth ? COLOR.semantic.info : COLOR.text.muted,
                 background: isSmooth ? `${COLOR.semantic.info}15` : 'transparent',
-                borderColor: isSmooth ? COLOR.semantic.info : 'transparent'
+                borderColor: isSmooth ? COLOR.semantic.info : 'transparent',
+                fontWeight: TYPE.weight.black,
+                fontSize: TYPE.size.xs
             }}
         >
             <MonitorPlay size={12} />
-            <span style={{ marginLeft: '4px' }}>SMOOTH</span>
+            <span style={{ marginLeft: '4px', letterSpacing: TYPE.letterSpacing.caps }}>SMOOTH</span>
         </Button>
 
         <Button 
@@ -117,11 +123,13 @@ export const VolSurfaceControls: React.FC<VolSurfaceControlsProps> = ({
             style={{ 
                 color: showHV ? COLOR.semantic.info : COLOR.text.muted,
                 background: showHV ? `${COLOR.semantic.info}15` : 'transparent',
-                borderColor: showHV ? COLOR.semantic.info : 'transparent'
+                borderColor: showHV ? COLOR.semantic.info : 'transparent',
+                fontWeight: TYPE.weight.black,
+                fontSize: TYPE.size.xs
             }}
         >
             {showHV ? <Eye size={12} /> : <EyeOff size={12} />}
-            <span style={{ marginLeft: '4px' }}>HV</span>
+            <span style={{ marginLeft: '4px', letterSpacing: TYPE.letterSpacing.caps }}>HV</span>
         </Button>
 
         <Button 
@@ -135,9 +143,9 @@ export const VolSurfaceControls: React.FC<VolSurfaceControlsProps> = ({
 
         <div style={{ height: '16px', width: '1px', background: COLOR.bg.border, margin: '0 4px' }} />
 
-        <Button variant="ghost" size="xs" onClick={() => (window as any).dispatchEvent(new Event('RESET_VOL_CAMERA'))}>
+        <Button variant="ghost" size="xs" onClick={() => (window as any).dispatchEvent(new Event('RESET_VOL_CAMERA'))} style={{ fontWeight: TYPE.weight.black, fontSize: TYPE.size.xs }}>
             <RotateCcw size={12} />
-            <span style={{ marginLeft: '4px' }}>VIEW</span>
+            <span style={{ marginLeft: '4px', letterSpacing: TYPE.letterSpacing.caps }}>VIEW</span>
         </Button>
       </div>
 

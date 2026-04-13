@@ -1,6 +1,6 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, Search, Zap } from 'lucide-react';
+import { ArrowLeft, Zap } from 'lucide-react';
 import { ApiDashboard } from './ApiDashboard';
 import { COLOR, TYPE, BORDER } from '../ds/tokens';
 
@@ -22,8 +22,8 @@ export const ApiPage: React.FC = () => {
                 alignItems: 'center',
                 justifyContent: 'space-between',
                 padding: '0 20px',
-                borderBottom: `1px solid ${COLOR.bg.border}`,
-                background: COLOR.bg.secondary,
+                borderBottom: BORDER.standard,
+                background: COLOR.bg.elevated,
                 flexShrink: 0
             }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
@@ -31,18 +31,17 @@ export const ApiPage: React.FC = () => {
                         onClick={() => navigate('/app')}
                         style={{
                             background: 'transparent',
-                            border: 'none',
+                            border: BORDER.standard,
                             color: COLOR.text.secondary,
                             cursor: 'pointer',
                             display: 'flex',
                             alignItems: 'center',
                             gap: '8px',
-                            fontSize: '10px',
-                            fontWeight: '900',
+                            fontSize: TYPE.size.xs,
+                            fontWeight: TYPE.weight.black,
                             fontFamily: TYPE.family.mono,
                             padding: '4px 12px',
-                            borderRadius: '2px',
-                            border: `1px solid ${COLOR.bg.border}`,
+                            borderRadius: '0',
                             transition: 'all 0.1s ease'
                         }}
                         onMouseEnter={e => {
@@ -56,31 +55,26 @@ export const ApiPage: React.FC = () => {
                             e.currentTarget.style.background = 'transparent';
                         }}
                     >
-                        <ArrowLeft size={14} />
+                        <ArrowLeft size={12} />
                         <span>RETURN_TO_TERMINAL</span>
                     </button>
                 </div>
 
-                <div style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '12px'
-                }}>
-                    <div style={{ 
-                        display: 'flex', 
-                        alignItems: 'center', 
+                <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                    <div style={{
+                        display: 'flex',
+                        alignItems: 'center',
                         gap: '6px',
                         padding: '2px 8px',
                         background: '#ffffff05',
-                        border: `1px solid ${COLOR.bg.border}`,
-                        borderRadius: '2px'
+                        border: BORDER.standard,
                     }}>
                         <Zap size={12} color={COLOR.semantic.info} />
-                        <span style={{ fontSize: '9px', fontWeight: 'bold', color: COLOR.text.muted, fontFamily: TYPE.family.mono }}>SYSTEM_READY_V3</span>
+                        <span style={{ fontSize: TYPE.size.xs, fontWeight: TYPE.weight.bold, color: COLOR.text.muted, fontFamily: TYPE.family.mono }}>SYSTEM_READY_V3</span>
                     </div>
                     <div style={{
-                        fontSize: '10px',
-                        fontWeight: '900',
+                        fontSize: TYPE.size.xs,
+                        fontWeight: TYPE.weight.black,
                         letterSpacing: '0.15em',
                         color: COLOR.text.primary,
                         fontFamily: TYPE.family.mono
@@ -90,31 +84,31 @@ export const ApiPage: React.FC = () => {
                 </div>
 
                 <div style={{ width: '140px', display: 'flex', justifyContent: 'flex-end' }}>
-                     <span style={{ fontSize: '9px', color: COLOR.text.muted, fontFamily: TYPE.family.mono }}>v4.6.2_STABLE</span>
+                    <span style={{ fontSize: TYPE.size.xs, color: COLOR.text.muted, fontFamily: TYPE.family.mono }}>v4.6.2_STABLE</span>
                 </div>
             </header>
 
             <main style={{ flex: 1, overflow: 'auto' }}>
                 <ApiDashboard />
             </main>
-            
+
             <footer style={{
                 height: '24px',
-                background: COLOR.bg.secondary,
-                borderTop: `1px solid ${COLOR.bg.border}`,
+                background: COLOR.bg.elevated,
+                borderTop: BORDER.standard,
                 display: 'flex',
                 alignItems: 'center',
                 padding: '0 20px',
                 justifyContent: 'space-between',
                 flexShrink: 0
             }}>
-                <div style={{ display: 'flex', gap: '15px' }}>
-                    <span style={{ fontSize: '8px', color: COLOR.text.muted, fontFamily: TYPE.family.mono }}>ENDPOINT: https://api.upstox.com/v2</span>
-                    <span style={{ fontSize: '8px', color: COLOR.text.muted, fontFamily: TYPE.family.mono }}>SOCKET: wss://smartapi.upstox.com</span>
+                <div style={{ display: 'flex', gap: '16px' }}>
+                    <span style={{ fontSize: TYPE.size.xs, color: COLOR.text.muted, fontFamily: TYPE.family.mono }}>ENDPOINT: https://api.upstox.com/v2</span>
+                    <span style={{ fontSize: TYPE.size.xs, color: COLOR.text.muted, fontFamily: TYPE.family.mono }}>SOCKET: wss://smartapi.upstox.com</span>
                 </div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                     <div style={{ width: '6px', height: '6px', borderRadius: '50%', background: COLOR.semantic.up }} />
-                     <span style={{ fontSize: '8px', fontWeight: 'bold', color: COLOR.text.secondary, fontFamily: TYPE.family.mono }}>DATA_INTEGRITY_VERIFIED</span>
+                    <div style={{ width: '6px', height: '6px', borderRadius: '50%', background: COLOR.semantic.up }} />
+                    <span style={{ fontSize: TYPE.size.xs, fontWeight: TYPE.weight.bold, color: COLOR.text.secondary, fontFamily: TYPE.family.mono }}>DATA_INTEGRITY_VERIFIED</span>
                 </div>
             </footer>
         </div>

@@ -7,62 +7,76 @@ export default {
   theme: {
     extend: {
       colors: {
+        // ─── Mirrors tokens.ts COLOR exactly ───────────────────────────────
         bg: {
-          base:     '#0a0a0a',
-          surface:  '#0f0f0f',
-          elevated: '#141414',
-          overlay:  '#1a1a1a',
-          border:   '#1f1f1f',
-          // legacy compat
-          primary:  '#0a0a0a',
-          secondary: '#0f0f0f',
+          base:     '#000000',
+          surface:  '#000000',
+          elevated: '#000000',
+          overlay:  '#050505',
+          border:   '#222222',
+          // Legacy compat
+          primary:  '#000000',
+          secondary: '#000000',
         },
         text: {
-          primary:   '#e8e8e8',
-          secondary: '#888888',
-          muted:     '#444444',
-          inverse:   '#0a0a0a',
+          primary:   '#FFFFFF',
+          secondary: '#CCCCCC',
+          muted:     '#666666',
+          inverse:   '#000000',
         },
-        up:      '#00d084',
-        down:    '#ff3b57',
+        semantic: {
+          up:      '#00d084',
+          down:    '#ff3b57',
+          warning: '#f5a623',
+          info:    '#FF7722',
+          purple:  '#b06aff',
+        },
+        up:   '#00d084',
+        down: '#ff3b57',
+        // Accent — primary is orange #FF7722, matches tokens.ts
         accent: {
+          info:    '#FF7722',
           green:   '#00d084',
           red:     '#ff3b57',
           warning: '#f5a623',
-          info:    '#4a9eff',
-          teal:    '#4a9eff', // remap to info
-          blue:    '#4a9eff',
           purple:  '#b06aff',
         },
         border: {
-          DEFAULT: '#1f1f1f',
+          DEFAULT: '#222222',
         },
         interactive: {
-          hover:    '#1a1a1a',
-          selected: '#141f2e',
+          hover:    '#111111',
+          selected: '#1a110a',
+          focus:    '#FF7722',
+          active:   '#221105',
         },
       },
       fontFamily: {
-        mono: ['"JetBrains Mono"', '"Fira Code"', 'Consolas', 'monospace'],
-        ui:   ['"JetBrains Mono"', 'monospace'],
-        data: ['"JetBrains Mono"', 'monospace'],
+        mono:    ['"JetBrains Mono"', '"Fira Code"', 'Consolas', 'monospace'],
+        sans:    ['"Inter"', '"IBM Plex Sans"', '-apple-system', 'BlinkMacSystemFont', '"Segoe UI"', 'Roboto', 'sans-serif'],
+        heading: ['"Genos"', 'sans-serif'],
+        ui:      ['"JetBrains Mono"', 'monospace'],
+        data:    ['"JetBrains Mono"', 'monospace'],
       },
       fontSize: {
-        'xs':  ['10px', { lineHeight: '1.2' }],
-        'sm':  ['11px', { lineHeight: '1.2' }],
-        'md':  ['12px', { lineHeight: '1.4' }],
-        'base':['12px', { lineHeight: '1.4' }],
-        'lg':  ['13px', { lineHeight: '1.2' }],
-        'xl':  ['14px', { lineHeight: '1.2' }],
+        // ─── Mirrors tokens.ts TYPE.size exactly ────────────────────────
+        'xs':     ['11px', { lineHeight: '1.2' }],   // floor — was 10px
+        'sm':     ['12px', { lineHeight: '1.2' }],   // cells, supporting text
+        'base':   ['12px', { lineHeight: '1.4' }],   // body default
+        'md':     ['12px', { lineHeight: '1.4' }],
+        'lg':     ['14px', { lineHeight: '1.2' }],   // emphasized
+        'xl':     ['16px', { lineHeight: '1.2' }],   // large values
+        '2xl':    ['18px', { lineHeight: '1.2' }],
+        '3xl':    ['20px', { lineHeight: '1.2' }],
       },
       borderRadius: {
-        none: '0',
-        sm:   '2px',
-        DEFAULT: '2px',
-        md:   '2px',
-        lg:   '3px',
-        xl:   '3px',
-        full: '9999px',
+        none:    '0',
+        sm:      '0',
+        DEFAULT: '0',
+        md:      '0',
+        lg:      '2px',
+        xl:      '2px',
+        full:    '9999px',
       },
       spacing: {
         '0.5': '2px',
@@ -74,6 +88,16 @@ export default {
         '4':   '16px',
         '5':   '20px',
         '6':   '24px',
+        '8':   '32px',
+      },
+      height: {
+        'row-compact':  '28px',
+        'row-default':  '32px',
+        'row-relaxed':  '36px',
+        'row-header':   '32px',
+        'toolbar':      '36px',
+        'topbar':       '40px',
+        'filter':       '32px',
       },
     },
   },

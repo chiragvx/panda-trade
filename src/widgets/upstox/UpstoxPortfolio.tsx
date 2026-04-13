@@ -3,15 +3,25 @@ import { useUpstoxStore } from '../../store/useUpstoxStore';
 import { upstoxApi } from '../../services/upstoxApi';
 import { upstoxWebSocket } from '../../services/upstoxWebSocket';
 import { Wallet, RefreshCw, XCircle, LayoutGrid, List } from 'lucide-react';
-import { COLOR, TYPE, SPACE, BORDER } from '../../ds/tokens';
+import { 
+  COLOR, 
+  TYPE, 
+  SPACE, 
+  BORDER, 
+  ROW_HEIGHT,
+  Text,
+  WidgetShell,
+  StatusBanner,
+  DataTable,
+  EmptyState,
+  HoverActions,
+  SegmentedControl,
+  Price,
+  Change,
+  Badge
+} from '../../ds';
 import { useSelectionStore, useLayoutStore } from '../../store/useStore';
 import { buildSymbolFromFeed, isIsin } from '../../utils/liveSymbols';
-import { WidgetShell } from '../../ds/components/WidgetShell';
-import { StatusBanner } from '../../ds/components/StatusBanner';
-import { DataTable } from '../../ds/components/DataTable';
-import { EmptyState } from '../../ds/components/EmptyState';
-import { HoverActions } from '../../ds/components/HoverActions';
-import { SegmentedControl } from '../../ds/components/SegmentedControl';
 
 const UpstoxPortfolio: React.FC = () => {
     const { accessToken, status, prices, instrumentMeta } = useUpstoxStore();
@@ -92,29 +102,35 @@ const UpstoxPortfolio: React.FC = () => {
             key: 'trading_symbol', 
             label: 'SYMBOL', 
             render: (val: string, item: any) => (
-                <div>
-                    <div style={{ fontWeight: 'bold', fontSize: TYPE.size.md }}>
+                <div style={{ display: 'flex', flexDirection: 'column' }}>
+                    <Text weight="black" size="md" color="primary">
                         {isIsin(val) ? (item.name || val) : val}
-                    </div>
-                    <div style={{ fontSize: '9px', color: COLOR.text.muted, textTransform: 'uppercase' }}>
-                        {item.product || item.exchange}
+                    </Text>
+                    <div style={{ display: 'flex', gap: '4px', alignItems: 'center' }}>
+                        <Text size="xs" color="muted" weight="bold">
+                            {item.product}
+                        </Text>
+                        <Badge label={item.exchange} variant={item.exchange === 'NSE' ? 'exchange-nse' : 'exchange-bse'} />
                     </div>
                 </div>
             )
         },
-        { key: 'quantity', label: 'QTY', align: 'right' as const, width: 60 },
+        { key: 'quantity', label: 'QTY', align: 'right' as const, width: 80, render: (val: number) => <Text weight="bold">{val}</Text> },
         { 
             key: 'ltp', 
             label: 'LTP', 
             align: 'right' as const, 
-            width: 80,
-            render: (_: any, item: any) => (prices[item.instrument_token]?.ltp || item.last_price).toFixed(2)
+            width: 90,
+            render: (_: any, item: any) => {
+                const ltp = prices[item.instrument_token]?.ltp || item.last_price;
+                return <Price value={ltp} size="sm" weight="black" />;
+            }
         },
         { 
             key: 'pnl', 
-            label: activeTab === 'positions' ? 'UNRLZD P&L' : 'VALUE', 
+            label: activeTab === 'positions' ? 'UNRLZD P&L' : 'CUR_VALUE', 
             align: 'right' as const, 
-            width: 120,
+            width: 140,
             render: (_: any, item: any, idx: number) => {
                 const ltp = prices[item.instrument_token]?.ltp || item.last_price;
                 const pnlOrValue = activeTab === 'positions' 
@@ -126,13 +142,15 @@ const UpstoxPortfolio: React.FC = () => {
                     <div style={{ position: 'relative', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'flex-end' }}
                          onMouseEnter={() => setHoveredIndex(idx)}
                          onMouseLeave={() => setHoveredIndex(null)}>
-                        <span style={{ 
-                            fontWeight: 'bold', 
-                            color: activeTab === 'positions' ? (isPos ? COLOR.semantic.up : COLOR.semantic.down) : COLOR.text.primary,
-                            fontSize: TYPE.size.md
-                        }}>
-                            {activeTab === 'positions' && isPos ? '+' : ''}{pnlOrValue.toLocaleString('en-IN', { maximumFractionDigits: 0 })}
-                        </span>
+                        
+                        {activeTab === 'positions' ? (
+                            <Change value={pnlOrValue} format="absolute" size="md" weight="black" />
+                        ) : (
+                            <Text weight="black" size="md">
+                                ₹{pnlOrValue.toLocaleString('en-IN', { maximumFractionDigits: 0 })}
+                            </Text>
+                        )}
+
                         <HoverActions 
                             isVisible={hoveredIndex === idx}
                             onBuy={() => handleAction(item, 'BUY')}
@@ -151,65 +169,74 @@ const UpstoxPortfolio: React.FC = () => {
             {status !== 'connected' && (
                 <StatusBanner 
                     variant="disconnected" 
-                    message={`DISCONNECTED - SHOWING STALE DATA [${new Date().toLocaleTimeString()}]`} 
+                    message={`DISCONNECTED - STALE DATA [${new Date().toLocaleTimeString()}]`} 
                 />
             )}
 
             {/* Summary Banner */}
-            <div style={{ padding: SPACE[2], display: 'grid', gridTemplateColumns: '1fr 1fr', gap: SPACE[1], background: COLOR.bg.elevated, borderBottom: BORDER.standard }}>
-                 <div style={{ background: COLOR.bg.surface, padding: '8px 12px', border: BORDER.standard, display: 'flex', alignItems: 'center', gap: '10px' }}>
-                    <Wallet size={14} style={{ color: COLOR.semantic.up }} />
+            <div style={{ padding: SPACE[2], display: 'grid', gridTemplateColumns: '1fr 1fr', gap: SPACE[2], background: COLOR.bg.base, borderBottom: BORDER.standard }}>
+                 <div style={{ background: COLOR.bg.surface, padding: '10px 14px', border: BORDER.standard, display: 'flex', alignItems: 'center', gap: '12px' }}>
+                    <Wallet size={16} color={COLOR.semantic.info} />
                     <div>
-                        <span style={{ display: 'block', fontSize: '9px', fontWeight: TYPE.weight.bold, color: COLOR.text.muted, textTransform: 'uppercase', letterSpacing: '0.04em' }}>AVBL MARGIN</span>
-                        <span style={{ display: 'block', fontSize: TYPE.size.md, fontWeight: TYPE.weight.bold, color: COLOR.text.primary }}>
+                        <Text variant="label" size="xs" weight="black" color="muted" block>AVBL MARGIN</Text>
+                        <Text size="lg" weight="black" color="primary" block>
                             ₹{funds ? (funds.available_margin).toLocaleString('en-IN') : '--'}
-                        </span>
+                        </Text>
                     </div>
                  </div>
 
-                 <div style={{ background: COLOR.bg.surface, padding: '8px 12px', border: BORDER.standard, display: 'flex', alignItems: 'center', gap: '10px' }}>
-                    <div style={{ color: totalPnL >= 0 ? COLOR.semantic.up : COLOR.semantic.down, fontSize: '9px', fontWeight: TYPE.weight.bold }}>
-                        {totalPnL >= 0 ? '+' : ''}
+                 <div style={{ background: COLOR.bg.surface, padding: '10px 14px', border: BORDER.standard, display: 'flex', alignItems: 'center', gap: '12px' }}>
+                    <div style={{ color: totalPnL >= 0 ? COLOR.semantic.up : COLOR.semantic.down }}>
+                        <RefreshCw size={16} className={loading ? 'animate-spin' : ''} />
                     </div>
                     <div>
-                        <span style={{ display: 'block', fontSize: '9px', fontWeight: TYPE.weight.bold, color: COLOR.text.muted, textTransform: 'uppercase', letterSpacing: '0.04em' }}>DAY UNRLZD</span>
-                        <span style={{ display: 'block', fontSize: TYPE.size.md, fontWeight: TYPE.weight.bold, color: totalPnL >= 0 ? COLOR.semantic.up : COLOR.semantic.down }}>
-                            ₹{totalPnL.toLocaleString('en-IN', { maximumFractionDigits: 0 })}
-                        </span>
+                        <Text variant="label" size="xs" weight="black" color="muted" block>DAY UNRLZD</Text>
+                        <div style={{ display: 'flex', alignItems: 'baseline', gap: '4px' }}>
+                             <Text size="lg" weight="black" color={totalPnL >= 0 ? 'up' : 'down'}>
+                                {totalPnL >= 0 ? '+' : ''}₹{totalPnL.toLocaleString('en-IN', { maximumFractionDigits: 0 })}
+                             </Text>
+                        </div>
                     </div>
                  </div>
             </div>
 
             <WidgetShell.Toolbar>
-                <SegmentedControl 
-                    options={[
-                        { label: `POSITIONS [${positions.length}]`, value: 'positions', icon: <LayoutGrid size={10} /> },
-                        { label: `HOLDINGS [${holdings.length}]`, value: 'holdings', icon: <List size={10} /> }
-                    ]}
-                    value={activeTab}
-                    onChange={(v) => setActiveTab(v as any)}
-                />
-                <button onClick={refreshData} style={{ background: 'none', border: 'none', color: COLOR.text.muted, cursor: 'pointer' }} className={loading ? 'animate-spin' : 'hover:text-text-primary'}>
-                    <RefreshCw size={12} />
-                </button>
+                <WidgetShell.Toolbar.Left>
+                    <SegmentedControl 
+                        options={[
+                            { label: `POSITIONS [${positions.length}]`, value: 'positions', icon: <LayoutGrid size={12} /> },
+                            { label: `HOLDINGS [${holdings.length}]`, value: 'holdings', icon: <List size={12} /> }
+                        ]}
+                        value={activeTab}
+                        onChange={(v) => setActiveTab(v as any)}
+                    />
+                </WidgetShell.Toolbar.Left>
+                <WidgetShell.Toolbar.Right>
+                    <button onClick={refreshData} style={{ background: 'none', border: 'none', color: COLOR.text.muted, cursor: 'pointer' }} className={loading ? 'animate-spin' : 'hover:text-text-primary'}>
+                        <RefreshCw size={14} />
+                    </button>
+                </WidgetShell.Toolbar.Right>
             </WidgetShell.Toolbar>
 
-            {data.length === 0 ? (
-                <EmptyState 
-                    icon={<Wallet size={32} />} 
-                    message={`NO DATA AVAILABLE IN ${activeTab}`} 
-                    subMessage={`Your active ${activeTab} will appear here after synchronization.`}
-                />
-            ) : (
-                <DataTable 
-                    data={data}
-                    columns={columns}
-                    onRowClick={handleSelect}
-                />
-            )}
+            <div style={{ flex: 1, overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
+                {data.length === 0 ? (
+                    <EmptyState 
+                        icon={<Wallet size={48} />} 
+                        message={`NO DATA AVAILABLE IN ${activeTab.toUpperCase()}`} 
+                        subMessage={`Your active ${activeTab} will appear here after synchronization.`}
+                    />
+                ) : (
+                    <DataTable 
+                        data={data}
+                        columns={columns}
+                        onRowClick={handleSelect}
+                        stickyFirstColumn
+                    />
+                )}
+            </div>
 
             {activeTab === 'positions' && positions.length > 0 && (
-                <div style={{ padding: SPACE[2], borderTop: BORDER.standard, background: COLOR.bg.surface }}>
+                <div style={{ padding: SPACE[2], borderTop: BORDER.strong, background: COLOR.bg.surface }}>
                      <button style={{ 
                          width: '100%',
                          height: '32px',
@@ -217,12 +244,16 @@ const UpstoxPortfolio: React.FC = () => {
                          border: 'none',
                          color: COLOR.text.inverse,
                          fontSize: TYPE.size.xs,
-                         fontWeight: TYPE.weight.bold,
+                         fontWeight: TYPE.weight.black,
                          textTransform: 'uppercase',
                          letterSpacing: TYPE.letterSpacing.caps,
-                         cursor: 'pointer'
+                         cursor: 'pointer',
+                         display: 'flex',
+                         alignItems: 'center',
+                         justifyContent: 'center',
+                         gap: '8px'
                      }} className="hover:opacity-90">
-                        <XCircle size={12} style={{ verticalAlign: 'middle', marginRight: '6px' }} />
+                        <XCircle size={14} />
                         TERMINATE ALL POSITIONS
                      </button>
                 </div>
@@ -232,4 +263,3 @@ const UpstoxPortfolio: React.FC = () => {
 };
 
 export default UpstoxPortfolio;
-

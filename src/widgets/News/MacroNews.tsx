@@ -71,8 +71,8 @@ export const MacroNews: React.FC = () => {
         <WidgetShell>
             <WidgetShell.Toolbar>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flex: 1 }}>
-                    <Globe size={14} style={{ color: COLOR.semantic.info }} />
-                    <span style={{ fontSize: '10px', fontWeight: TYPE.weight.black, color: COLOR.text.primary, letterSpacing: '0.1em' }}>GLOBAL_MACRO_INTEL</span>
+                    <Globe size={14} color={COLOR.semantic.info} />
+                    <span style={{ fontSize: TYPE.size.xs, fontWeight: TYPE.weight.black, color: COLOR.text.primary, letterSpacing: TYPE.letterSpacing.caps }}>GLOBAL_MACRO_INTEL</span>
                 </div>
                 <button 
                     onClick={fetchMacroData}
@@ -83,18 +83,18 @@ export const MacroNews: React.FC = () => {
                 </button>
             </WidgetShell.Toolbar>
 
-            <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minHeight: 0, background: '#000' }}>
+            <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minHeight: 0, background: COLOR.bg.base }}>
                 {!rapidApiKey ? (
                     <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '12px', padding: '24px' }}>
                         <AlertCircle size={32} color={COLOR.text.muted} />
                         <div style={{ textAlign: 'center' }}>
-                            <div style={{ fontSize: '11px', fontWeight: 'bold', color: '#fff' }}>RAPIDAPI_AUTH_REQUIRED</div>
-                            <div style={{ fontSize: '10px', color: COLOR.text.muted, marginTop: '4px' }}>Please configure the key in API Settings to enable Macro feed.</div>
+                            <div style={{ fontSize: TYPE.size.xs, fontWeight: TYPE.weight.black, color: COLOR.text.primary, letterSpacing: TYPE.letterSpacing.caps }}>RAPIDAPI_AUTH_REQUIRED</div>
+                            <div style={{ fontSize: TYPE.size.xs, color: COLOR.text.muted, marginTop: '4px', fontWeight: TYPE.weight.bold }}>Please configure the key in API Settings to enable Macro feed.</div>
                         </div>
                     </div>
                 ) : isLoading && events.length === 0 ? (
                     <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                        <span style={{ fontSize: '10px', color: COLOR.text.muted, fontFamily: TYPE.family.mono }}>LOADING_INTELLIGENCE...</span>
+                        <span style={{ fontSize: TYPE.size.xs, color: COLOR.text.muted, fontFamily: TYPE.family.mono, fontWeight: TYPE.weight.bold }}>LOADING_INTELLIGENCE...</span>
                     </div>
                 ) : (
                     <div style={{ flex: 1, overflowY: 'auto', padding: '12px' }} className="custom-scrollbar">
@@ -114,33 +114,33 @@ export const MacroNews: React.FC = () => {
                                             background: getImportanceColor(ev.importance) + '20',
                                             border: `1px solid ${getImportanceColor(ev.importance)}40`,
                                             borderRadius: '2px',
-                                            fontSize: '8px',
-                                            fontWeight: 'bold',
+                                            fontSize: TYPE.size.xs,
+                                            fontWeight: TYPE.weight.black,
                                             color: getImportanceColor(ev.importance)
                                         }}>
                                             {ev.importance.toUpperCase()}
                                         </div>
-                                        <span style={{ fontSize: '11px', fontWeight: 'bold', color: '#fff' }}>{ev.event}</span>
+                                        <span style={{ fontSize: TYPE.size.xs, fontWeight: TYPE.weight.black, color: COLOR.text.primary }}>{ev.event}</span>
                                     </div>
-                                    <span style={{ fontSize: '9px', color: COLOR.text.muted, fontFamily: TYPE.family.mono }}>{ev.time}</span>
+                                    <span style={{ fontSize: TYPE.size.xs, color: COLOR.text.muted, fontFamily: TYPE.family.mono, fontWeight: TYPE.weight.bold }}>{ev.time}</span>
                                 </div>
 
-                                <div style={{ display: 'flex', gap: '16px', fontSize: '10px', marginTop: '4px' }}>
+                                <div style={{ display: 'flex', gap: '16px', fontSize: TYPE.size.xs, marginTop: '4px' }}>
                                     <div style={{ display: 'flex', flexDirection: 'column' }}>
-                                        <span style={{ fontSize: '8px', color: COLOR.text.muted }}>CURRENCY</span>
-                                        <span style={{ color: COLOR.text.secondary, fontWeight: 'bold' }}>{ev.currency}</span>
+                                        <span style={{ fontSize: TYPE.size.xs, color: COLOR.text.muted, fontWeight: TYPE.weight.black, letterSpacing: TYPE.letterSpacing.caps }}>CURR</span>
+                                        <span style={{ color: COLOR.text.secondary, fontWeight: TYPE.weight.black, fontFamily: TYPE.family.mono }}>{ev.currency}</span>
                                     </div>
                                     <div style={{ display: 'flex', flexDirection: 'column' }}>
-                                        <span style={{ fontSize: '8px', color: COLOR.text.muted }}>ACTUAL</span>
-                                        <span style={{ color: ev.actual ? COLOR.text.primary : '#333', fontWeight: 'bold' }}>{ev.actual || '---'}</span>
+                                        <span style={{ fontSize: TYPE.size.xs, color: COLOR.text.muted, fontWeight: TYPE.weight.black, letterSpacing: TYPE.letterSpacing.caps }}>ACTUAL</span>
+                                        <span style={{ color: ev.actual ? COLOR.text.primary : COLOR.text.muted, fontWeight: TYPE.weight.black, fontFamily: TYPE.family.mono }}>{ev.actual || '---'}</span>
                                     </div>
                                     <div style={{ display: 'flex', flexDirection: 'column' }}>
-                                        <span style={{ fontSize: '8px', color: COLOR.text.muted }}>FORECAST</span>
-                                        <span style={{ color: COLOR.text.secondary }}>{ev.forecast || '---'}</span>
+                                        <span style={{ fontSize: TYPE.size.xs, color: COLOR.text.muted, fontWeight: TYPE.weight.black, letterSpacing: TYPE.letterSpacing.caps }}>FORECAST</span>
+                                        <span style={{ color: COLOR.text.secondary, fontWeight: TYPE.weight.bold, fontFamily: TYPE.family.mono }}>{ev.forecast || '---'}</span>
                                     </div>
                                     <div style={{ display: 'flex', flexDirection: 'column' }}>
-                                        <span style={{ fontSize: '8px', color: COLOR.text.muted }}>PREVIOUS</span>
-                                        <span style={{ color: COLOR.text.secondary }}>{ev.previous || '---'}</span>
+                                        <span style={{ fontSize: TYPE.size.xs, color: COLOR.text.muted, fontWeight: TYPE.weight.black, letterSpacing: TYPE.letterSpacing.caps }}>PREVIOUS</span>
+                                        <span style={{ color: COLOR.text.secondary, fontWeight: TYPE.weight.bold, fontFamily: TYPE.family.mono }}>{ev.previous || '---'}</span>
                                     </div>
                                 </div>
                             </div>
@@ -149,9 +149,9 @@ export const MacroNews: React.FC = () => {
                 )}
             </div>
 
-            <div style={{ padding: '8px 12px', borderTop: BORDER.standard, background: COLOR.bg.surface, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <span style={{ fontSize: '8px', color: COLOR.text.muted }}>POWERED BY RAPIDAPI</span>
-                <span style={{ fontSize: '8px', fontWeight: 'black', color: COLOR.semantic.info }}>MACRO_STREAM: LIVE</span>
+            <div style={{ padding: '8px 12px', borderTop: BORDER.standard, background: COLOR.bg.elevated, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <span style={{ fontSize: TYPE.size.xs, color: COLOR.text.muted, fontWeight: TYPE.weight.black, letterSpacing: TYPE.letterSpacing.caps }}>POWERED BY RAPIDAPI</span>
+                <span style={{ fontSize: TYPE.size.xs, fontWeight: TYPE.weight.black, color: COLOR.semantic.info, letterSpacing: TYPE.letterSpacing.caps }}>MACRO_STREAM: LIVE</span>
             </div>
         </WidgetShell>
     );

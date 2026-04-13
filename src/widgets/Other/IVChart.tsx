@@ -69,38 +69,38 @@ export const IVChart: React.FC = () => {
         <WidgetShell>
             <WidgetShell.Toolbar>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flex: 1 }}>
-                    <TrendingUp size={14} style={{ color: COLOR.semantic.info }} />
-                    <span style={{ fontSize: '10px', fontWeight: TYPE.weight.black, color: COLOR.text.primary, letterSpacing: '0.1em' }}>IV_PROFILE: {activeSymbol.ticker}</span>
+                    <TrendingUp size={14} color={COLOR.semantic.info} />
+                    <span style={{ fontSize: TYPE.size.xs, fontWeight: TYPE.weight.black, color: COLOR.text.primary, letterSpacing: TYPE.letterSpacing.caps }}>IV_PROFILE: {activeSymbol.ticker}</span>
                 </div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                    <Filter size={10} style={{ color: COLOR.text.muted }} />
+                    <Filter size={12} color={COLOR.text.muted} />
                     <select 
                         value={selectedExpiry}
                         onChange={(e) => setSelectedExpiry(e.target.value)}
-                        style={{ background: COLOR.bg.elevated, border: BORDER.standard, color: COLOR.text.primary, fontSize: '9px', padding: '2px 4px', outline: 'none' }}
+                        style={{ background: COLOR.bg.elevated, border: BORDER.standard, color: COLOR.text.primary, fontSize: TYPE.size.xs, fontWeight: TYPE.weight.black, padding: '2px 8px', outline: 'none', borderRadius: '2px', cursor: 'pointer' }}
                     >
                         {expiries.map(exp => <option key={exp} value={exp}>{exp}</option>)}
                     </select>
                 </div>
             </WidgetShell.Toolbar>
 
-            <div style={{ flex: 1, padding: SPACE[4], display: 'flex', flexDirection: 'column', background: '#000' }}>
+            <div style={{ flex: 1, padding: SPACE[4], display: 'flex', flexDirection: 'column', background: COLOR.bg.base }}>
                 {isLoading ? (
                     <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                         <span style={{ fontSize: '10px', color: COLOR.text.muted, fontFamily: TYPE.family.mono }}>CALCULATING_IV_MESH...</span>
+                         <span style={{ fontSize: TYPE.size.xs, color: COLOR.text.muted, fontFamily: TYPE.family.mono, fontWeight: TYPE.weight.black }}>CALCULATING_IV_MESH...</span>
                     </div>
                 ) : data.length === 0 ? (
                     <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                         <span style={{ fontSize: '10px', color: COLOR.text.muted, fontFamily: TYPE.family.mono }}>NO_IV_DATA_DETECTED</span>
+                         <span style={{ fontSize: TYPE.size.xs, color: COLOR.text.muted, fontFamily: TYPE.family.mono, fontWeight: TYPE.weight.black }}>NO_IV_DATA_DETECTED</span>
                     </div>
                 ) : (
                     <ResponsiveContainer width="100%" height="100%" minHeight={150}>
                         <BarChart data={data}>
-                            <CartesianGrid strokeDasharray="3 3" stroke="#222" vertical={false} />
-                            <XAxis dataKey="strike" fontSize={9} stroke="#444" tick={{ fill: '#666' }} />
-                            <YAxis fontSize={9} stroke="#444" tick={{ fill: '#666' }} domain={['auto', 'auto']} />
+                            <CartesianGrid strokeDasharray="3 3" stroke={COLOR.bg.border} vertical={false} />
+                            <XAxis dataKey="strike" fontSize={11} stroke={COLOR.bg.border} tick={{ fill: COLOR.text.muted, fontWeight: TYPE.weight.bold, fontFamily: TYPE.family.mono }} />
+                            <YAxis fontSize={11} stroke={COLOR.bg.border} tick={{ fill: COLOR.text.muted, fontWeight: TYPE.weight.bold, fontFamily: TYPE.family.mono }} domain={['auto', 'auto']} />
                             <Tooltip 
-                                contentStyle={{ background: '#000', border: '1px solid #333', fontSize: '10px', borderRadius: 0 }}
+                                contentStyle={{ background: COLOR.bg.overlay, border: BORDER.standard, fontSize: TYPE.size.xs, borderRadius: 0, fontWeight: TYPE.weight.black }}
                                 cursor={{ fill: 'rgba(255,255,255,0.05)' }}
                             />
                             <Bar dataKey="iv" fill={COLOR.semantic.info}>
@@ -113,9 +113,9 @@ export const IVChart: React.FC = () => {
                 )}
             </div>
 
-            <div style={{ padding: '8px 12px', borderTop: BORDER.standard, background: COLOR.bg.surface, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <span style={{ fontSize: '8px', color: COLOR.text.muted }}>UPSTOX_V2_INTELLIGENCE</span>
-                <span style={{ fontSize: '8px', fontWeight: 'black', color: COLOR.semantic.info }}>IV_LIVE: STABLE</span>
+            <div style={{ padding: '8px 12px', borderTop: BORDER.standard, background: COLOR.bg.elevated, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <span style={{ fontSize: TYPE.size.xs, color: COLOR.text.muted, fontWeight: TYPE.weight.black, letterSpacing: TYPE.letterSpacing.caps }}>UPSTOX_V2_INTELLIGENCE</span>
+                <span style={{ fontSize: TYPE.size.xs, fontWeight: TYPE.weight.black, color: COLOR.semantic.info, letterSpacing: TYPE.letterSpacing.caps }}>IV_LIVE: STABLE</span>
             </div>
         </WidgetShell>
     );

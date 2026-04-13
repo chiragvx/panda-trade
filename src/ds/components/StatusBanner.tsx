@@ -19,21 +19,21 @@ export const StatusBanner: React.FC<StatusBannerProps> = ({
     switch (variant) {
       case 'disconnected': 
         return { 
-          bg: '#450a0a', 
+          bg: COLOR.bg.statusError, 
           text: COLOR.semantic.down, 
           icon: <AlertCircle size={10} color={COLOR.semantic.down} />,
           borderBottom: `1px solid ${COLOR.semantic.down}40`
         };
       case 'warning': 
         return { 
-          bg: '#45210a', 
+          bg: COLOR.bg.statusWarning, 
           text: COLOR.semantic.warning, 
           icon: <AlertCircle size={10} color={COLOR.semantic.warning} />,
           borderBottom: BORDER.warning 
         };
       case 'success': 
         return { 
-          bg: '#064e3b', 
+          bg: COLOR.bg.statusSuccess, 
           text: COLOR.semantic.up, 
           icon: <CheckCircle2 size={10} color={COLOR.semantic.up} />,
           borderBottom: BORDER.up 
@@ -41,7 +41,7 @@ export const StatusBanner: React.FC<StatusBannerProps> = ({
       case 'info':
       default:
         return { 
-          bg: '#1a1a2e', 
+          bg: COLOR.bg.statusInfo, 
           text: COLOR.semantic.info, 
           icon: <Info size={10} color={COLOR.semantic.info} />,
           borderBottom: BORDER.info 
@@ -68,8 +68,8 @@ export const StatusBanner: React.FC<StatusBannerProps> = ({
     >
       {icon}
       <span style={{ 
-        fontSize: '9px', 
-        fontWeight: TYPE.weight.bold, 
+        fontSize: TYPE.size.xs, 
+        fontWeight: TYPE.weight.black, 
         color: text, 
         letterSpacing: TYPE.letterSpacing.caps,
         textTransform: 'uppercase',

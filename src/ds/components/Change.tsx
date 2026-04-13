@@ -46,7 +46,7 @@ export const Change: React.FC<ChangeProps> = ({
         whiteSpace: 'nowrap',
       }}
     >
-      {showArrow && arrow && <span style={{ marginRight: '2px', fontSize: '8px' }}>{arrow}</span>}
+      {showArrow && arrow && <span style={{ marginRight: '2px', fontSize: '0.8em' }}>{arrow}</span>}
       {display}
     </span>
   );

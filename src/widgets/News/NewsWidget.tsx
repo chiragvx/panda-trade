@@ -82,9 +82,9 @@ export const NewsWidget: React.FC = () => {
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100%', background: COLOR.bg.surface, overflow: 'hidden' }}>
-      <div style={{ height: '32px', padding: '0 8px', borderBottom: BORDER.standard, display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: COLOR.bg.elevated }}>
+      <div style={{ height: '32px', padding: '0 8px', borderBottom: BORDER.standard, display: 'flex', alignItems: 'center', justifyContent: spaceBetween, background: COLOR.bg.elevated }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-          <span style={{ fontFamily: TYPE.family.mono, fontSize: '10px', color: COLOR.text.primary, fontWeight: 'bold', letterSpacing: '0.1em' }}>NEWS FEED</span>
+          <span style={{ fontFamily: TYPE.family.mono, fontSize: TYPE.size.xs, color: COLOR.text.primary, fontWeight: TYPE.weight.black, letterSpacing: TYPE.letterSpacing.caps }}>NEWS_FEED</span>
           <div style={{ width: '1px', height: '12px', background: COLOR.bg.border }} />
           <button
             onClick={() => setFilterMode(filterMode === 'ALL' ? 'LINKED' : 'ALL')}
@@ -92,18 +92,20 @@ export const NewsWidget: React.FC = () => {
               background: filterMode === 'LINKED' ? `${COLOR.semantic.info}22` : 'transparent',
               border: 'none',
               color: filterMode === 'LINKED' ? COLOR.semantic.info : COLOR.text.muted,
-              fontSize: '9px',
+              fontSize: TYPE.size.xs,
               fontFamily: TYPE.family.mono,
+              fontWeight: TYPE.weight.bold,
               padding: '2px 6px',
               cursor: 'pointer',
               borderRadius: '0',
               display: 'flex',
               alignItems: 'center',
               gap: '4px',
+              letterSpacing: TYPE.letterSpacing.caps
             }}
           >
             {filterMode === 'LINKED' ? <Zap size={10} /> : <Filter size={10} />}
-            {filterMode === 'LINKED' ? `LINKED: ${activeSymbol?.ticker || 'NONE'}` : 'ALL STORIES'}
+            {filterMode === 'LINKED' ? `LINKED: ${activeSymbol?.ticker || 'NONE'}` : 'ALL_STORIES'}
           </button>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
@@ -137,7 +139,7 @@ export const NewsWidget: React.FC = () => {
               }}
             >
               <div style={{ display: 'flex', alignItems: 'flex-start', padding: '8px', gap: '10px' }}>
-                <span style={{ width: '42px', fontSize: '9px', color: COLOR.text.muted, fontFamily: TYPE.family.mono, flexShrink: 0 }}>{item.time}</span>
+                <span style={{ width: '42px', fontSize: TYPE.size.xs, color: COLOR.text.muted, fontFamily: TYPE.family.mono, flexShrink: 0, fontWeight: TYPE.weight.bold }}>{item.time}</span>
                 <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '4px' }}>
                   <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '8px' }}>
                     <span
@@ -154,13 +156,15 @@ export const NewsWidget: React.FC = () => {
                     </span>
                     <span
                       style={{
-                        fontSize: '8px',
+                        fontSize: TYPE.size.xs,
                         fontFamily: TYPE.family.mono,
                         color: categoryColor,
                         border: `1px solid ${categoryColor}44`,
-                        padding: '1px 4px',
+                        padding: '1px 6px',
                         flexShrink: 0,
-                        letterSpacing: '0.05em',
+                        letterSpacing: TYPE.letterSpacing.caps,
+                        fontWeight: TYPE.weight.black,
+                        borderRadius: '2px'
                       }}
                     >
                       {item.category}
@@ -168,8 +172,8 @@ export const NewsWidget: React.FC = () => {
                   </div>
 
                   {!isExp && (
-                    <div style={{ display: 'flex', gap: '4px', flexWrap: 'wrap' }}>
-                      {item.tickers.map((t) => <span key={t} style={{ fontSize: '9px', color: COLOR.semantic.info, fontFamily: TYPE.family.mono }}>${t}</span>)}
+                    <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
+                      {item.tickers.map((t) => <span key={t} style={{ fontSize: TYPE.size.xs, color: COLOR.semantic.info, fontFamily: TYPE.family.mono, fontWeight: TYPE.weight.bold }}>${t}</span>)}
                     </div>
                   )}
                 </div>
@@ -181,18 +185,18 @@ export const NewsWidget: React.FC = () => {
 
                   <div style={{ display: 'flex', gap: '20px', flexWrap: 'wrap' }}>
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                      <span style={{ fontSize: '9px', color: COLOR.text.muted, fontFamily: TYPE.family.mono }}>MENTIONS</span>
+                      <span style={{ fontSize: TYPE.size.xs, color: COLOR.text.muted, fontFamily: TYPE.family.mono, fontWeight: TYPE.weight.black, letterSpacing: TYPE.letterSpacing.caps }}>MENTIONS</span>
                       <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
-                        {item.tickers.length === 0 ? <span style={{ fontSize: '9px', color: COLOR.text.muted }}>NONE</span> : item.tickers.map((t) => <Badge key={t} label={t} variant="default" />)}
+                        {item.tickers.length === 0 ? <span style={{ fontSize: TYPE.size.xs, color: COLOR.text.muted, fontWeight: TYPE.weight.bold }}>NONE</span> : item.tickers.map((t) => <Badge key={t} label={t} variant="info" />)}
                       </div>
                     </div>
                   </div>
 
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingTop: '8px' }}>
-                    <span style={{ fontSize: '9px', color: COLOR.text.muted, fontFamily: TYPE.family.mono }}>SOURCE: {item.source}</span>
+                    <span style={{ fontSize: TYPE.size.xs, color: COLOR.text.muted, fontFamily: TYPE.family.mono, fontWeight: TYPE.weight.bold }}>SOURCE: {item.source}</span>
                     <div style={{ display: 'flex', gap: '8px' }}>
-                      <Button size="xs" variant="ghost">RESEARCH REPORT</Button>
-                      <Button size="xs" variant="ghost">ALERT</Button>
+                      <Button size="xs" variant="outline">RESEARCH_REPORT</Button>
+                      <Button size="xs" variant="outline" tone="info">ALERT</Button>
                     </div>
                   </div>
                 </motion.div>
@@ -205,11 +209,11 @@ export const NewsWidget: React.FC = () => {
       <div style={{ height: '24px', background: COLOR.bg.elevated, borderTop: BORDER.standard, display: 'flex', alignItems: 'center', padding: '0 8px', gap: '12px' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
           <TrendingUp size={10} color={niftyPct >= 0 ? COLOR.semantic.up : COLOR.semantic.down} />
-          <span style={{ fontSize: '9px', color: COLOR.text.muted, fontFamily: TYPE.family.mono }}>NIFTY {niftyPct >= 0 ? '+' : ''}{niftyPct.toFixed(2)}%</span>
+          <span style={{ fontSize: TYPE.size.xs, color: COLOR.text.muted, fontFamily: TYPE.family.mono, fontWeight: TYPE.weight.bold }}>NIFTY {niftyPct >= 0 ? '+' : ''}{niftyPct.toFixed(2)}%</span>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
           <TrendingUp size={10} color={sensexPct >= 0 ? COLOR.semantic.up : COLOR.semantic.down} />
-          <span style={{ fontSize: '9px', color: COLOR.text.muted, fontFamily: TYPE.family.mono }}>SENSEX {sensexPct >= 0 ? '+' : ''}{sensexPct.toFixed(2)}%</span>
+          <span style={{ fontSize: TYPE.size.xs, color: COLOR.text.muted, fontFamily: TYPE.family.mono, fontWeight: TYPE.weight.bold }}>SENSEX {sensexPct >= 0 ? '+' : ''}{sensexPct.toFixed(2)}%</span>
         </div>
       </div>
     </div>

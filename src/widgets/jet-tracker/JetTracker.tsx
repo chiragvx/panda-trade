@@ -1,13 +1,22 @@
 import React, { useMemo, useState, useEffect } from 'react';
-import { Plane, MapPin, Navigation, History, CornerDownRight, ShieldAlert, Zap, Layers, Maximize2, Crosshair, Search, Filter, Eye, EyeOff, Shield, Users, Radio } from 'lucide-react';
+import { Plane, Radio, Search, Shield, Users, Info, RefreshCw } from 'lucide-react';
 import { MapContainer, TileLayer, Marker, Popup, useMap, ZoomControl } from 'react-leaflet';
 import L from 'leaflet';
-import { COLOR, TYPE, BORDER, SPACE } from '../../ds/tokens';
-import { WidgetShell } from '../../ds/components/WidgetShell';
+import { 
+  COLOR, 
+  TYPE, 
+  BORDER, 
+  SPACE, 
+  Text, 
+  Badge, 
+  WidgetShell,
+  EmptyState,
+  Tooltip 
+} from '../../ds';
 import { useSettingsStore } from '../../store/useSettingsStore';
 import axios from 'axios';
 
-// Aircraft interface matching OpenSky state vector format
+// Aircraft interface matching OpenSky/ADSB.lol state vector format
 interface AircraftState {
   icao24: string;
   callsign: string;
@@ -26,7 +35,6 @@ interface AircraftState {
   category: 'MILITARY' | 'CIVILIAN' | 'OTHER';
 }
 
-// Heuristic Classification
 const CLASSIFIERS = {
     CIVIL_PREFIXES: ['IGO', 'AIC', 'VTI', 'SEJ', 'GOW', 'AKJ', 'AXB', 'IAD', 'LLR', 'AF', 'BAW', 'DLH', 'UAE', 'QTR', 'ETD', 'SIA', 'THY', 'JAL', 'ANA', 'CCA', 'CES'],
     MIL_PREFIXES: ['IAF', 'ICG', 'NVY', 'RCM', 'RSF', 'GSTR', 'ASY', 'CFC', 'PAT', 'SAM', 'HVK', 'SDR'],
@@ -41,9 +49,9 @@ const classifyAircraft = (callsign: string): 'MILITARY' | 'CIVILIAN' | 'OTHER' =
 
 const getPlaneIcon = (course: number, category: string) => {
   let color: string = COLOR.text.muted;
-  if (category === 'MILITARY') color = COLOR.semantic.down; // Red for military
-  if (category === 'CIVILIAN') color = COLOR.semantic.info; // Cyan/Blue for civilian
-  if (category === 'OTHER') color = COLOR.semantic.warning; // Orange for other/private
+  if (category === 'MILITARY') color = COLOR.semantic.down;
+  if (category === 'CIVILIAN') color = COLOR.semantic.info;
+  if (category === 'OTHER') color = COLOR.semantic.warning;
   
   const shadow = category === 'MILITARY' ? `filter: drop-shadow(0 0 4px ${COLOR.semantic.down});` : '';
   
@@ -68,44 +76,34 @@ const MapController: React.FC<{ center?: [number, number] }> = ({ center }) => {
 };
 
 const FlightMap: React.FC = () => {
-  const { openSkyUsername, openSkyPassword } = useSettingsStore();
   const [flights, setFlights] = useState<AircraftState[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedFlight, setSelectedFlight] = useState<AircraftState | null>(null);
   const [lastUpdate, setLastUpdate] = useState<Date>(new Date());
   
-  // Filter States
   const [search, setSearch] = useState('');
-  const [filters, setFilters] = useState({
-      MILITARY: true,
-      CIVILIAN: true,
-      OTHER: true
-  });
+  const [filters, setFilters] = useState({ MILITARY: true, CIVILIAN: true, OTHER: true });
 
   const fetchFlights = async () => {
     try {
-      // Use adsb.lol API - Centered on India (21, 78) with 1500nm radius
       const response = await axios.get('https://api.adsb.lol/v2/point/21/78/1500');
-      
       if (response.data && response.data.ac) {
         const mapped: AircraftState[] = response.data.ac.map((s: any) => {
           const callsign = (s.flight?.trim() || 'N/A').toUpperCase();
-          
-          // Heuristic for military if not explicitly provided
-          let cat: 'MILITARY' | 'CIVILIAN' | 'OTHER' = classifyAircraft(callsign);
+          let cat = classifyAircraft(callsign);
           if (s.desc?.toUpperCase().includes('MILITARY') || s.mil === 1) cat = 'MILITARY';
 
           return {
             icao24: s.hex,
             callsign,
-            origin_country: s.dbFlags === 1 ? 'REDACTED' : 'GLOBAL', // adsb.lol doesn't provide country directly in this endpoint
+            origin_country: s.dbFlags === 1 ? 'REDACTED' : 'GLOBAL',
             time_position: Date.now() / 1000,
             last_contact: Date.now() / 1000,
             longitude: s.lon,
             latitude: s.lat,
-            baro_altitude: (s.alt_baro || 0) / 3.28084, // convert ft to meters for interface consistency
+            baro_altitude: (s.alt_baro || 0) / 3.28084,
             on_ground: s.alt_baro === 'ground',
-            velocity: (s.gs || 0) / 1.94384, // convert kt to m/s
+            velocity: (s.gs || 0) / 1.94384,
             true_track: s.track || 0,
             vertical_rate: s.baro_rate || 0,
             geo_altitude: (s.alt_geo || 0) / 3.28084,
@@ -118,7 +116,7 @@ const FlightMap: React.FC = () => {
         setLastUpdate(new Date());
       }
     } catch (err) {
-      console.error('Failed to fetch flight data from adsb.lol:', err);
+      console.error('Failed to fetch flight data:', err);
     } finally {
       setLoading(false);
     }
@@ -130,263 +128,163 @@ const FlightMap: React.FC = () => {
     return () => clearInterval(interval);
   }, []);
 
-
   const filteredFlights = useMemo(() => {
     return flights.filter(f => {
         const matchesSearch = f.callsign.toLowerCase().includes(search.toLowerCase()) || 
                              f.icao24.toLowerCase().includes(search.toLowerCase());
-        
         if (!matchesSearch) return false;
         if (!filters[f.category]) return false;
-        
         return true;
     });
   }, [flights, search, filters]);
 
-  const toggleFilter = (key: keyof typeof filters) => {
-    setFilters(prev => ({ ...prev, [key]: !prev[key] }));
-  };
-
   return (
     <WidgetShell>
         <WidgetShell.Toolbar>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flex: 1 }}>
-                <Plane size={12} color={COLOR.semantic.info} />
-                <span style={{ fontSize: '9px', fontWeight: TYPE.weight.bold, color: COLOR.text.secondary, textTransform: 'uppercase', letterSpacing: TYPE.letterSpacing.caps }}>
-                    PUBLIC_ADSB_RADAR
-                </span>
-                <div style={{ 
-                    fontSize: '8px', 
-                    padding: '1px 6px', 
-                    background: '#00ffff10', 
-                    color: COLOR.semantic.info, 
-                    borderRadius: '2px', 
-                    fontWeight: 'bold',
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '4px'
-                }}>
-                    <Radio size={8} /> PUBLIC_FEED
+            <WidgetShell.Toolbar.Left>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <Plane size={14} color={COLOR.semantic.info} />
+                    <Text size="xs" weight="black" style={{ letterSpacing: TYPE.letterSpacing.caps }}>
+                        ADSB_LITE_RADAR [IND_SUB]
+                    </Text>
+                    <Badge label="PUBLIC_FEED" variant="info" />
                 </div>
-            </div>
-            <div style={{ fontSize: '9px', color: COLOR.text.muted, display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <div style={{ width: '6px', height: '6px', borderRadius: '50%', background: COLOR.semantic.up, animation: 'pulse 2s infinite' }} />
-                <span>UPDATED: {lastUpdate.toLocaleTimeString()}</span>
-            </div>
+            </WidgetShell.Toolbar.Left>
+            <WidgetShell.Toolbar.Right>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: COLOR.semantic.up, boxShadow: `0 0 8px ${COLOR.semantic.up}` }} />
+                    <Text size="xs" color="muted" weight="bold">UPDATED: {lastUpdate.toLocaleTimeString()}</Text>
+                    <button onClick={fetchFlights} style={{ background: 'none', border: 'none', color: COLOR.text.muted, cursor: 'pointer' }} className={loading ? 'animate-spin' : ''}>
+                        <RefreshCw size={14} />
+                    </button>
+                </div>
+            </WidgetShell.Toolbar.Right>
         </WidgetShell.Toolbar>
 
         <div style={{ display: 'flex', flex: 1, minHeight: 0 }}>
-            {/* Sidebar Controls */}
             <div style={{ width: '280px', borderRight: BORDER.standard, display: 'flex', flexDirection: 'column', background: COLOR.bg.surface }}>
-                <div style={{ padding: '12px', background: COLOR.bg.elevated, borderBottom: BORDER.standard }}>
-                    {/* Search Strip */}
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', background: COLOR.bg.surface, border: BORDER.standard, padding: '6px 10px', borderRadius: '2px', marginBottom: '12px' }}>
-                        <Search size={12} color={COLOR.text.muted} />
+                <div style={{ padding: SPACE[3], background: COLOR.bg.elevated, borderBottom: BORDER.standard }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: SPACE[2], background: COLOR.bg.surface, border: BORDER.standard, padding: '6px 10px', borderRadius: '2px', marginBottom: SPACE[3] }}>
+                        <Search size={14} color={COLOR.text.muted} />
                         <input 
                             value={search}
                             onChange={e => setSearch(e.target.value)}
                             placeholder="FIND_CALLSIGN/ICAO..."
-                            style={{ 
-                                background: 'transparent', 
-                                border: 'none', 
-                                outline: 'none', 
-                                color: COLOR.text.primary, 
-                                fontSize: '10px', 
-                                fontFamily: TYPE.family.mono,
-                                width: '100%'
-                            }}
+                            style={{ background: 'transparent', border: 'none', outline: 'none', color: COLOR.text.primary, fontSize: TYPE.size.xs, fontFamily: TYPE.family.mono, width: '100%' }}
                         />
                     </div>
 
-                    {/* Filter Grid */}
-                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '4px' }}>
-                        <FilterBtn 
-                            label="MILITARY" 
-                            icon={<Shield size={10} />} 
-                            active={filters.MILITARY} 
-                            color={COLOR.semantic.down}
-                            onClick={() => toggleFilter('MILITARY')} 
-                        />
-                        <FilterBtn 
-                            label="CIVILIAN" 
-                            icon={<Users size={10} />} 
-                            active={filters.CIVILIAN} 
-                            color={COLOR.semantic.info}
-                            onClick={() => toggleFilter('CIVILIAN')} 
-                        />
-                        <FilterBtn 
-                            label="OTHER" 
-                            icon={<Radio size={10} />} 
-                            active={filters.OTHER} 
-                            color={COLOR.semantic.warning}
-                            onClick={() => toggleFilter('OTHER')} 
-                        />
+                    <div style={{ display: 'flex', gap: '4px' }}>
+                        <Tooltip content="MILITARY_ASSETS" position="bottom">
+                            <FilterBtn icon={<Shield size={12} />} active={filters.MILITARY} color="down" onClick={() => setFilters(f => ({ ...f, MILITARY: !f.MILITARY }))} />
+                        </Tooltip>
+                        <Tooltip content="CIVILIAN_AIRCRAFT" position="bottom">
+                            <FilterBtn icon={<Users size={12} />} active={filters.CIVILIAN} color="info" onClick={() => setFilters(f => ({ ...f, CIVILIAN: !f.CIVILIAN }))} />
+                        </Tooltip>
+                        <Tooltip content="OTHER_VECTORS" position="bottom">
+                            <FilterBtn icon={<Radio size={12} />} active={filters.OTHER} color="warning" onClick={() => setFilters(f => ({ ...f, OTHER: !f.OTHER }))} />
+                        </Tooltip>
                     </div>
                 </div>
 
-                {/* List Container */}
                 <div style={{ flex: 1, overflowY: 'auto' }} className="custom-scrollbar">
                     {filteredFlights.length === 0 ? (
                         <div style={{ padding: '60px 20px', textAlign: 'center', opacity: 0.3 }}>
-                            <Plane size={32} style={{ margin: '0 auto 16px' }} />
-                            <div style={{ fontSize: '10px', fontWeight: 'bold' }}>NO ASSETS DETECTED</div>
-                            <div style={{ fontSize: '9px', marginTop: '4px' }}>Adjust filters or search query</div>
+                            <Plane size={32} color={COLOR.text.muted} style={{ margin: '0 auto 16px' }} />
+                            <Text size="xs" weight="black">NO ASSETS DETECTED</Text>
                         </div>
                     ) : (
                         filteredFlights.slice(0, 100).map(f => (
-                            <FlightRow 
-                                key={f.icao24} 
-                                flight={f} 
-                                active={selectedFlight?.icao24 === f.icao24} 
-                                onClick={() => setSelectedFlight(f)} 
-                            />
+                            <FlightRow key={f.icao24} flight={f} active={selectedFlight?.icao24 === f.icao24} onClick={() => setSelectedFlight(f)} />
                         ))
                     )}
                 </div>
 
-                <div style={{ padding: '8px 12px', borderTop: BORDER.standard, fontSize: '8px', color: COLOR.text.muted, display: 'flex', justifyContent: 'space-between', background: COLOR.bg.elevated }}>
-                    <span>VISIBLE: {filteredFlights.length} / {flights.length}</span>
-                    <span style={{ color: COLOR.semantic.up }}>FEED_ACTIVE</span>
+                <div style={{ height: '32px', display: 'flex', alignItems: 'center', padding: '0 12px', borderTop: BORDER.standard, background: COLOR.bg.elevated }}>
+                    <Text size="xs" weight="black" color="muted">RADAR_HITS: {filteredFlights.length} / {flights.length}</Text>
                 </div>
             </div>
 
-            {/* Map Frame */}
-            <div style={{ flex: 1, position: 'relative', background: '#050505' }}>
-                <MapContainer 
-                    center={[20.5937, 78.9629]} 
-                    zoom={5} 
-                    style={{ height: '100%', width: '100%' }}
-                    zoomControl={false}
-                >
-                    <TileLayer
-                        url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
-                        attribution='&copy; <a href="https://carto.com/attributions">CARTO</a>'
-                    />
+            <div style={{ flex: 1, position: 'relative', background: COLOR.bg.base }}>
+                <MapContainer center={[20.5937, 78.9629]} zoom={5} style={{ height: '100%', width: '100%' }} zoomControl={false}>
+                    <TileLayer url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png" attribution='&copy; CARTO' />
                     <ZoomControl position="bottomright" />
                     <MapController center={selectedFlight ? [selectedFlight.latitude!, selectedFlight.longitude!] : undefined} />
                     
                     {filteredFlights.map(f => (
-                        <Marker 
-                            key={f.icao24} 
-                            position={[f.latitude!, f.longitude!]} 
-                            icon={getPlaneIcon(f.true_track || 0, f.category)}
-                            eventHandlers={{
-                                click: () => setSelectedFlight(f)
-                            }}
-                        >
+                        <Marker key={f.icao24} position={[f.latitude!, f.longitude!]} icon={getPlaneIcon(f.true_track || 0, f.category)} eventHandlers={{ click: () => setSelectedFlight(f) }}>
                             <Popup className="dark-popup">
                                 <PopupContent flight={f} />
                             </Popup>
                         </Marker>
                     ))}
                 </MapContainer>
-
-                <style>{`
-                    .leaflet-container { background: #000; border: none; }
-                    .leaflet-popup-content-wrapper { background: #000; color: #fff; border: 1px solid #333; border-radius: 0; box-shadow: 0 4px 20px rgba(0,0,0,0.8); }
-                    .leaflet-popup-tip { background: #333; }
-                    .custom-plane-icon { transition: transform 0.8s linear; }
-                    @keyframes pulse {
-                        0% { opacity: 1; transform: scale(1); }
-                        50% { opacity: 0.5; transform: scale(1.1); }
-                        100% { opacity: 1; transform: scale(1); }
-                    }
-                `}</style>
             </div>
         </div>
     </WidgetShell>
   );
 };
 
-const FilterBtn: React.FC<{ label: string, icon: React.ReactNode, active: boolean, color: string, onClick: () => void }> = ({ label, icon, active, color, onClick }) => (
-    <button 
-        onClick={onClick}
-        style={{
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center',
-            gap: '4px',
-            padding: '6px 4px',
-            background: active ? `${color}15` : COLOR.bg.surface,
-            border: `1px solid ${active ? color : BORDER.standard}`,
-            color: active ? color : COLOR.text.muted,
-            borderRadius: '2px',
-            cursor: 'pointer',
-            transition: 'all 0.1s linear'
-        }}
-    >
+const FilterBtn: React.FC<{ icon: React.ReactNode, active: boolean, color: keyof typeof COLOR.semantic, onClick: () => void }> = ({ icon, active, color, onClick }) => (
+    <button onClick={onClick} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '28px', width: '28px', background: active ? `${COLOR.semantic[color]}15` : COLOR.bg.surface, border: `1px solid ${active ? COLOR.semantic[color] : COLOR.bg.border}`, color: active ? COLOR.semantic[color] : COLOR.text.muted, borderRadius: '2px', cursor: 'pointer' }}>
         {icon}
-        <span style={{ fontSize: '7px', fontWeight: 'bold', letterSpacing: '0.05em' }}>{label}</span>
     </button>
 );
 
 const FlightRow: React.FC<{ flight: AircraftState, active: boolean, onClick: () => void }> = ({ flight, active, onClick }) => {
-    let accent: string = COLOR.text.muted;
-    if (flight.category === 'MILITARY') accent = COLOR.semantic.down;
-    if (flight.category === 'CIVILIAN') accent = COLOR.semantic.info;
-    if (flight.category === 'OTHER') accent = COLOR.semantic.warning;
+    let semantic: keyof typeof COLOR.semantic = 'muted';
+    if (flight.category === 'MILITARY') semantic = 'down';
+    if (flight.category === 'CIVILIAN') semantic = 'info';
+    if (flight.category === 'OTHER') semantic = 'warning';
 
     return (
-        <div 
-            onClick={onClick}
-            style={{ 
-                padding: '10px 12px', 
-                borderBottom: '1px solid #111', 
-                cursor: 'pointer',
-                background: active ? `${accent}10` : 'transparent',
-                borderLeft: `2px solid ${active ? accent : 'transparent'}`,
-                transition: 'background 0.1s linear'
-            }}
-        >
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <span style={{ fontWeight: 'bold', color: active ? COLOR.text.primary : COLOR.text.secondary, fontSize: '11px' }}>
-                    {flight.callsign || 'N/A'}
-                </span>
-                <span style={{ fontSize: '9px', color: accent, fontWeight: 'bold' }}>{flight.category}</span>
+        <div onClick={onClick} style={{ padding: '10px 12px', borderBottom: BORDER.standard, cursor: 'pointer', background: active ? `${COLOR.semantic[semantic]}15` : 'transparent', borderLeft: `2px solid ${active ? COLOR.semantic[semantic] : 'transparent'}` }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
+                <Text weight="black" size="md" color={active ? 'primary' : 'secondary'}>{flight.callsign || 'N/A'}</Text>
+                <Badge label={flight.category} variant={semantic as any} />
             </div>
-            <div style={{ display: 'flex', gap: '8px', marginTop: '4px', fontSize: '9px', color: COLOR.text.muted }}>
-                <span>{Math.round((flight.baro_altitude || 0) * 3.28084).toLocaleString()} FT</span>
-                <span>|</span>
-                <span>{flight.velocity ? Math.round(flight.velocity * 1.94384) : 0} KT</span>
-                <span>|</span>
-                <span style={{ color: COLOR.text.secondary }}>{flight.icao24.toUpperCase()}</span>
+            <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                <Text family="mono" size="xs" color="muted" weight="bold">{(Math.round((flight.baro_altitude || 0) * 3.28084)).toLocaleString()} FT</Text>
+                <div style={{ width: '4px', height: '4px', borderRadius: '50%', background: COLOR.border.strong }} />
+                <Text family="mono" size="xs" color="muted" weight="bold">{flight.velocity ? Math.round(flight.velocity * 1.94384) : 0} KT</Text>
+                <Text family="mono" size="xs" color="muted" weight="black" style={{ marginLeft: 'auto' }}>{flight.icao24.toUpperCase()}</Text>
             </div>
         </div>
     );
 };
 
 const PopupContent: React.FC<{ flight: AircraftState }> = ({ flight }) => {
-    let accent: string = COLOR.text.muted;
-    if (flight.category === 'MILITARY') accent = COLOR.semantic.down;
-    if (flight.category === 'CIVILIAN') accent = COLOR.semantic.info;
-    if (flight.category === 'OTHER') accent = COLOR.semantic.warning;
+    let semantic: keyof typeof COLOR.semantic = 'muted';
+    if (flight.category === 'MILITARY') semantic = 'down';
+    if (flight.category === 'CIVILIAN') semantic = 'info';
+    if (flight.category === 'OTHER') semantic = 'warning';
 
     return (
-        <div style={{ background: '#000', color: '#fff', padding: '2px', fontSize: '11px', minWidth: '160px' }}>
-            <div style={{ borderBottom: `1px solid ${accent}`, paddingBottom: '6px', marginBottom: '8px' }}>
-                <div style={{ fontSize: '12px', fontWeight: 'bold', color: accent }}>{flight.callsign || 'UNKNOWN_CALL'}</div>
-                <div style={{ fontSize: '9px', color: COLOR.text.muted }}>{flight.origin_country.toUpperCase()} • {flight.icao24.toUpperCase()}</div>
+        <div style={{ background: COLOR.bg.base, color: COLOR.text.primary, padding: SPACE[3], minWidth: '180px' }}>
+            <div style={{ borderBottom: `1px solid ${COLOR.semantic[semantic]}`, paddingBottom: SPACE[2], marginBottom: SPACE[3] }}>
+                <Text size="lg" weight="black" color="primary" block>{flight.callsign || 'UNKNOWN'}</Text>
+                <Text size="xs" color="muted" weight="bold" block>{flight.origin_country} • {flight.icao24.toUpperCase()}</Text>
             </div>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: SPACE[3] }}>
                 <div>
-                    <div style={{ fontSize: '8px', color: COLOR.text.muted }}>ALTITUDE</div>
-                    <div style={{ fontWeight: 'bold' }}>{Math.round((flight.baro_altitude || 0) * 3.28084).toLocaleString()} ft</div>
+                    <Text variant="label" size="xs" color="muted" block>ALTITUDE</Text>
+                    <Text family="mono" weight="black" size="sm">{(Math.round((flight.baro_altitude || 0) * 3.28084)).toLocaleString()} ft</Text>
                 </div>
                 <div>
-                    <div style={{ fontSize: '8px', color: COLOR.text.muted }}>SPEED</div>
-                    <div style={{ fontWeight: 'bold' }}>{flight.velocity ? Math.round(flight.velocity * 1.94384) : 0} kt</div>
+                    <Text variant="label" size="xs" color="muted" block>SPEED</Text>
+                    <Text family="mono" weight="black" size="sm">{flight.velocity ? Math.round(flight.velocity * 1.94384) : 0} kt</Text>
                 </div>
                 <div>
-                    <div style={{ fontSize: '8px', color: COLOR.text.muted }}>HEADING</div>
-                    <div style={{ fontWeight: 'bold' }}>{Math.round(flight.true_track || 0)}°</div>
+                    <Text variant="label" size="xs" color="muted" block>HEADING</Text>
+                    <Text family="mono" weight="black" size="sm">{Math.round(flight.true_track || 0)}°</Text>
                 </div>
                 <div>
-                    <div style={{ fontSize: '8px', color: COLOR.text.muted }}>SQUAWK</div>
-                    <div style={{ fontWeight: 'bold', color: flight.squawk === '7700' ? COLOR.semantic.down : '#fff' }}>{flight.squawk || '----'}</div>
+                    <Text variant="label" size="xs" color="muted" block>SQUAWK</Text>
+                    <Text family="mono" weight="black" size="sm" color={flight.squawk === '7700' ? 'down' : 'primary'}>{flight.squawk || '----'}</Text>
                 </div>
             </div>
-            <div style={{ marginTop: '8px', fontSize: '8px', color: COLOR.text.muted, borderTop: '1px solid #111', paddingTop: '6px', textAlign: 'center', fontWeight: 'bold' }}>
-                CATEGORY: {flight.category}
+            <div style={{ marginTop: SPACE[3], paddingTop: SPACE[2], borderTop: BORDER.standard, textAlign: 'center' }}>
+                <Badge label={`SEC_LEVEL: ${flight.category === 'MILITARY' ? 'HIGH_INTENT' : 'STANDARD'}`} variant={semantic as any} />
             </div>
         </div>
     );

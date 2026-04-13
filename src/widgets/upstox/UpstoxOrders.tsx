@@ -1,15 +1,23 @@
 import React, { useEffect, useState } from 'react';
 import { useUpstoxStore } from '../../store/useUpstoxStore';
 import { upstoxApi } from '../../services/upstoxApi';
-import { RefreshCw, ShoppingBag } from 'lucide-react';
-import { COLOR, TYPE } from '../../ds/tokens';
+import { RefreshCw, ShoppingBag, Clock, Tag, ArrowUpCircle, ArrowDownCircle } from 'lucide-react';
+import { 
+  COLOR, 
+  TYPE, 
+  BORDER,
+  SPACE,
+  Text,
+  WidgetShell,
+  StatusBanner,
+  DataTable,
+  EmptyState,
+  HoverActions,
+  Badge,
+  Price
+} from '../../ds';
 import { useSelectionStore, useLayoutStore } from '../../store/useStore';
 import { buildSymbolFromFeed } from '../../utils/liveSymbols';
-import { WidgetShell } from '../../ds/components/WidgetShell';
-import { StatusBanner } from '../../ds/components/StatusBanner';
-import { DataTable } from '../../ds/components/DataTable';
-import { EmptyState } from '../../ds/components/EmptyState';
-import { HoverActions } from '../../ds/components/HoverActions';
 
 const UpstoxOrders: React.FC = () => {
     const { accessToken, status, prices, instrumentMeta } = useUpstoxStore();
@@ -38,14 +46,14 @@ const UpstoxOrders: React.FC = () => {
         }
     };
 
-    const getStatusColor = (os: string) => {
+    const getStatusColor = (os: string): "primary" | "secondary" | "muted" | "up" | "down" | "info" | "warning" | "danger" => {
         switch (os.toLowerCase()) {
-            case 'complete': return COLOR.semantic.up;
-            case 'rejected': return COLOR.semantic.down;
-            case 'cancelled': return COLOR.text.muted;
+            case 'complete': return 'up';
+            case 'rejected': return 'danger';
+            case 'cancelled': return 'muted';
             case 'open':
-            case 'put order req received': return COLOR.semantic.info;
-            default: return COLOR.text.primary;
+            case 'put order req received': return 'info';
+            default: return 'primary';
         }
     };
 
@@ -67,50 +75,69 @@ const UpstoxOrders: React.FC = () => {
     const columns = [
         { 
             key: 'order_timestamp', 
-            label: 'TIME', 
-            width: 80,
-            render: (val: string) => <span style={{ color: COLOR.text.muted, fontSize: '10px' }}>{val?.split(' ')[1] || '--:--:--'}</span>
+            label: 'TIME_LOC', 
+            width: 90,
+            render: (val: string) => {
+                const timeStr = val?.split(' ')[1] || '--:--:--';
+                return (
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                        <Clock size={10} color={COLOR.text.muted} />
+                        <Text color="muted" size="xs" weight="bold" family="mono">{timeStr}</Text>
+                    </div>
+                );
+            }
         },
         { 
             key: 'trading_symbol', 
             label: 'SYMBOL', 
             render: (val: string, item: any) => (
-                <div>
-                    <div style={{ fontWeight: 'bold' }}>{val}</div>
-                    <div style={{ fontSize: '9px', color: COLOR.text.muted }}>{item.exchange}</div>
+                <div style={{ display: 'flex', flexDirection: 'column' }}>
+                    <Text weight="black" size="md" color="primary">{val}</Text>
+                    <div style={{ display: 'flex', gap: '4px', alignItems: 'center' }}>
+                        <Badge label={item.exchange} variant={item.exchange === 'NSE' ? 'exchange-nse' : 'exchange-bse'} />
+                        <Text size="xs" color="muted" weight="bold">{item.order_type}</Text>
+                    </div>
                 </div>
             )
         },
         { 
             key: 'transaction_type', 
-            label: 'TYPE', 
+            label: 'DIR', 
             width: 60,
             render: (val: string) => (
-                <span style={{ fontWeight: 'bold', color: val === 'BUY' ? COLOR.semantic.up : COLOR.semantic.down }}>
+                <Text weight="black" color={val === 'BUY' ? 'up' : 'down'} size="sm">
                     {val}
-                </span>
+                </Text>
             )
         },
-        { key: 'quantity', label: 'QTY', align: 'right' as const, width: 60 },
+        { key: 'quantity', label: 'QTY', align: 'right' as const, width: 80, render: (val: number) => <Text weight="bold" size="sm">{val}</Text> },
         { 
             key: 'price', 
-            label: 'PRICE', 
+            label: 'PX_EXEC', 
             align: 'right' as const, 
-            width: 80,
-            render: (val: any, item: any) => val || item.average_price || '--'
+            width: 90,
+            render: (val: any, item: any) => {
+                const px = val || item.average_price || 0;
+                return px > 0 ? <Price value={px} size="sm" weight="black" /> : <Text color="muted" size="sm">--</Text>;
+            }
         },
         { 
             key: 'status', 
-            label: 'STATUS', 
+            label: 'STATUS_MSG', 
             align: 'right' as const, 
-            width: 100,
+            width: 140,
             render: (val: string, item: any, idx: number) => (
                 <div style={{ position: 'relative', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'flex-end' }}
                      onMouseEnter={() => setHoveredIndex(idx)}
                      onMouseLeave={() => setHoveredIndex(null)}>
-                    <span style={{ fontWeight: 'bold', color: getStatusColor(val), fontSize: '10px' }}>
-                        {val.toUpperCase()}
-                    </span>
+                    
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                        <div style={{ width: '4px', height: '12px', background: COLOR.semantic[getStatusColor(val)] }} />
+                        <Text weight="black" color={getStatusColor(val)} size="xs" style={{ letterSpacing: '0.05em' }}>
+                            {val.toUpperCase()}
+                        </Text>
+                    </div>
+
                     <HoverActions 
                         isVisible={hoveredIndex === idx}
                         onBuy={() => handleAction(item, 'BUY')}
@@ -131,18 +158,26 @@ const UpstoxOrders: React.FC = () => {
             )}
 
             <WidgetShell.Toolbar>
-                 <span style={{ fontSize: TYPE.size.xs, fontWeight: TYPE.weight.bold, textTransform: 'uppercase', letterSpacing: TYPE.letterSpacing.caps, display: 'flex', alignItems: 'center', gap: '8px' }}>
-                    ORDER_BOOK [DLY]
-                 </span>
-                 <button onClick={fetchOrders} style={{ background: 'none', border: 'none', color: COLOR.text.muted, cursor: 'pointer' }} className={loading ? 'animate-spin' : 'hover:text-text-primary'}>
-                    <RefreshCw size={12} />
-                 </button>
+                <WidgetShell.Toolbar.Left>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <ShoppingBag size={14} color={COLOR.text.primary} />
+                        <Text size="xs" weight="black" style={{ letterSpacing: TYPE.letterSpacing.caps }}>
+                            DLY_ORDER_BOOK
+                        </Text>
+                        <Badge label={orders.length.toString()} variant="muted" />
+                    </div>
+                </WidgetShell.Toolbar.Left>
+                <WidgetShell.Toolbar.Right>
+                    <button onClick={fetchOrders} style={{ background: 'none', border: 'none', color: COLOR.text.muted, cursor: 'pointer' }} className={loading ? 'animate-spin' : 'hover:text-text-primary'}>
+                        <RefreshCw size={14} />
+                    </button>
+                </WidgetShell.Toolbar.Right>
             </WidgetShell.Toolbar>
 
             <div style={{ flex: 1, overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
                 {orders.length === 0 ? (
                     <EmptyState 
-                        icon={<ShoppingBag size={32} />} 
+                        icon={<ShoppingBag size={48} />} 
                         message="NO ORDER ENTRIES TODAY" 
                         subMessage="Recent trades and pending orders will appear here once initiated."
                     />
@@ -155,9 +190,24 @@ const UpstoxOrders: React.FC = () => {
                     />
                 )}
             </div>
+
+            <div style={{ height: '32px', padding: '0 12px', background: COLOR.bg.surface, borderTop: BORDER.strong, display: 'flex', alignItems: 'center', gap: '16px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                    <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: COLOR.semantic.up }} />
+                    <Text size="xs" color="muted" weight="bold">FILLED</Text>
+                </div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                    <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: COLOR.semantic.info }} />
+                    <Text size="xs" color="muted" weight="bold">OPEN</Text>
+                </div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                    <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: COLOR.semantic.danger }} />
+                    <Text size="xs" color="muted" weight="bold">REJECTED</Text>
+                </div>
+                <Text size="xs" color="muted" weight="black" style={{ marginLeft: 'auto', letterSpacing: '0.05em' }}>SOURCE: UPSTOX_OMS_V3</Text>
+            </div>
         </WidgetShell>
     );
 };
 
 export default UpstoxOrders;
-

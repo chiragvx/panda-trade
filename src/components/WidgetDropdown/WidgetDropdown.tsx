@@ -109,9 +109,9 @@ export const WidgetDropdown: React.FC<WidgetDropdownProps> = ({ isOpen, onOpenCh
                     <button key={cat} onClick={() => setActiveCategory(cat)} style={{
                       padding: '8px 12px', background: 'transparent', border: 'none',
                       borderBottom: activeCategory === cat ? `2px solid ${COLOR.semantic.info}` : '2px solid transparent',
-                      fontFamily: TYPE.family.mono, fontSize: '9px', textTransform: 'uppercase', cursor: 'pointer',
+                      fontFamily: TYPE.family.mono, fontSize: TYPE.size.xs, textTransform: 'uppercase', cursor: 'pointer',
                       color: activeCategory === cat ? COLOR.text.primary : COLOR.text.muted,
-                      transition: 'color 80ms linear', whiteSpace: 'nowrap'
+                      transition: 'color 80ms linear', whiteSpace: 'nowrap', fontWeight: TYPE.weight.black, letterSpacing: TYPE.letterSpacing.caps
                     }}>{cat}</button>
                   ))}
                 </div>
@@ -120,14 +120,14 @@ export const WidgetDropdown: React.FC<WidgetDropdownProps> = ({ isOpen, onOpenCh
                 <div ref={contentRef} style={{ flex: 1, overflowY: 'auto', padding: '10px' }}>
                   {sections.length === 0 ? (
                     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '60px' }}>
-                      <span style={{ fontFamily: TYPE.family.mono, fontSize: '10px', color: COLOR.text.muted }}>NO RESULTS</span>
+                      <span style={{ fontFamily: TYPE.family.mono, fontSize: TYPE.size.xs, color: COLOR.text.muted, fontWeight: TYPE.weight.black, letterSpacing: TYPE.letterSpacing.caps }}>NO_RESULTS</span>
                     </div>
                   ) : (
                     sections.map(([category, widgets]) => (
                       <div key={category} style={{ marginBottom: '12px' }}>
                         <div style={{
-                          fontFamily: TYPE.family.mono, fontSize: '9px', color: COLOR.text.muted,
-                          textTransform: 'uppercase', marginBottom: '6px', opacity: 0.6
+                          fontFamily: TYPE.family.mono, fontSize: TYPE.size.xs, color: COLOR.text.muted,
+                          textTransform: 'uppercase', marginBottom: '6px', fontWeight: TYPE.weight.black, letterSpacing: TYPE.letterSpacing.caps
                         }}>
                           {category}
                         </div>

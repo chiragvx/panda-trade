@@ -42,8 +42,8 @@ export const SegmentedControl: React.FC<SegmentedControlProps> = ({
             onClick={() => onChange(opt.value)}
             style={{ 
                 padding: size === 'xs' ? '2px 8px' : '4px 12px', 
-                fontSize: '9px', 
-                fontWeight: TYPE.weight.bold, 
+                fontSize: TYPE.size.xs, 
+                fontWeight: TYPE.weight.black, 
                 background: isActive ? COLOR.interactive.selected : 'transparent',
                 color: isActive ? COLOR.semantic.info : COLOR.text.muted,
                 border: 'none',
@@ -54,7 +54,8 @@ export const SegmentedControl: React.FC<SegmentedControlProps> = ({
                 gap: '6px',
                 fontFamily: TYPE.family.mono,
                 textTransform: 'uppercase',
-                transition: 'all 0.1s linear'
+                transition: 'all 0.1s linear',
+                letterSpacing: TYPE.letterSpacing.caps
             }}
             className="hover:text-text-primary transition-colors"
           >

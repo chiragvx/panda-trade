@@ -1,13 +1,14 @@
 import React, { useEffect, useRef, useMemo, useState } from 'react';
 import { useSelectionStore } from '../../store/useStore';
-import { COLOR, BORDER } from '../../ds/tokens';
+import { COLOR, BORDER, TYPE } from '../../ds/tokens';
 import { Change } from '../../ds/components/Change';
 import { Button } from '../../ds/components/Button';
 import { useLayoutStore } from '../../store/useStore';
 import { useUpstoxStore } from '../../store/useUpstoxStore';
 import { isIsin } from '../../utils/liveSymbols';
 import { WidgetSymbolSearch } from '../../components/WidgetSearch/WidgetSymbolSearch';
-import { TYPE } from '../../ds/tokens';
+import { RotateCcw } from 'lucide-react';
+import { Tooltip } from '../../ds/components/Tooltip';
 import { NIFTY_50 } from '../../utils/defaultSymbol';
 
 declare global {
@@ -68,16 +69,16 @@ export const ChartWidget: React.FC = () => {
       theme: 'dark',
       style: '1',
       locale: 'en',
-      toolbar_bg: '#0a0a0b',
+      toolbar_bg: COLOR.bg.base,
       enable_publishing: false,
       hide_side_toolbar: false,
       allow_symbol_change: true,
       container_id: 'tv_chart_container',
-      loading_screen: { backgroundColor: '#0a0a0b' },
+      loading_screen: { backgroundColor: COLOR.bg.base },
       disabled_features: ['header_saveload', 'use_localstorage_for_settings_events'],
       enabled_features: ['side_toolbar_in_compact_mode', 'header_widget_dom_node'],
       overrides: {
-        'paneProperties.background': '#0a0a0b',
+        'paneProperties.background': COLOR.bg.base,
         'paneProperties.vertGridProperties.color': 'rgba(255, 255, 255, 0.02)',
         'paneProperties.horzGridProperties.color': 'rgba(255, 255, 255, 0.02)',
       }
@@ -89,14 +90,14 @@ export const ChartWidget: React.FC = () => {
   }, [selectedSymbol]);
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', height: '100%', background: '#0a0a0b', overflow: 'hidden' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', height: '100%', background: COLOR.bg.base, overflow: 'hidden' }}>
       {/* Dynamic Header */}
-      <div style={{ height: '36px', borderBottom: BORDER.standard, display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 12px', background: '#0a0a0b' }}>
+      <div style={{ height: '36px', borderBottom: BORDER.standard, display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 12px', background: COLOR.bg.surface }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-          <span style={{ fontSize: '13px', fontWeight: 'bold', color: '#fff' }}>{displayTicker}</span>
-          <span style={{ fontSize: '14px', color: '#fff' }}>₹{currentPrice.toFixed(2)}</span>
+          <span style={{ fontSize: TYPE.size.sm, fontWeight: TYPE.weight.black, color: COLOR.text.primary, letterSpacing: TYPE.letterSpacing.tight }}>{displayTicker}</span>
+          <span style={{ fontSize: TYPE.size.md, color: COLOR.text.primary, fontWeight: TYPE.weight.bold, fontFamily: TYPE.family.mono }}>₹{currentPrice.toFixed(2)}</span>
           <Change value={liveChangePct} format="percent" size="sm" />
-          {isIndex && <span style={{ fontSize: '9px', color: COLOR.text.muted, padding: '1px 4px', border: BORDER.standard }}>INDEX</span>}
+          {isIndex && <span style={{ fontSize: TYPE.size.xs, color: COLOR.text.muted, padding: '1px 6px', border: BORDER.standard, fontWeight: TYPE.weight.black, letterSpacing: TYPE.letterSpacing.caps, borderRadius: '2px' }}>INDEX</span>}
         </div>
 
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
@@ -108,18 +109,20 @@ export const ChartWidget: React.FC = () => {
             placeholder="SEARCH..." 
           />
           {localSymbol && (
-            <button 
-              onClick={() => setLocalSymbol(null)}
-              style={{ background: 'transparent', border: 'none', color: '#ff4d4d', fontSize: '9px', fontWeight: '900', cursor: 'pointer', padding: '0' }}
-            >
-              RESET
-            </button>
+            <Tooltip content="CLEAR_OVERRIDE" position="bottom">
+                <button 
+                onClick={() => setLocalSymbol(null)}
+                style={{ background: 'transparent', border: 'none', color: COLOR.semantic.down, cursor: 'pointer', padding: '0 8px', display: 'flex', alignItems: 'center' }}
+                >
+                <RotateCcw size={14} />
+                </button>
+            </Tooltip>
           )}
 
           {!isIndex && selectedSymbol && (
             <div style={{ display: 'flex', gap: '8px', marginLeft: '8px' }}>
-              <Button variant="buy" size="xs" onClick={() => openOrderModal('BUY')} style={{ padding: '2px 12px', fontWeight: '900', height: '24px' }}>BUY</Button>
-              <Button variant="sell" size="xs" onClick={() => openOrderModal('SELL')} style={{ padding: '2px 12px', fontWeight: '900', height: '24px' }}>SELL</Button>
+              <Button variant="buy" size="xs" onClick={() => openOrderModal('BUY')} style={{ padding: '0 12px', height: '24px' }}>BUY</Button>
+              <Button variant="sell" size="xs" onClick={() => openOrderModal('SELL')} style={{ padding: '0 12px', height: '24px' }}>SELL</Button>
             </div>
           )}
         </div>

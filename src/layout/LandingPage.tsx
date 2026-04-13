@@ -259,7 +259,7 @@ const LandingPage: React.FC = () => {
                         <span>© 2026 PANDA_TRADE_SYSTEMS. ALL_PROTOCOL_RIGHTS_RESERVED.</span>
                     </div>
                     <div style={{ display: 'flex', gap: '24px', alignItems: 'center' }}>
-                         <span style={{ fontSize: '10px', color: '#222', letterSpacing: '0.2em' }}>STABLE_BUILD_v2.0.431</span>
+                         <span style={{ fontSize: '11px', color: '#222', letterSpacing: '0.2em', fontWeight: TYPE.weight.black }}>STABLE_BUILD_v2.0.431</span>
                          <div style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#00d084', boxShadow: '0 0 10px #00d084' }} />
                     </div>
                 </div>

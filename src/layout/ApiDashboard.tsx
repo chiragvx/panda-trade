@@ -1,8 +1,24 @@
 import React, { useState, useMemo } from 'react';
-import { Search, RotateCcw, Plus, AlertCircle, ChevronDown, Zap, Anchor, ShieldCheck, ShieldAlert, Key, Globe, MoreVertical, ExternalLink, Settings2, Power, Trash2, Activity, Server, Plane } from 'lucide-react';
+import { Search, RotateCcw, Plus, AlertCircle, ChevronDown, Zap, Anchor, ShieldCheck, ShieldAlert, Key, Globe, MoreVertical, ExternalLink, Settings2, Power, Trash2, Activity, Server, Plane, X } from 'lucide-react';
 import { useUpstoxStore } from '../store/useUpstoxStore';
 import { useSettingsStore } from '../store/useSettingsStore';
-import { COLOR, BORDER, TYPE, SPACE } from '../ds/tokens';
+import { 
+    COLOR, 
+    BORDER, 
+    TYPE, 
+    SPACE, 
+    Z, 
+    LAYOUT, 
+    ROW_HEIGHT,
+    Text, 
+    Button, 
+    Input, 
+    Select, 
+    FilterRow, 
+    Dot, 
+    Tag,
+    Tooltip 
+} from '../ds';
 import { ApiConfigModal } from '../components/ApiConfigModal';
 
 interface ConnectionMeta {
@@ -86,15 +102,14 @@ export const ApiDashboard: React.FC = () => {
             status: rapidApiKey ? 'connected' : 'disconnected',
             lastActivity: rapidApiKey ? 'Live Now' : 'Never'
         }
-    ], [upstoxStatus, upstoxKey, aisStreamApiKey, nasaApiKey, openSkyUsername, rapidApiKey]);
+    ], [upstoxStatus, upstoxKey, aisStreamApiKey, nasaApiKey, openSkyUsername, rapidApiKey, enabledConnections]);
 
-    // Derived list based on what user has "added"
     const connections = useMemo(() => 
         masterConnections.filter(c => enabledConnections.includes(c.id)),
     [masterConnections, enabledConnections]);
 
     const handleDelete = (id: string, provider: string) => {
-        if (provider === 'UPSTOX') return; // Restriction
+        if (provider === 'UPSTOX') return;
         
         removeConnection(id);
         if (provider === 'AISSTREAM') {
@@ -124,94 +139,71 @@ export const ApiDashboard: React.FC = () => {
     const hasAnyConnection = connections.some(c => c.status !== 'disconnected');
 
     return (
-        <div style={{ height: '100%', width: '100%', background: '#080808', display: 'flex', flexDirection: 'column' }}>
+        <div style={{ height: '100%', width: '100%', background: COLOR.bg.base, display: 'flex', flexDirection: 'column' }}>
             {/* Top Toolbar */}
             <div style={{ 
-                height: '64px', 
+                height: '48px', 
                 borderBottom: BORDER.standard, 
-                background: '#0a0a0a', 
+                background: COLOR.bg.elevated, 
                 display: 'flex', 
                 alignItems: 'center', 
                 padding: '0 24px', 
                 gap: '12px' 
             }}>
-                <div style={{ 
-                    flex: 1, 
-                    display: 'flex', 
-                    alignItems: 'center', 
-                    gap: '12px', 
-                    background: '#111', 
-                    border: '1px solid #222', 
-                    height: '34px',
-                    borderRadius: '4px',
-                    padding: '0 12px',
-                    maxWidth: '400px'
-                }}>
-                    <Search size={14} color="#666" />
-                    <input 
-                        value={searchQuery}
-                        onChange={e => setSearchQuery(e.target.value)}
-                        placeholder="Search for Connection"
-                        style={{ background: 'transparent', border: 'none', outline: 'none', color: '#fff', fontSize: '12px', width: '100%' }}
-                    />
-                </div>
+                <Input 
+                    value={searchQuery}
+                    onChange={e => setSearchQuery(e.target.value)}
+                    placeholder="Search Infrastructure..."
+                    style={{ maxWidth: '300px' }}
+                    inputSize="md"
+                    rightEl={<Search size={14} color={COLOR.text.muted} />}
+                />
 
                 <div style={{ display: 'flex', gap: '8px' }}>
-                    <ToolbarDropdown 
-                        label="Status" 
-                        options={['ALL', 'CONNECTED', 'DISCONNECTED']} 
+                    <Select 
                         value={statusFilter}
-                        onChange={(v) => setStatusFilter(v as any)} 
-                    />
-                    <ToolbarDropdown 
-                        label="Type" 
-                        options={['ALL', 'BROKER', 'DATA_FEED']}
+                        onChange={(e) => setStatusFilter(e.target.value as any)}
+                        selectSize="md"
+                        style={{ width: '120px' }}
+                    >
+                        <option value="ALL">ALL_STATUS</option>
+                        <option value="CONNECTED">CONNECTED</option>
+                        <option value="DISCONNECTED">DISCONNECTED</option>
+                    </Select>
+                    <Select 
                         value={typeFilter}
-                        onChange={(v) => setTypeFilter(v as any)}
-                    />
+                        onChange={(e) => setTypeFilter(e.target.value as any)}
+                        selectSize="md"
+                        style={{ width: '120px' }}
+                    >
+                        <option value="ALL">ALL_TYPES</option>
+                        <option value="BROKER">BROKER</option>
+                        <option value="DATA_FEED">DATA_FEED</option>
+                    </Select>
                 </div>
 
                 <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                    <button 
+                    <Button 
+                        variant="ghost" 
+                        size="md"
                         onClick={() => {
                             setSearchQuery('');
                             setStatusFilter('ALL');
                             setTypeFilter('ALL');
                         }}
-                        style={{ 
-                            width: '34px', 
-                            height: '34px', 
-                            background: '#111', 
-                            border: '1px solid #222', 
-                            borderRadius: '4px', 
-                            display: 'flex', 
-                            alignItems: 'center', 
-                            justifyContent: 'center',
-                            color: '#fff',
-                            cursor: 'pointer'
-                        }}
+                        style={{ padding: '0 8px' }}
                     >
                         <RotateCcw size={14} />
-                    </button>
-                    <button 
+                    </Button>
+                    <Button 
+                        variant="filled" 
                         onClick={() => setActiveModal('SELECT')}
-                        style={{ 
-                            height: '34px', 
-                            background: COLOR.semantic.info, 
-                            border: 'none', 
-                            borderRadius: '4px', 
-                            padding: '0 16px',
-                            color: COLOR.text.inverse,
-                            fontSize: '12px',
-                            fontWeight: 'bold',
-                            cursor: 'pointer',
-                            display: 'flex',
-                            alignItems: 'center',
-                            gap: '8px'
-                        }}
+                        size="md"
+                        style={{ background: COLOR.semantic.info, color: COLOR.text.inverse }}
                     >
-                        Connect Backend
-                    </button>
+                        <Plus size={14} style={{ marginRight: '6px' }} />
+                        CONNECT_INFRASTRUCTURE
+                    </Button>
                 </div>
             </div>
 
@@ -220,48 +212,46 @@ export const ApiDashboard: React.FC = () => {
                 {!hasAnyConnection && (searchQuery === '' && statusFilter === 'ALL' && typeFilter === 'ALL') ? (
                     <div style={{ 
                         width: '100%', 
-                        maxWidth: '900px', 
-                        margin: '0 auto',
-                        background: '#111111', 
-                        border: '1px solid #222', 
-                        borderRadius: '4px', 
-                        height: '300px',
+                        maxWidth: '800px', 
+                        margin: '64px auto 0 auto',
+                        background: COLOR.bg.overlay, 
+                        border: BORDER.standard, 
+                        borderRadius: 0, 
+                        height: '240px',
                         display: 'flex',
                         flexDirection: 'column',
                         alignItems: 'center',
                         justifyContent: 'center',
-                        gap: '16px',
+                        gap: '24px',
                         textAlign: 'center'
                     }}>
-                        <AlertCircle size={40} color="#444" />
-                        <div>
-                            <h3 style={{ fontSize: '16px', color: '#fff', margin: '0 0 8px 0' }}>No connections added</h3>
-                            <p style={{ fontSize: '12px', color: '#666', margin: 0 }}>Please connect your first backend to start receiving data.</p>
+                        <div style={{ opacity: 0.3 }}>
+                            <Server size={48} color={COLOR.text.muted} />
                         </div>
-                        <button 
+                        <div>
+                            <Text variant="heading" size="md">NO_ACTIVE_CONNECTIONS</Text>
+                            <div style={{ marginTop: '8px' }}>
+                                <Text size="sm" color="secondary">Authorize a protocol to integrate real-time market or alternative data feeds into the terminal.</Text>
+                            </div>
+                        </div>
+                        <Button 
+                            variant="filled" 
                             onClick={() => setActiveModal('SELECT')}
-                            style={{ 
-                                background: 'transparent', 
-                                border: '1px solid #333', 
-                                color: '#fff', 
-                                padding: '8px 20px', 
-                                borderRadius: '4px', 
-                                fontSize: '12px', 
-                                cursor: 'pointer' 
-                            }}
+                            style={{ background: COLOR.semantic.info, color: COLOR.text.inverse }}
                         >
-                            Connect Backend
-                        </button>
+                            INITIATE_HANDSHAKE
+                        </Button>
                     </div>
                 ) : (
-                    <div style={{ width: '100%', maxWidth: '1000px', margin: '0 auto' }}>
-                        <div style={{ marginBottom: '24px' }}>
-                            <h2 style={{ fontSize: '14px', color: '#666', fontWeight: 'bold', textTransform: 'uppercase', letterSpacing: '0.1em' }}>
-                                {filteredConnections.length} Active Cloud Infrastructure
-                            </h2>
+                    <div style={{ width: '100%', maxWidth: '900px', margin: '0 auto' }}>
+                        <div style={{ marginBottom: '24px', borderBottom: BORDER.standard, paddingBottom: '12px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                            <Text variant="heading" size="xs" color="muted">
+                                {filteredConnections.length} ACTIVE_CLOUD_BACKENDS
+                            </Text>
+                            <Text size="xs" color="muted">INFRA_HEALTH: OPTIMAL</Text>
                         </div>
                         
-                        <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '16px' }}>
+                        <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '8px' }}>
                             {filteredConnections.map(conn => (
                                 <ConnectionCard 
                                     key={conn.id} 
@@ -275,92 +265,102 @@ export const ApiDashboard: React.FC = () => {
                 )}
             </div>
 
-            {/* Config Overlay (Simulated Modals) */}
+            {/* Config Overlay */}
             {activeModal && (
                 <div style={modalOverlayStyle} onClick={() => setActiveModal(null)}>
-                    <div style={{ ...modalContentStyle, width: 'auto', maxWidth: 'none', background: 'transparent', border: 'none', boxShadow: 'none' }} onClick={e => e.stopPropagation()}>
+                    <div style={{ position: 'relative' }} onClick={e => e.stopPropagation()}>
                         {activeModal === 'SELECT' && (
                             <div style={{ 
                                 display: 'flex',
-                                width: '800px', 
-                                height: '500px',
-                                background: '#000', 
-                                border: '1px solid #333',
+                                width: '840px', 
+                                height: '540px',
+                                background: COLOR.bg.base, 
+                                border: BORDER.strong,
                                 boxShadow: '0 40px 100px rgba(0,0,0,0.9)',
-                                overflow: 'hidden'
+                                overflow: 'hidden',
+                                borderRadius: 0
                             }}>
-                                {/* Left Image Column */}
+                                {/* Left Brand Column */}
                                 <div style={{ 
-                                    flex: 1.2, 
-                                    borderRight: '1px solid #222', 
-                                    background: '#050505',
-                                    position: 'relative'
+                                    flex: 1, 
+                                    borderRight: BORDER.standard, 
+                                    background: COLOR.bg.base,
+                                    position: 'relative',
+                                    display: 'flex',
+                                    flexDirection: 'column',
+                                    padding: '32px'
                                 }}>
-                                    <img 
-                                        src="/cloud_infra_wide.png" 
-                                        alt="Cloud Infra" 
-                                        style={{ width: '100%', height: '100%', objectFit: 'cover', opacity: 0.4 }}
-                                        onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = 'none'; }}
-                                    />
-                                    <div style={{ position: 'absolute', bottom: 24, left: 24 }}>
-                                        <h1 style={{ color: '#fff', fontSize: '24px', fontWeight: '900', margin: 0, letterSpacing: '0.1em' }}>CLOUD_BACKEND</h1>
-                                        <div style={{ height: '4px', width: '40px', background: COLOR.semantic.info, marginTop: '8px' }} />
+                                    <div style={{ flex: 1 }}>
+                                        <Text weight="black" size="3xl" color="info">CLOUD</Text>
+                                        <Text weight="black" size="3xl" color="primary">PROTOCOLS</Text>
+                                        <div style={{ height: '2px', width: '32px', background: COLOR.semantic.info, marginTop: '12px' }} />
+                                    </div>
+                                    <div style={{ opacity: 0.1, position: 'absolute', bottom: -20, right: -20 }}>
+                                        <Activity size={240} />
+                                    </div>
+                                    <div style={{ marginTop: 'auto' }}>
+                                        <Text size="xs" color="muted">ST_INFRA_ENGINE_V4.6</Text>
                                     </div>
                                 </div>
 
                                 {/* Right Selection Column */}
-                                <div style={{ flex: 2, padding: '40px', display: 'flex', flexDirection: 'column', gap: '24px' }}>
+                                <div style={{ flex: 1.8, padding: '40px', display: 'flex', flexDirection: 'column', gap: '32px' }}>
                                     <div>
-                                        <h2 style={{ color: '#fff', fontSize: '18px', margin: '0 0 4px 0', fontWeight: '900', letterSpacing: '0.05em' }}>SELECT INFRASTRUCTURE</h2>
-                                        <p style={{ color: '#666', fontSize: '11px', margin: 0 }}>Choose a protocol to authorize with the terminal.</p>
+                                        <Text variant="heading" size="lg">SELECT_INFRASTRUCTURE</Text>
+                                        <div style={{ marginTop: '8px' }}>
+                                            <Text size="sm" color="secondary">Choose a verified gateway to authorize with the terminal ecosystem.</Text>
+                                        </div>
                                     </div>
 
-                                    <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '12px', flex: 1, overflowY: 'auto' }} className="custom-scrollbar">
+                                    <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '8px', flex: 1, overflowY: 'auto' }} className="custom-scrollbar">
                                         {[
-                                            { id: 'UPSTOX', title: 'Upstox Terminal Bridge', desc: 'Secure broker API for trade execution & live Nifty streams.', icon: <Zap size={18} />, color: COLOR.semantic.info },
-                                            { id: 'AISSTREAM', title: 'AISStream Global Marine', desc: 'Real-time WebSocket feed for global maritime vessel tracking.', icon: <Anchor size={18} />, color: COLOR.semantic.info },
-                                            { id: 'NASA', title: 'NASA FIRMS Protocol', desc: 'Thermal anomaly satellite data for global fire monitoring.', icon: <Activity size={18} />, color: COLOR.semantic.info },
-                                            { id: 'OPENSKY', title: 'OpenSky Public Radar', desc: 'Global high-precision flight tracking vectors and aircraft metadata.', icon: <Plane size={18} />, color: COLOR.semantic.info },
-                                            { id: 'RAPIDAPI', title: 'RapidAPI Economic Intel', desc: 'Global economic events and macro-calendar data stream.', icon: <Globe size={18} />, color: COLOR.semantic.info }
+                                            { id: 'UPSTOX', title: 'Upstox Bridge', desc: 'Secure broker API for trade execution & live Nifty streams.', icon: <Zap size={18} /> },
+                                            { id: 'AISSTREAM', title: 'AIS Marine Feed', desc: 'Real-time WebSocket feed for global maritime vessel tracking.', icon: <Anchor size={18} /> },
+                                            { id: 'NASA', title: 'NASA FIRMS Sat', desc: 'Thermal anomaly satellite data for global fire monitoring.', icon: <Activity size={18} /> },
+                                            { id: 'OPENSKY', title: 'OpenSky Vectors', desc: 'Global high-precision flight tracking vectors and aircraft metadata.', icon: <Plane size={18} /> },
+                                            { id: 'RAPIDAPI', title: 'RapidAPI Stream', desc: 'Global economic events and macro-calendar data stream.', icon: <Globe size={18} /> }
                                         ].map(p => (
                                             <div 
                                                 key={p.id}
                                                 onClick={() => setActiveModal(p.id as any)}
                                                 style={{ 
-                                                    background: '#0a0a0a', 
-                                                    border: '1px solid #1a1a1a', 
+                                                    background: COLOR.bg.overlay, 
+                                                    border: BORDER.standard, 
                                                     padding: '16px 20px', 
-                                                    borderRadius: '4px',
+                                                    borderRadius: 0,
                                                     cursor: 'pointer',
-                                                    transition: 'all 0.1s linear',
+                                                    transition: 'all 60ms linear',
                                                     display: 'flex',
                                                     alignItems: 'center',
                                                     gap: '16px'
                                                 }}
                                                 onMouseOver={e => {
-                                                    e.currentTarget.style.borderColor = '#333';
-                                                    e.currentTarget.style.background = '#0f0f0f';
+                                                    e.currentTarget.style.borderColor = COLOR.semantic.info;
+                                                    e.currentTarget.style.background = COLOR.bg.surface;
                                                 }}
                                                 onMouseOut={e => {
-                                                    e.currentTarget.style.borderColor = '#1a1a1a';
-                                                    e.currentTarget.style.background = '#0a0a0a';
+                                                    e.currentTarget.style.borderColor = COLOR.bg.border;
+                                                    e.currentTarget.style.background = COLOR.bg.overlay;
                                                 }}
                                             >
-                                                <div style={{ color: p.color }}>{p.icon}</div>
+                                                <div style={{ color: COLOR.semantic.info }}>{p.icon}</div>
                                                 <div style={{ flex: 1 }}>
-                                                    <div style={{ color: '#fff', fontSize: '13px', fontWeight: 'bold' }}>{p.title}</div>
-                                                    <div style={{ color: '#666', fontSize: '10px' }}>{p.desc}</div>
+                                                    <Text weight="bold" color="primary">{p.title}</Text>
+                                                    <div style={{ marginTop: '2px' }}>
+                                                        <Text size="xs" color="muted">{p.desc}</Text>
+                                                    </div>
                                                 </div>
                                             </div>
                                         ))}
                                     </div>
 
-                                    <button 
+                                    <Button 
+                                        variant="ghost" 
                                         onClick={() => setActiveModal(null)}
-                                        style={{ alignSelf: 'flex-start', background: 'transparent', border: 'none', color: '#444', fontSize: '11px', fontWeight: 'bold', cursor: 'pointer' }}
+                                        style={{ alignSelf: 'flex-start', padding: 0 }}
                                     >
                                         RETURN_TO_DASHBOARD
-                                    </button>
+                                    </Button>
                                 </div>
                             </div>
                         )}
@@ -369,174 +369,113 @@ export const ApiDashboard: React.FC = () => {
                         {activeModal === 'NASA' && <ApiConfigModal provider="NASA" onClose={() => setActiveModal(null)} />}
                         {activeModal === 'OPENSKY' && (
                             <div style={{ 
-                                padding: '20px', 
-                                background: '#0a0a0a', 
-                                border: '1px solid #222', 
-                                borderRadius: '4px',
+                                width: '400px',
+                                padding: '32px', 
+                                background: COLOR.bg.base, 
+                                border: BORDER.strong, 
+                                borderRadius: 0,
                                 display: 'flex',
                                 flexDirection: 'column',
                                 alignItems: 'center',
-                                gap: '12px',
+                                gap: '20px',
                                 textAlign: 'center'
                             }}>
-                                 <Globe size={32} color={COLOR.semantic.info} />
-                                 <div style={{ fontSize: '11px', color: '#fff', fontWeight: 'bold' }}>PUBLIC_DATA_ACTIVE</div>
-                                 <div style={{ fontSize: '10px', color: '#666' }}>Using OpenSky community-sourced ADSB vectors. No further configuration is required to activate the Flight Map.</div>
+                                 <Globe size={48} color={COLOR.semantic.info} />
+                                 <div>
+                                    <Text variant="heading" size="md">PUBLIC_NET_ACTIVE</Text>
+                                    <div style={{ marginTop: '12px' }}>
+                                        <Text size="sm" color="secondary">Using community-sourced OpenSky ADSB vectors. This connection is open and requires no authentication.</Text>
+                                    </div>
+                                 </div>
+                                 <Button variant="filled" onClick={() => setActiveModal(null)} style={{ background: COLOR.semantic.info, color: COLOR.text.inverse, width: '100%' }}>CONFIRM</Button>
                             </div>
                         )}
                         {activeModal === 'RAPIDAPI' && <ApiConfigModal provider="RAPIDAPI" onClose={() => setActiveModal(null)} />}
                     </div>
                 </div>
             )}
-
-            <style>{`
-                @keyframes fadeIn {
-                    from { opacity: 0; transform: translateY(10px); }
-                    to { opacity: 1; transform: translateY(0); }
-                }
-            `}</style>
         </div>
     );
 };
-
-const ToolbarDropdown: React.FC<{ 
-    label: string, 
-    options: string[], 
-    value: string, 
-    onChange: (val: string) => void 
-}> = ({ label, options, value, onChange }) => (
-    <div style={{ position: 'relative' }}>
-        <select 
-            value={value}
-            onChange={(e) => onChange(e.target.value)}
-            style={{ 
-                height: '34px', 
-                padding: '0 32px 0 12px', 
-                background: '#111', 
-                border: '1px solid #222', 
-                borderRadius: '4px', 
-                color: '#fff',
-                fontSize: '12px',
-                cursor: 'pointer',
-                appearance: 'none',
-                outline: 'none',
-                minWidth: '100px'
-            }}
-        >
-            {options.map(opt => (
-                <option key={opt} value={opt}>{opt === 'ALL' ? label : opt}</option>
-            ))}
-        </select>
-        <ChevronDown size={12} color="#666" style={{ position: 'absolute', right: '12px', top: '11px', pointerEvents: 'none' }} />
-    </div>
-);
 
 const ConnectionCard: React.FC<{ 
     conn: ConnectionMeta; 
     onConfig: () => void;
     onDelete: () => void;
 }> = ({ conn, onConfig, onDelete }) => {
-    const statusColor = {
-        connected: COLOR.semantic.up,
-        disconnected: '#444',
-        pending: COLOR.semantic.warning
-    }[conn.status];
+    const isUp = conn.status === 'connected';
+    const tagVariant = conn.status === 'connected' ? 'up' : (conn.status === 'pending' ? 'warning' : 'muted');
 
     return (
         <div 
             style={{ 
-                background: '#111', 
-                border: '1px solid #222', 
-                borderRadius: '8px', 
-                padding: '20px',
+                background: COLOR.bg.overlay, 
+                border: BORDER.standard, 
+                borderRadius: 0, 
+                padding: '16px 20px',
                 display: 'flex',
                 alignItems: 'center',
-                gap: '20px',
-                transition: 'all 0.2s linear',
-                animation: 'fadeIn 0.3s ease-out'
+                gap: '24px',
+                transition: 'all 80ms linear',
             }}
-            onMouseOver={e => (e.currentTarget.style.borderColor = '#444')}
-            onMouseOut={e => (e.currentTarget.style.borderColor = '#222')}
+            onMouseOver={e => (e.currentTarget.style.borderColor = COLOR.bg.border)}
+            onMouseOut={e => (e.currentTarget.style.borderColor = COLOR.bg.border)}
         >
             <div style={{ 
-                width: '48px', 
-                height: '48px', 
-                background: '#0a0a0a', 
-                border: '1px solid #222', 
-                borderRadius: '8px',
+                width: '40px', 
+                height: '40px', 
+                background: COLOR.bg.base, 
+                border: BORDER.standard, 
+                borderRadius: 0,
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                color: conn.status === 'connected' ? COLOR.semantic.info : '#666'
+                color: isUp ? COLOR.semantic.info : COLOR.text.muted
             }}>
                 {conn.icon}
             </div>
 
             <div style={{ flex: 1 }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
-                    <h3 style={{ fontSize: '15px', color: '#fff', margin: 0, fontWeight: 'bold' }}>{conn.displayName}</h3>
-                    <div style={{ 
-                        fontSize: '9px', 
-                        fontWeight: 'bold', 
-                        padding: '2px 8px', 
-                        background: '#000', 
-                        border: `1px solid ${statusColor}40`,
-                        color: statusColor,
-                        borderRadius: '20px',
-                        textTransform: 'uppercase'
-                    }}>
-                        {conn.status}
-                    </div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '4px' }}>
+                    <Text weight="bold" color="primary">{conn.displayName}</Text>
+                    <Tag label={conn.status} variant={tagVariant} />
                 </div>
-                <p style={{ fontSize: '12px', color: '#888', margin: 0 }}>{conn.description}</p>
+                <Text size="xs" color="muted">{conn.description}</Text>
             </div>
 
-            <div style={{ width: '120px', textAlign: 'right' }}>
-                <span style={{ fontSize: '11px', color: '#444', fontWeight: 'bold', display: 'block', marginBottom: '4px' }}>LAST ACTIVITY</span>
-                <span style={{ fontSize: '11px', color: '#666' }}>{conn.lastActivity}</span>
+            <div style={{ width: '140px', textAlign: 'right' }}>
+                <Text variant="label">LAST_ACTIVITY</Text>
+                <div style={{ marginTop: '2px' }}>
+                    <Text size="xs" color="secondary">{conn.lastActivity}</Text>
+                </div>
             </div>
 
-            <div style={{ display: 'flex', gap: '8px', borderLeft: '1px solid #222', paddingLeft: '20px', marginLeft: '10px' }}>
-                <button 
-                    onClick={onConfig}
-                    style={{ 
-                        background: '#1a1a1a', 
-                        border: '1px solid #333', 
-                        borderRadius: '4px', 
-                        padding: '6px 12px',
-                        color: '#fff',
-                        fontSize: '11px',
-                        fontWeight: 'bold',
-                        cursor: 'pointer',
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: '6px'
-                    }}
-                >
-                    <Settings2 size={12} /> Configure
-                </button>
-                {conn.provider !== 'UPSTOX' && (
-                    <button 
-                        onClick={() => {
-                            if (window.confirm(`Are you sure you want to delete ${conn.displayName}?`)) {
-                                onDelete();
-                            }
-                        }}
-                        style={{ 
-                            background: 'transparent', 
-                            border: '1px solid #333', 
-                            borderRadius: '4px', 
-                            width: '32px',
-                            height: '28px',
-                            color: COLOR.semantic.down,
-                            cursor: 'pointer',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center'
-                        }}
+            <div style={{ display: 'flex', gap: '8px', borderLeft: BORDER.standard, paddingLeft: '24px', marginLeft: '12px' }}>
+                <Tooltip content="CONFIGURE_ENDPOINT" position="left">
+                    <Button 
+                        variant="ghost" 
+                        onClick={onConfig}
+                        size="sm"
+                        style={{ border: BORDER.standard, color: COLOR.text.primary, height: '32px', width: '32px', padding: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}
                     >
-                        <Trash2 size={14} />
-                    </button>
+                        <Settings2 size={14} />
+                    </Button>
+                </Tooltip>
+                {conn.provider !== 'UPSTOX' && (
+                    <Tooltip content="REMOVE_INFRASTRUCTURE" position="left">
+                        <Button 
+                            variant="ghost" 
+                            onClick={() => {
+                                if (window.confirm(`Are you sure you want to delete ${conn.displayName}?`)) {
+                                    onDelete();
+                                }
+                            }}
+                            size="sm"
+                            style={{ border: BORDER.standard, color: COLOR.semantic.down, height: '32px', width: '32px', padding: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                        >
+                            <Trash2 size={14} />
+                        </Button>
+                    </Tooltip>
                 )}
             </div>
         </div>
@@ -546,19 +485,10 @@ const ConnectionCard: React.FC<{
 const modalOverlayStyle: React.CSSProperties = {
     position: 'absolute',
     top: 0, left: 0, right: 0, bottom: 0,
-    background: 'rgba(0,0,0,0.85)',
-    zIndex: 1000,
+    background: 'rgba(0,0,0,0.9)',
+    zIndex: Z.modal,
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
-    backdropFilter: 'blur(5px)'
-};
-
-const modalContentStyle: React.CSSProperties = {
-    width: '100%',
-    maxWidth: '500px',
-    background: '#000',
-    border: '1px solid #333',
-    boxShadow: '0 20px 50px rgba(0,0,0,0.5)',
-    padding: '4px'
+    backdropFilter: 'blur(8px)'
 };

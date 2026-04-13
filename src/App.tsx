@@ -19,7 +19,7 @@ import { useUpstoxBridge } from './hooks/useUpstoxBridge';
 import { Analytics } from '@vercel/analytics/react';
 import { DVDEasterEgg } from './components/EasterEgg/DVDVideo';
 import { ShieldAlert, X } from 'lucide-react';
-import { TYPE } from './ds/tokens';
+import { TYPE, COLOR } from './ds/tokens';
 import { motion, AnimatePresence } from 'framer-motion';
 import { CASUAL_LAYOUT } from './constants/layouts';
 import { ApiPage } from './layout/ApiPage';
@@ -168,23 +168,24 @@ const App: React.FC = () => {
                         top: '100px',
                         right: '24px',
                         zIndex: 10002,
-                        background: '#111',
-                        border: '1px solid #ff3b57',
+                        background: COLOR.bg.overlay,
+                        border: `1px solid ${COLOR.semantic.down}`,
                         padding: '12px 20px',
                         display: 'flex',
                         alignItems: 'center',
                         gap: '12px',
-                        boxShadow: '0 10px 30px rgba(0,0,0,0.5)',
-                        pointerEvents: 'none'
+                        boxShadow: '0 24px 64px rgba(0,0,0,0.6)',
+                        pointerEvents: 'none',
+                        backdropFilter: 'blur(12px)'
                       }}
                     >
-                      <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#ff3b57', animation: 'pulse 1.5s infinite' }} />
+                      <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: COLOR.semantic.down, animation: 'pulse 1.5s infinite' }} />
                       <div style={{ display: 'flex', flexDirection: 'column' }}>
-                        <span style={{ fontSize: '10px', fontWeight: '900', color: '#fff', letterSpacing: '0.05em', fontFamily: TYPE.family.mono }}>
+                        <span style={{ fontSize: TYPE.size.xs, fontWeight: TYPE.weight.black, color: COLOR.text.primary, letterSpacing: TYPE.letterSpacing.caps, fontFamily: TYPE.family.mono }}>
                           TERMINAL_UNSTABLE
                         </span>
-                        <span style={{ fontSize: '11px', color: '#ff3b57', fontWeight: 'bold' }}>
-                          Network disconnected, Please try again.
+                        <span style={{ fontSize: TYPE.size.xs, color: COLOR.semantic.down, fontWeight: TYPE.weight.bold, letterSpacing: TYPE.letterSpacing.tight }}>
+                          Network disconnected. Re-syncing gateway...
                         </span>
                       </div>
                       <button 
@@ -210,23 +211,24 @@ const App: React.FC = () => {
                         top: `${160 + idx * 56}px`,
                         right: '24px',
                         zIndex: 10002,
-                        background: '#050505',
-                        border: '1px solid #ff3b57',
+                        background: COLOR.bg.overlay,
+                        border: `1px solid ${COLOR.semantic.down}`,
                         borderLeftWidth: '4px',
                         padding: '10px 16px',
                         display: 'flex',
                          alignItems: 'center',
                         gap: '12px',
-                        boxShadow: '0 8px 24px rgba(0,0,0,0.4)',
-                        pointerEvents: 'none'
+                        boxShadow: '0 16px 48px rgba(0,0,0,0.5)',
+                        pointerEvents: 'none',
+                        backdropFilter: 'blur(12px)'
                       }}
                     >
-                      <ShieldAlert size={16} color="#ff3b57" />
+                      <ShieldAlert size={16} color={COLOR.semantic.down} />
                       <div style={{ display: 'flex', flexDirection: 'column' }}>
-                        <span style={{ fontSize: '9px', fontWeight: '900', color: '#ff3b57', letterSpacing: '0.1em', fontFamily: TYPE.family.mono }}>
+                        <span style={{ fontSize: TYPE.size.xs, fontWeight: TYPE.weight.black, color: COLOR.semantic.down, letterSpacing: TYPE.letterSpacing.caps, fontFamily: TYPE.family.mono }}>
                           [API_FAIL]
                         </span>
-                        <span style={{ fontSize: '11px', color: '#fff', fontWeight: 'bold', fontFamily: TYPE.family.mono }}>
+                        <span style={{ fontSize: TYPE.size.xs, color: COLOR.text.primary, fontWeight: TYPE.weight.bold, fontFamily: TYPE.family.mono }}>
                           {apiName}
                         </span>
                       </div>
@@ -248,7 +250,7 @@ const App: React.FC = () => {
                   <div style={{
                     width: '100%',
                     height: '24px',
-                    background: (!apiKey || !apiSecret) ? '#FF7722' : '#ff3b57',
+                    background: (!apiKey || !apiSecret) ? '#FF7722' : COLOR.semantic.down,
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
@@ -256,26 +258,28 @@ const App: React.FC = () => {
                     zIndex: 10001,
                     position: 'relative'
                   }}>
-                    <ShieldAlert size={14} color="#fff" />
-                    <span style={{ fontSize: '10px', fontWeight: '900', color: '#fff', letterSpacing: '0.1em', fontFamily: TYPE.family.mono }}>
+                    <ShieldAlert size={14} color={COLOR.text.inverse} />
+                    <span style={{ fontSize: TYPE.size.xs, fontWeight: TYPE.weight.black, color: COLOR.text.inverse, letterSpacing: TYPE.letterSpacing.caps, fontFamily: TYPE.family.mono }}>
                       {(!apiKey || !apiSecret) 
-                        ? 'BROKER_SETUP_REQUIRED: API_KEYS_MISSING • TERMINAL_INACTIVE'
+                        ? 'BROKER_SETUP_REQUIRED: API_KEYS_MISSING • INACTIVE'
                         : 'SESSION_EXPIRED: HANDSHAKE_INVALID • RECONNECT_REQUIRED'}
                     </span>
                     <button 
                       onClick={() => navigate('/api')}
                       style={{
-                        background: '#fff',
+                        background: COLOR.text.inverse,
                         border: 'none',
-                        color: (!apiKey || !apiSecret) ? '#FF7722' : '#ff3b57',
-                        fontSize: '9px',
-                        fontWeight: 'bold',
-                        padding: '1px 8px',
+                        color: (!apiKey || !apiSecret) ? '#FF7722' : COLOR.semantic.down,
+                        fontSize: TYPE.size.xs,
+                        fontWeight: TYPE.weight.black,
+                        padding: '1px 10px',
                         cursor: 'pointer',
-                        fontFamily: TYPE.family.mono
+                        fontFamily: TYPE.family.mono,
+                        letterSpacing: TYPE.letterSpacing.caps,
+                        borderRadius: '2px'
                       }}
                     >
-                      {(!apiKey || !apiSecret) ? 'CONFIGURE_API' : 'RECONNECT_NOW'}
+                      {(!apiKey || !apiSecret) ? 'CONFIGURE_API' : 'RECONNECT'}
                     </button>
                   </div>
                 )}

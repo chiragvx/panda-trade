@@ -1,132 +1,126 @@
 import React from 'react';
 import { useOIGraphData } from '../../hooks/useOIGraphData';
-import { COLOR, TYPE, BORDER, SPACE } from '../../ds/tokens';
-import { WidgetShell } from '../../ds/components/WidgetShell';
-import { EmptyState } from '../../ds/components/EmptyState';
-import { WidgetSymbolSearch } from '../../components/WidgetSearch/WidgetSymbolSearch';
+import { COLOR, TYPE, BORDER, SPACE, Text, Badge, WidgetShell } from '../../ds';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts';
-import { BarChart2, Info, Search, Filter, Hash } from 'lucide-react';
+import { BarChart2, Info, RefreshCw, Filter } from 'lucide-react';
 import { useUpstoxStore } from '../../store/useUpstoxStore';
+import { WidgetSymbolSearch } from '../../components/WidgetSearch/WidgetSymbolSearch';
 
 export const OIGraphWidget: React.FC = () => {
     const [localSymbol, setLocalSymbol] = React.useState<{ instrument_key: string, ticker: string } | null>(null);
     const { data, isLoading, expiries, selectedExpiry, setSelectedExpiry, stats, symbol } = useOIGraphData(localSymbol || undefined);
     const { setInstrumentMeta } = useUpstoxStore();
 
-
     return (
         <WidgetShell>
-            <WidgetShell.Toolbar style={{ height: 'auto', padding: '8px 12px', flexWrap: 'wrap', gap: '8px' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                    <BarChart2 size={14} style={{ color: COLOR.semantic.info }} />
-                    <span style={{ fontSize: '10px', fontWeight: TYPE.weight.black, color: COLOR.text.primary, letterSpacing: '0.1em' }}>OI_DISTRIBUTION: {symbol}</span>
-                </div>
+            <WidgetShell.Toolbar>
+                <WidgetShell.Toolbar.Left>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <BarChart2 size={14} style={{ color: COLOR.semantic.info }} />
+                        <Text size="xs" weight="black" style={{ letterSpacing: TYPE.letterSpacing.caps }}>
+                            OI_DISTRIBUTION: {symbol || 'NONE'}
+                        </Text>
+                    </div>
+                </WidgetShell.Toolbar.Left>
                 
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                    <WidgetSymbolSearch 
-                        onSelect={(res) => {
-                            setLocalSymbol({ instrument_key: res.instrumentKey, ticker: res.ticker });
-                            setInstrumentMeta({ [res.instrumentKey]: { ticker: res.ticker, name: res.name, exchange: res.exchange } });
-                        }} 
-                        placeholder="SEARCH..." 
-                    />
-                    {localSymbol && (
-                        <button 
-                            onClick={() => setLocalSymbol(null)}
-                            style={{ background: 'transparent', border: 'none', color: COLOR.semantic.down, fontSize: '9px', fontWeight: 'bold', cursor: 'pointer' }}
-                        >
-                            RESET
-                        </button>
-                    )}
-                </div>
-
-                <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                    <Filter size={10} style={{ color: COLOR.text.muted }} />
-                    <select 
-                        value={selectedExpiry}
-                        onChange={(e) => setSelectedExpiry(e.target.value)}
-                        style={{
-                            background: COLOR.bg.elevated,
-                            border: BORDER.standard,
-                            color: COLOR.text.primary,
-                            fontSize: '9px',
-                            fontWeight: 'bold',
-                            padding: '2px 4px',
-                            outline: 'none',
-                            borderRadius: '2px'
-                        }}
-                    >
-                        {expiries.map(exp => <option key={exp} value={exp}>{exp}</option>)}
-                    </select>
-                </div>
+                <WidgetShell.Toolbar.Right>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <WidgetSymbolSearch 
+                            onSelect={(res) => {
+                                setLocalSymbol({ instrument_key: res.instrumentKey, ticker: res.ticker });
+                                setInstrumentMeta({ [res.instrumentKey]: { ticker: res.ticker, name: res.name, exchange: res.exchange } });
+                            }} 
+                            placeholder="SEARCH..." 
+                        />
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                            <Filter size={12} color={COLOR.text.muted} />
+                            <select 
+                                value={selectedExpiry}
+                                onChange={(e) => setSelectedExpiry(e.target.value)}
+                                style={{
+                                    background: COLOR.bg.elevated,
+                                    border: BORDER.standard,
+                                    color: COLOR.text.primary,
+                                    fontSize: TYPE.size.xs,
+                                    fontWeight: TYPE.weight.bold,
+                                    padding: '2px 8px',
+                                    outline: 'none',
+                                    cursor: 'pointer'
+                                }}
+                            >
+                                {expiries.map(exp => <option key={exp} value={exp}>{exp}</option>)}
+                            </select>
+                        </div>
+                    </div>
+                </WidgetShell.Toolbar.Right>
             </WidgetShell.Toolbar>
 
             <div style={{ flex: 1, padding: SPACE[4], display: 'flex', flexDirection: 'column' }}>
                 {stats && (
-                    <div style={{ display: 'flex', gap: '16px', marginBottom: '16px', background: COLOR.bg.surface, padding: '12px', border: BORDER.standard }}>
-                        <div style={{ display: 'flex', flexDirection: 'column' }}>
-                            <span style={{ fontSize: '9px', fontWeight: TYPE.weight.bold, color: COLOR.text.muted }}>TOTAL CALL OI</span>
-                            <span style={{ fontSize: '14px', fontWeight: TYPE.weight.bold, color: COLOR.semantic.down, fontFamily: TYPE.family.mono }}>{stats.totalCallOI.toLocaleString()}</span>
+                    <div style={{ display: 'flex', gap: SPACE[4], marginBottom: SPACE[4], background: COLOR.bg.surface, padding: SPACE[3], border: BORDER.standard }}>
+                        <div style={{ flex: 1 }}>
+                            <Text size="xs" weight="black" color="muted" block>TOTAL CALL OI</Text>
+                            <Text size="lg" weight="black" color="down" family="mono">{stats.totalCallOI.toLocaleString()}</Text>
                         </div>
-                        <div style={{ width: '1px', background: BORDER.standard }} />
-                        <div style={{ display: 'flex', flexDirection: 'column' }}>
-                            <span style={{ fontSize: '9px', fontWeight: TYPE.weight.bold, color: COLOR.text.muted }}>TOTAL PUT OI</span>
-                            <span style={{ fontSize: '14px', fontWeight: TYPE.weight.bold, color: COLOR.semantic.up, fontFamily: TYPE.family.mono }}>{stats.totalPutOI.toLocaleString()}</span>
+                        <div style={{ width: '1px', background: COLOR.border.standard }} />
+                        <div style={{ flex: 1 }}>
+                            <Text size="xs" weight="black" color="muted" block>TOTAL PUT OI</Text>
+                            <Text size="lg" weight="black" color="up" family="mono">{stats.totalPutOI.toLocaleString()}</Text>
                         </div>
-                        <div style={{ width: '1px', background: BORDER.standard }} />
-                        <div style={{ display: 'flex', flexDirection: 'column' }}>
-                            <span style={{ fontSize: '9px', fontWeight: TYPE.weight.bold, color: COLOR.text.muted }}>OVERALL PCR</span>
-                            <span style={{ fontSize: '14px', fontWeight: TYPE.weight.bold, color: COLOR.text.primary, fontFamily: TYPE.family.mono }}>{stats.pcr.toFixed(2)}</span>
+                        <div style={{ width: '1px', background: COLOR.border.standard }} />
+                        <div style={{ flex: 1 }}>
+                            <Text size="xs" weight="black" color="muted" block>OVERALL PCR</Text>
+                            <Text size="lg" weight="black" color="primary" family="mono">{stats.pcr.toFixed(2)}</Text>
                         </div>
                     </div>
                 )}
 
                 <div style={{ flex: 1, minHeight: 0 }}>
-                    <ResponsiveContainer width="100%" height="100%" minWidth={100} minHeight={150}>
-                        <BarChart data={data} margin={{ top: 10, right: 10, left: 10, bottom: 20 }}>
-                            <CartesianGrid strokeDasharray="3 3" stroke={COLOR.bg.elevated} vertical={false} />
-                            <XAxis 
-                                dataKey="strike" 
-                                stroke={COLOR.text.muted} 
-                                fontSize={9} 
-                                tickLine={false} 
-                                axisLine={false}
-                                angle={-45}
-                                textAnchor="end"
-                                height={40}
-                            />
-                            <YAxis 
-                                hide 
-                                stroke={COLOR.text.muted} 
-                                fontSize={9} 
-                                tickLine={false} 
-                                axisLine={false} 
-                            />
-                            <Tooltip 
-                                cursor={{ fill: COLOR.bg.elevated, opacity: 0.4 }}
-                                contentStyle={{ 
-                                    backgroundColor: COLOR.bg.surface, 
-                                    border: BORDER.standard,
-                                    fontSize: '10px',
-                                    borderRadius: 0,
-                                    fontFamily: TYPE.family.mono
-                                }}
-                                itemStyle={{ padding: 0 }}
-                            />
-                            <Legend verticalAlign="top" height={30} wrapperStyle={{ fontSize: '9px', fontWeight: 'bold' }} />
-                            <Bar name="CALL OI" dataKey="callOI" fill={COLOR.semantic.down} opacity={0.8} />
-                            <Bar name="PUT OI" dataKey="putOI" fill={COLOR.semantic.up} opacity={0.8} />
-                        </BarChart>
-                    </ResponsiveContainer>
+                    {isLoading ? (
+                        <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '12px' }}>
+                            <RefreshCw size={24} className="animate-spin" color={COLOR.text.muted} />
+                            <Text weight="bold" size="sm" color="muted">LOAD_OI_STRIKES...</Text>
+                        </div>
+                    ) : (
+                        <ResponsiveContainer width="100%" height="100%">
+                            <BarChart data={data} margin={{ top: 10, right: 10, left: 0, bottom: 20 }}>
+                                <CartesianGrid strokeDasharray="3 3" stroke={COLOR.bg.elevated} vertical={false} />
+                                <XAxis 
+                                    dataKey="strike" 
+                                    stroke={COLOR.text.muted} 
+                                    fontSize={11} 
+                                    tickLine={false} 
+                                    axisLine={false}
+                                    angle={-45}
+                                    textAnchor="end"
+                                    height={50}
+                                />
+                                <YAxis hide domain={[0, 'auto']} />
+                                <Tooltip 
+                                    cursor={{ fill: COLOR.bg.elevated, opacity: 0.4 }}
+                                    contentStyle={{ 
+                                        backgroundColor: COLOR.bg.surface, 
+                                        border: BORDER.standard,
+                                        fontSize: TYPE.size.xs,
+                                        borderRadius: 0,
+                                        fontFamily: TYPE.family.mono
+                                    }}
+                                />
+                                <Legend verticalAlign="top" height={36} wrapperStyle={{ fontSize: TYPE.size.xs, fontWeight: TYPE.weight.black }} />
+                                <Bar name="CALL OI" dataKey="callOI" fill={COLOR.semantic.down} opacity={0.8} />
+                                <Bar name="PUT OI" dataKey="putOI" fill={COLOR.semantic.up} opacity={0.8} />
+                            </BarChart>
+                        </ResponsiveContainer>
+                    )}
                 </div>
             </div>
 
-            <div style={{ padding: '8px 12px', borderTop: BORDER.standard, display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: COLOR.bg.surface }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                    <Info size={11} style={{ color: COLOR.text.muted }} />
-                    <span style={{ fontSize: '8px', color: COLOR.text.muted, fontWeight: TYPE.weight.bold }}>OI_SNAPSHOT: LATEST_EXPIRY</span>
+            <div style={{ height: '32px', padding: '0 12px', borderTop: BORDER.strong, display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: COLOR.bg.surface }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <Info size={12} color={COLOR.text.muted} />
+                    <Text size="xs" color="muted" weight="bold">OI_SNAPSHOT: LATEST_EXPIRY_SKEW</Text>
                 </div>
-                <span style={{ fontSize: '8px', fontWeight: TYPE.weight.black, color: COLOR.semantic.info }}>ANALYTICS ENGINE V2</span>
+                <Badge label="ANALYTICS ENGINE V2" variant="info" />
             </div>
         </WidgetShell>
     );

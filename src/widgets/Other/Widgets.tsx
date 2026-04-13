@@ -257,7 +257,7 @@ const OrdersRow: React.FC<{ order: any }> = ({ order }) => {
         minWidth: 'fit-content'
       }}
     >
-      <div style={{ width: 60, minWidth: 60, paddingLeft: '12px', fontFamily: TYPE.family.mono, fontSize: '10px', color: COLOR.text.muted }}>
+      <div style={{ width: 60, minWidth: 60, paddingLeft: '12px', fontFamily: TYPE.family.mono, fontSize: TYPE.size.xs, color: COLOR.text.muted, fontWeight: TYPE.weight.bold }}>
         {order.time}
       </div>
       <div style={{ 
@@ -271,12 +271,12 @@ const OrdersRow: React.FC<{ order: any }> = ({ order }) => {
         position: 'sticky', 
         left: 0, 
         zIndex: 10,
-        background: hovered ? COLOR.interactive.hover : '#000000',
-        borderRight: '1px solid #111111'
+        background: hovered ? COLOR.interactive.hover : COLOR.bg.base,
+        borderRight: BORDER.standard
       }}>
         {order.symbol}
       </div>
-      <div style={{ width: 40, minWidth: 40, textAlign: 'center', fontFamily: TYPE.family.mono, fontSize: '11px', fontWeight: 'bold', color: order.side === 'BUY' ? COLOR.semantic.up : COLOR.semantic.down }}>
+      <div style={{ width: 40, minWidth: 40, textAlign: 'center', fontFamily: TYPE.family.mono, fontSize: TYPE.size.xs, fontWeight: TYPE.weight.black, color: order.side === 'BUY' ? COLOR.semantic.up : COLOR.semantic.down }}>
         {order.side === 'BUY' ? 'B' : 'S'}
       </div>
       <div style={{ width: 60, minWidth: 60, textAlign: 'right', paddingRight: '12px', fontFamily: TYPE.family.mono, fontSize: TYPE.size.sm, color: COLOR.text.secondary }}>
@@ -299,12 +299,12 @@ const OrdersRow: React.FC<{ order: any }> = ({ order }) => {
             height: '100%',
             width: 100,
             zIndex: 30, 
-            background: COLOR.interactive.hover, 
+            background: COLOR.bg.elevated, 
             display: 'flex', 
             alignItems: 'center', 
             justifyContent: 'center',
             gap: '4px', 
-            borderLeft: `1px solid #333333`
+            borderLeft: BORDER.standard
         }}>
           {isPending && (
             <>
@@ -391,25 +391,26 @@ export const OrdersWidget: React.FC = () => {
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100%', background: COLOR.bg.surface }}>
-      <div style={{ height: '32px', display: 'flex', alignItems: 'center', justifyContent: 'flex-end', padding: '0 12px', borderBottom: BORDER.standard, flexShrink: 0 }}>
+      <div style={{ height: '32px', display: 'flex', alignItems: 'center', justifyContent: 'flex-end', padding: '0 12px', borderBottom: BORDER.standard, flexShrink: 0, background: COLOR.bg.elevated }}>
         <button 
             onClick={handleCancelAll}
             style={{ 
                 background: 'none', 
-                border: '1px solid #f43f5e', 
-                color: '#f43f5e', 
-                fontSize: '9px', 
-                fontWeight: 'bold', 
-                padding: '4px 10px', 
+                border: `1px solid ${COLOR.semantic.down}`, 
+                color: COLOR.semantic.down, 
+                fontSize: TYPE.size.xs, 
+                fontWeight: TYPE.weight.black, 
+                padding: '3px 10px', 
                 cursor: 'pointer',
                 borderRadius: '2px',
                 textTransform: 'uppercase',
-                transition: 'all 0.1s linear'
+                transition: 'all 0.1s linear',
+                letterSpacing: TYPE.letterSpacing.caps
             }}
-            onMouseOver={(e) => { e.currentTarget.style.background = '#f43f5e22'; }}
+            onMouseOver={(e) => { e.currentTarget.style.background = `${COLOR.semantic.down}22`; }}
             onMouseOut={(e) => { e.currentTarget.style.background = 'none'; }}
         >
-            CANCEL ALL PENDING
+            CANCEL_ALL_PENDING
         </button>
       </div>
 
@@ -427,22 +428,22 @@ export const OrdersWidget: React.FC = () => {
                     alignItems: 'center', 
                     justifyContent: c === 'SYMBOL' ? 'flex-start' : 'flex-end',
                     fontFamily: TYPE.family.mono,
-                    fontSize: '9px',
-                    fontWeight: '900',
+                    fontSize: TYPE.size.xs,
+                    fontWeight: TYPE.weight.black,
                     color: COLOR.text.muted,
-                    letterSpacing: '0.1em',
+                    letterSpacing: TYPE.letterSpacing.caps,
                     padding: '0 12px',
                     position: c === 'SYMBOL' ? 'sticky' : 'static',
                     left: c === 'SYMBOL' ? 0 : 'auto',
                     zIndex: c === 'SYMBOL' ? 20 : 1,
-                    background: '#000000',
-                    borderRight: '1px solid #111111'
+                    background: COLOR.bg.surface,
+                    borderRight: BORDER.standard
                 }}
             >
                 {c}
             </div>
         ))}
-        <div style={{ width: 100, minWidth: 100, flexShrink: 0, background: '#000000' }} />
+        <div style={{ width: 100, minWidth: 100, flexShrink: 0, background: COLOR.bg.surface }} />
       </div>
       <div 
         ref={contentRef}

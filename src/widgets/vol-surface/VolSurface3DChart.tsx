@@ -96,7 +96,7 @@ const Surface: React.FC<{ data: SurfacePoint[], side: string, wireframe: boolean
 
 export const VolSurface3DChart: React.FC<VolSurface3DChartProps> = ({ data, optionSide, isWireframe }) => {
   return (
-    <div style={{ width: '100%', height: '100%', background: '#000', position: 'relative' }}>
+    <div style={{ width: '100%', height: '100%', background: COLOR.bg.base, position: 'relative' }}>
       <Canvas shadows dpr={[1, 2]}>
         <PerspectiveCamera makeDefault position={[120, 120, 120]} fov={40} />
         <OrbitControls makeDefault enableDamping dampingFactor={0.1} />
@@ -117,7 +117,7 @@ export const VolSurface3DChart: React.FC<VolSurface3DChartProps> = ({ data, opti
           sectionSize={50}
           sectionThickness={1}
           sectionColor={COLOR.bg.border}
-          cellColor="#111"
+          cellColor={COLOR.bg.elevated}
         />
 
         <GizmoHelper alignment="bottom-right" margin={[80, 80]}>
@@ -125,8 +125,8 @@ export const VolSurface3DChart: React.FC<VolSurface3DChartProps> = ({ data, opti
         </GizmoHelper>
       </Canvas>
 
-      <div style={{ position: 'absolute', top: '10px', left: '10px', pointerEvents: 'none' }}>
-         <div style={{ fontSize: '10px', color: COLOR.text.muted, fontFamily: TYPE.family.mono, letterSpacing: '0.1em' }}>
+      <div style={{ position: 'absolute', top: '12px', left: '12px', pointerEvents: 'none' }}>
+         <div style={{ fontSize: TYPE.size.xs, color: COLOR.text.muted, fontFamily: TYPE.family.mono, letterSpacing: TYPE.letterSpacing.caps, fontWeight: TYPE.weight.black, lineHeight: '1.6' }}>
             Y: IMPLIED_VOLATILITY (%) <br/>
             X: STRIKE_PRICE <br/>
             Z: TIME_TO_EXPIRY (YRS)

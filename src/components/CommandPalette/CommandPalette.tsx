@@ -135,11 +135,11 @@ export const CommandPalette: React.FC = () => {
                   fontSize: TYPE.size.lg,
                 }}
               />
-              <div style={{ border: BORDER.standard, padding: '2px 6px', fontSize: '9px', color: COLOR.text.muted, fontFamily: TYPE.family.mono }}>ESC</div>
+              <div style={{ border: BORDER.standard, padding: '2px 6px', fontSize: TYPE.size.xs, color: COLOR.text.muted, fontFamily: TYPE.family.mono, fontWeight: TYPE.weight.black }}>ESC</div>
             </div>
 
             <div style={{ maxHeight: '400px', overflowY: 'auto', padding: '8px' }}>
-              <div style={{ padding: '0 8px 8px 8px', fontSize: '10px', color: COLOR.text.muted, fontFamily: TYPE.family.mono }}>SYMBOLS</div>
+              <div style={{ padding: '0 8px 8px 8px', fontSize: TYPE.size.xs, color: COLOR.text.muted, fontFamily: TYPE.family.mono, fontWeight: TYPE.weight.black, letterSpacing: TYPE.letterSpacing.caps }}>SYMBOLS</div>
               {filtered.map((s, idx) => {
                 const active = idx === selectedIndex;
                 return (
@@ -160,13 +160,13 @@ export const CommandPalette: React.FC = () => {
                     <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
                       <div style={{ background: COLOR.bg.border, padding: '4px 8px', fontFamily: TYPE.family.mono, fontSize: '12px', fontWeight: 'bold' }}>{s.ticker || '--'}</div>
                       <div style={{ display: 'flex', flexDirection: 'column' }}>
-                        <span style={{ fontSize: '13px', color: COLOR.text.primary, fontWeight: 'medium' }}>{s.name || s.ticker || '--'}</span>
-                        <span style={{ fontSize: '10px', color: COLOR.text.muted, fontFamily: TYPE.family.mono }}>{s.exchange} • {s.instrument_key || '--'}</span>
+                        <span style={{ fontSize: TYPE.size.sm, color: COLOR.text.primary, fontWeight: TYPE.weight.black }}>{s.name || s.ticker || '--'}</span>
+                        <span style={{ fontSize: TYPE.size.xs, color: COLOR.text.muted, fontFamily: TYPE.family.mono, fontWeight: TYPE.weight.bold }}>{s.exchange} • {s.instrument_key || '--'}</span>
                       </div>
                     </div>
                     {active && (
                       <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: COLOR.semantic.info }}>
-                        <span style={{ fontSize: '10px', fontFamily: TYPE.family.mono }}>SELECT</span>
+                        <span style={{ fontSize: TYPE.size.xs, fontFamily: TYPE.family.mono, fontWeight: TYPE.weight.black }}>SELECT</span>
                         <ArrowRight size={14} />
                       </div>
                     )}
@@ -182,14 +182,14 @@ export const CommandPalette: React.FC = () => {
               <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
                   <TrendingUp size={12} color={COLOR.semantic.up} />
-                  <span style={{ fontSize: '10px', fontFamily: TYPE.family.mono, color: COLOR.text.muted }}>LIVE DATA ONLY</span>
+                  <span style={{ fontSize: TYPE.size.xs, fontFamily: TYPE.family.mono, color: COLOR.text.muted, fontWeight: TYPE.weight.bold }}>LIVE DATA ONLY</span>
                 </div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
                   <Zap size={12} color={COLOR.semantic.info} />
-                  <span style={{ fontSize: '10px', fontFamily: TYPE.family.mono, color: COLOR.text.muted }}>READY</span>
+                  <span style={{ fontSize: TYPE.size.xs, fontFamily: TYPE.family.mono, color: COLOR.text.muted, fontWeight: TYPE.weight.bold }}>READY</span>
                 </div>
               </div>
-              <div style={{ fontSize: '10px', color: COLOR.text.muted, display: 'flex', gap: '10px' }}>
+              <div style={{ fontSize: TYPE.size.xs, color: COLOR.text.muted, display: 'flex', gap: '10px', fontFamily: TYPE.family.mono, fontWeight: TYPE.weight.black }}>
                 <span>↑↓ NAVIGATE</span>
                 <span>↵ ENTER</span>
               </div>

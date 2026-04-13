@@ -4,11 +4,18 @@ import { useSelectionStore, useLayoutStore, useWatchlistStore, Watchlist } from 
 import { useUpstoxStore } from '../../store/useUpstoxStore';
 import { useContextMenuStore } from '../../store/useContextMenuStore';
 import { SymbolData } from '../../types';
-import { COLOR, TYPE, ROW_HEIGHT, BORDER, SPACE } from '../../ds/tokens';
-import { Badge } from '../../ds/components/Badge';
-import { Price } from '../../ds/components/Price';
-import { Change } from '../../ds/components/Change';
-import { Button } from '../../ds/components/Button';
+import { 
+  COLOR, 
+  TYPE, 
+  ROW_HEIGHT, 
+  BORDER, 
+  SPACE,
+  Text,
+  Badge,
+  Price,
+  Change,
+  Button
+} from '../../ds';
 import { motion, AnimatePresence } from 'framer-motion';
 import { buildSymbolFromFeed } from '../../utils/liveSymbols';
 import { upstoxSearch, UpstoxSearchResult } from '../../services/upstoxSearch';
@@ -82,7 +89,7 @@ const WatchlistRow: React.FC<{
         label: 'OPEN ON CHART', 
         icon: <BarChart3 size={14} />, 
         variant: 'muted' as const,
-        onClick: () => { /* Chart updates automatically via setSelectedSymbol */ } 
+        onClick: () => { } 
       },
       { 
         label: 'VIEW FUNDAMENTALS', 
@@ -95,9 +102,7 @@ const WatchlistRow: React.FC<{
       }
     ];
 
-    // Filter out trading options for indexes/VIX
     const filteredOptions = isIndex ? options.filter(o => o.label.includes('CHART')) : options;
-
     openContextMenu(e.clientX, e.clientY, filteredOptions);
   };
 
@@ -111,13 +116,13 @@ const WatchlistRow: React.FC<{
         display: 'flex',
         alignItems: 'center',
         height: ROW_HEIGHT.compact,
-        borderBottom: `1px solid #111111`,
+        borderBottom: BORDER.standard,
         cursor: 'default',
         position: 'relative',
-        background: isSelected ? '#1a110a' : hovered ? '#080808' : 'transparent',
-        borderLeft: isSelected ? `2px solid #FF7722` : '2px solid transparent',
+        background: isSelected ? `${COLOR.semantic.info}15` : hovered ? COLOR.bg.surface : 'transparent',
+        borderLeft: isSelected ? `2px solid ${COLOR.semantic.info}` : '2px solid transparent',
         userSelect: 'none',
-        transition: 'background 0.05s linear',
+        transition: 'background 60ms linear',
       }}
     >
       {visibleColumns.map((col) => {
@@ -128,10 +133,10 @@ const WatchlistRow: React.FC<{
           display: 'flex',
           alignItems: 'center',
           justifyContent: col === 'SYMBOL' ? 'flex-start' : 'flex-end',
-          padding: '0 12px',
+          padding: `0 ${SPACE.md}`,
           height: '100%',
           flex: 'none',
-          borderRight: '1px solid #111111',
+          borderRight: BORDER.standard,
         };
 
         switch (col) {
@@ -143,25 +148,15 @@ const WatchlistRow: React.FC<{
                     ...baseStyle, 
                     position: 'sticky', 
                     left: 0, 
-                    zIndex: 10, 
-                    background: isSelected ? '#1a110a' : hovered ? '#080808' : '#000000'
+                    zIndex: 2, 
+                    background: isSelected ? COLOR.bg.surface : hovered ? COLOR.bg.surface : COLOR.bg.base
                 }}
               >
-                <div style={{ display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                        <span style={{ 
-                            fontFamily: TYPE.family.mono, 
-                            fontSize: '12px', 
-                            fontWeight: '900', 
-                            color: '#FFFFFF',
-                            whiteSpace: 'nowrap',
-                            overflow: 'hidden',
-                            textOverflow: 'ellipsis'
-                        }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', overflow: 'hidden' }}>
+                    <Text weight="black" size="sm" color="primary" block ellipsis style={{ maxWidth: '90px' }}>
                         {displayTicker}
-                        </span>
-                        <Badge label={symbol.exchange} variant={symbol.exchange === 'NSE' ? 'exchange-nse' : 'exchange-bse'} />
-                    </div>
+                    </Text>
+                    <Badge label={symbol.exchange} variant={symbol.exchange === 'NSE' ? 'exchange-nse' : 'exchange-bse'} />
                 </div>
               </div>
             );
@@ -198,23 +193,21 @@ const WatchlistRow: React.FC<{
           case 'VOLUME':
             return (
               <div key={col} style={baseStyle}>
-                <span style={{ fontFamily: TYPE.family.mono, fontSize: '10px', color: COLOR.text.muted }}>
+                <Text size="xs" color="muted">
                   {((symbol.volume || 0) / 1000000).toFixed(2)}M
-                </span>
+                </Text>
               </div>
             );
           case 'DELIVERY%':
             return (
               <div key={col} style={baseStyle}>
-                <span
-                  style={{
-                    fontFamily: TYPE.family.mono,
-                    fontSize: '10px',
-                    color: (symbol.deliveryPct || 0) > 60 ? COLOR.semantic.up : COLOR.text.muted,
-                  }}
+                <Text 
+                    size="xs" 
+                    color={(symbol.deliveryPct || 0) > 60 ? 'up' : 'muted'}
+                    weight="bold"
                 >
                   {(symbol.deliveryPct || 0).toFixed(1)}%
-                </span>
+                </Text>
               </div>
             );
           default:
@@ -236,23 +229,23 @@ const WatchlistRow: React.FC<{
                 height: '100%',
                 display: 'flex',
                 alignItems: 'center',
-                gap: '4px',
-                padding: '0 8px',
-                background: '#000000',
-                borderLeft: `1px solid #333333`,
-                zIndex: 20,
+                gap: '2px',
+                padding: '0 4px',
+                background: COLOR.bg.base,
+                borderLeft: BORDER.standard,
+                zIndex: 3,
                 marginLeft: 'auto', 
             }}
             >
             {!isIndex && (
                 <>
-                <Button variant="ghost" size="sm" onClick={(e) => { e.stopPropagation(); setSelectedSymbol(symbol); if ((window as any).replaceTab) (window as any).replaceTab('fundamentals'); }} style={{ color: COLOR.text.muted, border: 'none', background: 'transparent' }}><Info size={16} /></Button>
-                <div style={{ width: '1px', height: '12px', background: '#222', margin: '0 4px' }} />
-                <Button variant="buy" size="sm" onClick={(e) => { e.stopPropagation(); setSelectedSymbol(symbol); setTimeout(() => openOrderModal('BUY'), 0); }} style={{ background: COLOR.semantic.up, color: COLOR.text.inverse }}>BUY</Button>
-                <Button variant="sell" size="sm" onClick={(e) => { e.stopPropagation(); setSelectedSymbol(symbol); setTimeout(() => openOrderModal('SELL'), 0); }} style={{ background: COLOR.semantic.down, color: COLOR.text.inverse }}>SELL</Button>
+                <Button variant="ghost" size="sm" onClick={(e) => { e.stopPropagation(); setSelectedSymbol(symbol); if ((window as any).replaceTab) (window as any).replaceTab('fundamentals'); }} style={{ color: COLOR.text.muted, border: 'none', background: 'transparent' }}><Info size={14} /></Button>
+                <div style={{ width: '1px', height: '12px', background: COLOR.bg.border, margin: '0 2px' }} />
+                <Button variant="buy" size="sm" onClick={(e) => { e.stopPropagation(); setSelectedSymbol(symbol); setTimeout(() => openOrderModal('BUY'), 0); }} style={{ height: '22px', padding: '0 8px' }}>BUY</Button>
+                <Button variant="sell" size="sm" onClick={(e) => { e.stopPropagation(); setSelectedSymbol(symbol); setTimeout(() => openOrderModal('SELL'), 0); }} style={{ height: '22px', padding: '0 8px' }}>SELL</Button>
                 </>
             )}
-            <Button variant="ghost" size="sm" onClick={(e) => { e.stopPropagation(); removeKeyFromActive(symbol.instrument_key!); }} style={{ color: '#ff4444', border: 'none', background: 'transparent' }}><Trash2 size={16} /></Button>
+            <Button variant="ghost" size="sm" onClick={(e) => { e.stopPropagation(); removeKeyFromActive(symbol.instrument_key!); }} style={{ color: COLOR.semantic.down, border: 'none', background: 'transparent' }}><Trash2 size={14} /></Button>
             </motion.div>
         )}
       </AnimatePresence>
@@ -377,9 +370,9 @@ export const WatchlistWidget: React.FC = () => {
   };
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', height: '100%', background: '#000000', overflow: 'hidden' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', height: '100%', background: COLOR.bg.base, overflow: 'hidden' }}>
       {/* Watchlist Tabs */}
-      <div style={{ display: 'flex', alignItems: 'stretch', height: '32px', borderBottom: `1px solid #222222`, background: '#000000', overflowX: 'auto' }} className="no-scrollbar">
+      <div style={{ display: 'flex', alignItems: 'stretch', height: '32px', borderBottom: BORDER.standard, background: COLOR.bg.base, overflowX: 'auto' }} className="no-scrollbar">
         {watchlists.map(w => (
           <div 
             key={w.id} 
@@ -387,9 +380,9 @@ export const WatchlistWidget: React.FC = () => {
             onDoubleClick={() => { setEditingId(w.id); setEditValue(w.name); }}
             style={{ 
               display: 'flex', alignItems: 'center', gap: '8px', padding: '0 16px', 
-              borderRight: `1px solid #111111`, cursor: 'pointer',
-              background: activeWatchlistId === w.id ? '#111111' : 'transparent',
-              borderBottom: activeWatchlistId === w.id ? `1px solid #FF7722` : 'none',
+              borderRight: BORDER.standard, cursor: 'pointer',
+              background: activeWatchlistId === w.id ? COLOR.bg.surface : 'transparent',
+              borderBottom: activeWatchlistId === w.id ? `2px solid ${COLOR.semantic.info}` : 'none',
               transition: 'all 0.1s linear',
               flexShrink: 0
             }}
@@ -401,44 +394,51 @@ export const WatchlistWidget: React.FC = () => {
                 onChange={e => setEditValue(e.target.value)}
                 onBlur={() => { renameWatchlist(w.id, editValue); setEditingId(null); }}
                 onKeyDown={e => { if (e.key === 'Enter') { renameWatchlist(w.id, editValue); setEditingId(null); } }}
-                style={{ background: '#000', border: 'none', color: '#fff', fontSize: '10px', width: '80px', outline: 'none', fontFamily: TYPE.family.mono }}
+                style={{ background: COLOR.bg.base, border: 'none', color: COLOR.text.primary, fontSize: TYPE.size.xs, width: '80px', outline: 'none', fontFamily: TYPE.family.mono }}
               />
             ) : (
-              <span style={{ fontSize: '10px', fontWeight: 'bold', color: activeWatchlistId === w.id ? '#FFFFFF' : COLOR.text.muted, fontFamily: TYPE.family.mono, letterSpacing: '0.1em' }}>{w.name}</span>
+              <Text 
+                size="xs" 
+                weight="black" 
+                color={activeWatchlistId === w.id ? 'primary' : 'muted'}
+                style={{ letterSpacing: '0.1em' }}
+              >
+                {w.name}
+              </Text>
             )}
             {watchlists.length > 1 && activeWatchlistId === w.id && !editingId && (
-                <X size={10} color="#666" onClick={(e) => { e.stopPropagation(); deleteWatchlist(w.id); }} className="hover:text-red-500" />
+                <X size={10} color={COLOR.text.muted} onClick={(e) => { e.stopPropagation(); deleteWatchlist(w.id); }} className="hover:text-red-500" />
             )}
           </div>
         ))}
         <button 
           onClick={() => createWatchlist(`Watchlist ${watchlists.length + 1}`)}
-          style={{ padding: '0 12px', background: 'transparent', border: 'none', color: '#666', cursor: 'pointer' }}
+          style={{ padding: '0 12px', background: 'transparent', border: 'none', color: COLOR.text.muted, cursor: 'pointer' }}
         >
           <Plus size={14} />
         </button>
       </div>
 
       {/* Search Bar */}
-      <div style={{ padding: '8px', borderBottom: `1px solid #111111`, position: 'relative' }}>
-        <div style={{ display: 'flex', alignItems: 'center', background: '#000', border: `1px solid #333333`, height: '32px', padding: '0 10px', gap: '10px' }}>
-          <Search size={14} color="#666" />
+      <div style={{ padding: '8px', borderBottom: BORDER.standard, position: 'relative' }}>
+        <div style={{ display: 'flex', alignItems: 'center', background: COLOR.bg.base, border: BORDER.standard, height: '32px', padding: '0 10px', gap: '10px' }}>
+          <Search size={14} color={COLOR.text.muted} />
           <input 
             value={search}
             onChange={e => setSearch(e.target.value)}
-            placeholder="SEARCH / ADD SYMBOL..."
-            style={{ flex: 1, background: 'transparent', border: 'none', color: '#fff', fontSize: '11px', outline: 'none', fontFamily: TYPE.family.mono }}
+            placeholder="SEARCH_SYMBOLS..."
+            style={{ flex: 1, background: 'transparent', border: 'none', color: COLOR.text.primary, fontSize: TYPE.size.sm, outline: 'none', fontFamily: TYPE.family.mono }}
           />
         </div>
         
         <AnimatePresence>
             {showSearchDropdown && (
-                <motion.div initial={{ opacity: 0, y: -5 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} style={{ position: 'absolute', top: '100%', left: '8px', right: '8px', background: '#050505', border: `1px solid #333`, zIndex: 100, maxHeight: '300px', overflowY: 'auto' }}>
+                <motion.div initial={{ opacity: 0, y: -5 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} style={{ position: 'absolute', top: '100%', left: '8px', right: '8px', background: COLOR.bg.elevated, border: BORDER.standard, zIndex: 100, maxHeight: '300px', overflowY: 'auto' }}>
                     {searchResults.map((res, idx) => (
-                        <div key={res.instrumentKey} onClick={() => handleSelectResult(res)} style={{ padding: '8px 12px', borderBottom: '1px solid #111', cursor: 'pointer', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }} className="hover:bg-zinc-900">
+                        <div key={res.instrumentKey} onClick={() => handleSelectResult(res)} style={{ padding: '8px 12px', borderBottom: BORDER.standard, cursor: 'pointer', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }} className="hover:bg-zinc-900">
                             <div style={{ display: 'flex', flexDirection: 'column' }}>
-                                <span style={{ fontSize: '12px', fontWeight: 'bold', color: '#fff', fontFamily: TYPE.family.mono }}>{res.ticker}</span>
-                                <span style={{ fontSize: '9px', color: '#666' }}>{res.name}</span>
+                                <Text weight="bold" color="primary">{res.ticker}</Text>
+                                <Text size="xs" color="muted">{res.name}</Text>
                             </div>
                             <Badge label={res.exchange} variant="exchange-nse" />
                         </div>
@@ -451,7 +451,7 @@ export const WatchlistWidget: React.FC = () => {
       {/* Header */}
       <div 
         ref={headerRef}
-        style={{ display: 'flex', alignItems: 'center', height: ROW_HEIGHT.header, background: '#000000', borderBottom: `1px solid #222222`, flexShrink: 0, overflow: 'hidden' }}
+        style={{ display: 'flex', alignItems: 'center', height: ROW_HEIGHT.header, background: COLOR.bg.base, borderBottom: BORDER.strong, flexShrink: 0, overflow: 'hidden' }}
       >
         {visibleColumns.map((col) => {
           const width = COLUMN_WIDTHS[col] || 80;
@@ -466,49 +466,51 @@ export const WatchlistWidget: React.FC = () => {
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: col === 'SYMBOL' ? 'flex-start' : 'flex-end',
-                padding: '0 12px',
-                fontFamily: TYPE.family.mono,
-                fontSize: '9px',
-                fontWeight: '900',
-                color: isActive ? '#FFFFFF' : '#666666',
-                letterSpacing: '0.12em',
-                textTransform: 'uppercase',
-                flex: 'none',
-                borderRight: '1px solid #111111',
+                padding: `0 ${SPACE.md}`,
                 height: '100%',
+                flex: 'none',
+                borderRight: BORDER.standard,
                 position: col === 'SYMBOL' ? 'sticky' : 'static',
                 left: col === 'SYMBOL' ? 0 : 'auto',
                 zIndex: col === 'SYMBOL' ? 20 : 1,
-                background: '#000000',
+                background: COLOR.bg.base,
                 cursor: 'pointer',
-                transition: 'all 0.1s linear',
+                transition: 'all 60ms linear',
                 userSelect: 'none',
                 gap: '4px'
               }}
-              className="hover:bg-zinc-950 transition-colors"
-              onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.color = '#FFFFFF'; }}
-              onMouseLeave={(e) => { if (!isActive) (e.currentTarget as HTMLElement).style.color = '#666666'; }}
+              onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.background = COLOR.bg.surface; }}
+              onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.background = COLOR.bg.base; }}
             >
-              {col === 'SYMBOL' && isActive && (sortDir === 'asc' ? <ChevronUp size={10} /> : <ChevronDown size={10} />)}
-              <span>{col}</span>
-              {col !== 'SYMBOL' && isActive && (sortDir === 'asc' ? <ChevronUp size={10} /> : <ChevronDown size={10} />)}
+              {col === 'SYMBOL' && isActive && (sortDir === 'asc' ? <ChevronUp size={10} color={COLOR.text.primary} /> : <ChevronDown size={10} color={COLOR.text.primary} />)}
+              <Text 
+                variant="label" 
+                size="xs" 
+                weight="black" 
+                color={isActive ? 'primary' : 'muted'}
+              >
+                {col}
+              </Text>
+              {col !== 'SYMBOL' && isActive && (sortDir === 'asc' ? <ChevronUp size={10} color={COLOR.text.primary} /> : <ChevronDown size={10} color={COLOR.text.primary} />)}
             </div>
           );
         })}
       </div>
 
-      {/* Scrollable Content */}
+      {/* Content */}
       <div 
         ref={contentRef}
         onScroll={syncScroll}
-        style={{ flex: 1, overflow: 'auto', padding: '0' }} 
+        style={{ flex: 1, overflow: 'auto' }} 
         className="custom-scrollbar"
       >
         <div style={{ minWidth: 'fit-content' }}>
             {sortedAndFiltered.length === 0 ? (
-                <div style={{ padding: '40px', textAlign: 'center', color: '#444', fontSize: '11px', fontFamily: TYPE.family.mono }}>{search ? 'NO RESULTS FOUND' : 'ADD SYMBOLS TO START'}</div>
+                <div style={{ padding: '64px 20px', textAlign: 'center' }}>
+                    <Text size="xs" color="muted">NO_INSTRUMENTS_FOUND</Text>
+                </div>
             ) : (
-              sortedAndFiltered.map((s, idx) => (
+              sortedAndFiltered.map((s) => (
                     <WatchlistRow
                         key={s.instrument_key || s.ticker}
                         symbol={s}

@@ -19,20 +19,21 @@ export const GenericStub: React.FC<{ name: string; category: string }> = ({ name
       </div>
       <div style={{ textAlign: 'center' }}>
         <div style={{
-          fontFamily: TYPE.family.mono, fontSize: '10px', color: COLOR.text.muted,
-          letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: '8px'
+          fontFamily: TYPE.family.mono, fontSize: TYPE.size.xs, color: COLOR.text.muted,
+          letterSpacing: TYPE.letterSpacing.caps, textTransform: 'uppercase', marginBottom: '8px',
+          fontWeight: TYPE.weight.black
         }}>
           {category} / {name}
         </div>
         <div style={{
-          fontFamily: TYPE.family.mono, fontSize: '12px', fontWeight: 'bold',
-          color: '#fff', textTransform: 'uppercase'
+          fontFamily: TYPE.family.mono, fontSize: '12px', fontWeight: TYPE.weight.black,
+          color: COLOR.text.primary, textTransform: 'uppercase'
         }}>
           NO_API_DATA_STREAM
         </div>
         {selectedSymbol && (
-          <div style={{ fontSize: '10px', color: COLOR.semantic.info, marginTop: '4px', fontFamily: TYPE.family.mono }}>
-            LISTENING FOR: {selectedSymbol.ticker}
+          <div style={{ fontSize: TYPE.size.xs, color: COLOR.semantic.info, marginTop: '4px', fontFamily: TYPE.family.mono, fontWeight: TYPE.weight.bold, letterSpacing: TYPE.letterSpacing.caps }}>
+            LISTENING: {selectedSymbol.ticker}
           </div>
         )}
       </div>

@@ -3,15 +3,21 @@ import { isIsin } from '../../utils/liveSymbols';
 import { useUpstoxStore } from '../../store/useUpstoxStore';
 import { useLayoutStore, useSelectionStore } from '../../store/useStore';
 import { useContextMenuStore, ContextMenuOption } from '../../store/useContextMenuStore';
-import { COLOR, TYPE, BORDER, SPACE } from '../../ds/tokens';
-import { Price } from '../../ds/components/Price';
-import { Change } from '../../ds/components/Change';
-import { Badge } from '../../ds/components/Badge';
+import { 
+  COLOR, 
+  TYPE, 
+  BORDER, 
+  SPACE,
+  Text,
+  Price,
+  Change,
+  Badge,
+  WidgetShell,
+  DataTable,
+  EmptyState,
+  HoverActions
+} from '../../ds';
 import { Wallet, Info, ArrowUpCircle, ArrowDownCircle, BarChart3 } from 'lucide-react';
-import { WidgetShell } from '../../ds/components/WidgetShell';
-import { DataTable } from '../../ds/components/DataTable';
-import { EmptyState } from '../../ds/components/EmptyState';
-import { HoverActions } from '../../ds/components/HoverActions';
 
 const toNumber = (value: unknown, fallback = 0) => {
   const parsed = Number(value);
@@ -59,7 +65,7 @@ const UpstoxHoldings: React.FC = () => {
 
     const totalValue = useMemo(() => holdings.reduce((acc, h) => acc + h.marketValue, 0), [holdings]);
     const totalPnL = useMemo(() => holdings.reduce((acc, h) => acc + h.pnl, 0), [holdings]);
-    const totalPnLPct = totalValue > totalPnL ? (totalPnL / (totalValue - totalPnL)) * 100 : 0;
+    const totalPnLPct = (totalValue - totalPnL) > 0 ? (totalPnL / (totalValue - totalPnL)) * 100 : 0;
 
     const handleSelect = (item: any) => {
         setSelectedSymbol({ ticker: item.symbol, instrument_key: item.instrument_token } as any);
@@ -99,48 +105,48 @@ const UpstoxHoldings: React.FC = () => {
         { 
             key: 'symbol', 
             label: 'SYMBOL', 
-            width: 160,
+            width: 180,
             render: (val: string, item: any) => (
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                     <Badge label={item.exchange} variant={item.exchange === 'NSE' ? 'exchange-nse' : 'exchange-bse'} />
-                    <span style={{ fontWeight: 'bold' }}>{val}</span>
+                    <Text weight="black" size="md">{val}</Text>
                 </div>
             )
         },
-        { key: 'quantity', label: 'QTY', align: 'right' as const, width: 80 },
+        { key: 'quantity', label: 'QTY', align: 'right' as const, width: 80, render: (val: number) => <Text weight="bold" size="sm">{val}</Text> },
         { 
             key: 'avgCost', 
             label: 'AVG_COST', 
             align: 'right' as const, 
             width: 100,
-            render: (val: number) => <span style={{ color: COLOR.text.secondary }}>{val.toFixed(2)}</span>
+            render: (val: number) => <Text color="secondary" size="sm">{val.toFixed(2)}</Text>
         },
         { 
             key: 'ltp', 
             label: 'LTP', 
             align: 'right' as const, 
             width: 100,
-            render: (val: number) => <Price value={val} size="sm" weight="bold" />
+            render: (val: number) => <Price value={val} size="sm" weight="black" />
         },
         { 
             key: 'marketValue', 
             label: 'CUR_VALUE', 
             align: 'right' as const, 
             width: 120,
-            render: (val: number) => `₹${val.toLocaleString('en-IN', { maximumFractionDigits: 0 })}`
+            render: (val: number) => <Text weight="bold" size="sm">₹{val.toLocaleString('en-IN', { maximumFractionDigits: 0 })}</Text>
         },
         { 
             key: 'pnl', 
             label: 'PNL', 
             align: 'right' as const, 
-            width: 120,
+            width: 130,
             render: (val: number, item: any, idx: number) => (
                 <div style={{ position: 'relative', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'flex-end' }}
                      onMouseEnter={() => setHoveredIndex(idx)}
                      onMouseLeave={() => setHoveredIndex(null)}>
-                    <span style={{ fontWeight: '900', color: val >= 0 ? COLOR.semantic.up : COLOR.semantic.down }}>
-                        {val >= 0 ? '+' : ''}{val.toLocaleString('en-IN', { maximumFractionDigits: 0 })}
-                    </span>
+                    
+                    <Change value={val} format="absolute" size="sm" weight="black" />
+
                     <HoverActions 
                         isVisible={hoveredIndex === idx}
                         onBuy={() => handleAction(item, 'BUY')}
@@ -154,54 +160,56 @@ const UpstoxHoldings: React.FC = () => {
             key: 'pnlPct', 
             label: '%CHG', 
             align: 'right' as const, 
-            width: 100,
-            render: (val: number) => <Change value={val} format="percent" weight="bold" size="sm" />
+            width: 80,
+            render: (val: number) => <Change value={val} format="percent" weight="bold" size="xs" />
         }
     ];
 
     return (
         <WidgetShell>
             {/* Portfolio Summary */}
-            <div style={{ display: 'flex', gap: '32px', padding: '12px 16px', background: COLOR.bg.surface, borderBottom: BORDER.standard }}>
+            <div style={{ display: 'flex', gap: '32px', padding: '12px 16px', background: COLOR.bg.base, borderBottom: BORDER.standard }}>
                 <div>
-                    <span style={{ fontSize: '9px', color: COLOR.text.muted, fontWeight: '900', letterSpacing: '0.1em', display: 'block' }}>TOTAL_MARKET_VALUE</span>
-                    <span style={{ fontSize: '16px', fontWeight: '900', color: COLOR.text.primary }}>
+                    <Text variant="label" size="xs" weight="black" color="muted" block style={{ letterSpacing: '0.1em' }}>TOTAL_MARKET_VALUE</Text>
+                    <Text size="xl" weight="black" color="primary">
                         ₹{totalValue.toLocaleString('en-IN', { maximumFractionDigits: 0 })}
-                    </span>
+                    </Text>
                 </div>
                 <div>
-                    <span style={{ fontSize: '9px', color: COLOR.text.muted, fontWeight: '900', letterSpacing: '0.1em', display: 'block' }}>UNREALIZED_PNL</span>
+                    <Text variant="label" size="xs" weight="black" color="muted" block style={{ letterSpacing: '0.1em' }}>UNREALIZED_PNL</Text>
                     <div style={{ display: 'flex', alignItems: 'baseline', gap: '8px' }}>
-                        <span style={{ fontSize: '16px', fontWeight: '900', color: totalPnL >= 0 ? COLOR.semantic.up : COLOR.semantic.down }}>
-                            {totalPnL >= 0 ? '+' : ''}{totalPnL.toLocaleString('en-IN', { maximumFractionDigits: 0 })}
-                        </span>
-                        <span style={{ fontSize: '11px', fontWeight: 'bold', color: totalPnL >= 0 ? COLOR.semantic.up : COLOR.semantic.down }}>
+                        <Text size="xl" weight="black" color={totalPnL >= 0 ? 'up' : 'down'}>
+                            {totalPnL >= 0 ? '+' : ''}₹{totalPnL.toLocaleString('en-IN', { maximumFractionDigits: 0 })}
+                        </Text>
+                        <Text size="sm" weight="bold" color={totalPnL >= 0 ? 'up' : 'down'}>
                             ({totalPnLPct.toFixed(2)}%)
-                        </span>
+                        </Text>
                     </div>
                 </div>
             </div>
 
-            {holdings.length === 0 ? (
-                <EmptyState 
-                    icon={<Wallet size={32} />} 
-                    message="NO HOLDINGS FOUND" 
-                    subMessage="Long term investments will appear here once settled."
-                />
-            ) : (
-                <DataTable 
-                    data={holdings}
-                    columns={columns}
-                    onRowClick={handleSelect}
-                    stickyFirstColumn
-                />
-            )}
+            <div style={{ flex: 1, overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
+                {holdings.length === 0 ? (
+                    <EmptyState 
+                        icon={<Wallet size={48} />} 
+                        message="NO HOLDINGS FOUND" 
+                        subMessage="Long term investments will appear here once settled."
+                    />
+                ) : (
+                    <DataTable 
+                        data={holdings}
+                        columns={columns}
+                        onRowClick={handleSelect}
+                        stickyFirstColumn
+                    />
+                )}
+            </div>
 
-            <div style={{ height: '24px', padding: '0 12px', background: COLOR.bg.surface, borderTop: BORDER.standard, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <span style={{ fontSize: '9px', color: COLOR.text.muted, fontWeight: 'bold' }}>SOURCE: UPSTOX_HOLDINGS_V2</span>
+            <div style={{ height: '32px', padding: '0 12px', background: COLOR.bg.surface, borderTop: BORDER.strong, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <Text size="xs" color="muted" weight="black" style={{ letterSpacing: '0.05em' }}>SOURCE: UPSTOX_HOLDINGS_PRO_V3</Text>
                 <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
-                    <BarChart3 size={12} color={COLOR.text.muted} />
-                    <Wallet size={12} color={COLOR.text.muted} />
+                    <BarChart3 size={14} color={COLOR.text.muted} />
+                    <Wallet size={14} color={COLOR.text.muted} />
                 </div>
             </div>
         </WidgetShell>
@@ -209,4 +217,3 @@ const UpstoxHoldings: React.FC = () => {
 };
 
 export default UpstoxHoldings;
-

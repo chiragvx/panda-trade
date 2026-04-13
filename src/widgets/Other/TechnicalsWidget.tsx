@@ -1,9 +1,7 @@
 import React from 'react';
 import { useTechnicals } from '../../hooks/useTechnicals';
-import { COLOR, TYPE, BORDER, SPACE } from '../../ds/tokens';
-import { WidgetShell } from '../../ds/components/WidgetShell';
-import { EmptyState } from '../../ds/components/EmptyState';
-import { Cpu, Search, Info, TrendingUp, TrendingDown, Minus } from 'lucide-react';
+import { COLOR, TYPE, BORDER, SPACE, Text, Price, Badge, WidgetShell } from '../../ds';
+import { Cpu, Info, TrendingUp, TrendingDown, Minus, RefreshCw } from 'lucide-react';
 import { WidgetSymbolSearch } from '../../components/WidgetSearch/WidgetSymbolSearch';
 import { useUpstoxStore } from '../../store/useUpstoxStore';
 
@@ -12,56 +10,63 @@ export const TechnicalsWidget: React.FC = () => {
     const { indicators, isLoading, symbol } = useTechnicals(localSymbol);
     const { setInstrumentMeta } = useUpstoxStore();
 
-
     const getRSISentiment = (rsi: number) => {
-        if (rsi >= 70) return { label: 'OVERBOUGHT', color: COLOR.semantic.down };
-        if (rsi <= 30) return { label: 'OVERSOLD', color: COLOR.semantic.up };
-        return { label: 'NEUTRAL', color: COLOR.text.muted };
+        if (rsi >= 70) return { label: 'OVERBOUGHT', color: 'down' as const };
+        if (rsi <= 30) return { label: 'OVERSOLD', color: 'up' as const };
+        return { label: 'NEUTRAL', color: 'muted' as const };
     };
 
     const getPriceRelation = (price: number, ma: number) => {
-        if (price > ma) return { icon: <TrendingUp size={12} />, color: COLOR.semantic.up, label: 'ABOVE' };
-        if (price < ma) return { icon: <TrendingDown size={12} />, color: COLOR.semantic.down, label: 'BELOW' };
-        return { icon: <Minus size={12} />, color: COLOR.text.muted, label: 'AT' };
+        if (price > ma) return { icon: <TrendingUp size={12} />, color: 'up' as const, label: 'ABOVE' };
+        if (price < ma) return { icon: <TrendingDown size={12} />, color: 'down' as const, label: 'BELOW' };
+        return { icon: <Minus size={12} />, color: 'muted' as const, label: 'AT' };
     };
 
     return (
         <WidgetShell>
-            <WidgetShell.Toolbar style={{ height: 'auto', padding: '8px 12px', flexWrap: 'wrap', gap: '8px' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                    <Cpu size={14} style={{ color: COLOR.semantic.info }} />
-                    <span style={{ fontSize: '10px', fontWeight: TYPE.weight.black, color: COLOR.text.primary, letterSpacing: '0.1em' }}>TECHNICAL_ANALYSIS: {symbol}</span>
-                </div>
+            <WidgetShell.Toolbar>
+                <WidgetShell.Toolbar.Left>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <Cpu size={14} style={{ color: COLOR.semantic.info }} />
+                        <Text size="xs" weight="black" style={{ letterSpacing: TYPE.letterSpacing.caps }}>
+                            TECH_ANALYSIS: {symbol || 'NONE'}
+                        </Text>
+                    </div>
+                </WidgetShell.Toolbar.Left>
                 
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                    <WidgetSymbolSearch 
-                        onSelect={(res) => {
-                            setLocalSymbol({ instrument_key: res.instrumentKey, ticker: res.ticker });
-                            setInstrumentMeta({ [res.instrumentKey]: { ticker: res.ticker, name: res.name, exchange: res.exchange } });
-                        }} 
-                        placeholder="SEARCH..." 
-                    />
-                    {localSymbol && (
-                        <button 
-                            onClick={() => setLocalSymbol(null)}
-                            style={{ background: 'transparent', border: 'none', color: COLOR.semantic.down, fontSize: '9px', fontWeight: 'bold', cursor: 'pointer' }}
-                        >
-                            RESET
-                        </button>
-                    )}
-                </div>
+                <WidgetShell.Toolbar.Right>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <WidgetSymbolSearch 
+                            onSelect={(res) => {
+                                setLocalSymbol({ instrument_key: res.instrumentKey, ticker: res.ticker });
+                                setInstrumentMeta({ [res.instrumentKey]: { ticker: res.ticker, name: res.name, exchange: res.exchange } });
+                            }} 
+                            placeholder="SEARCH..." 
+                        />
+                        {localSymbol && (
+                            <button 
+                                onClick={() => setLocalSymbol(null)}
+                                style={{ background: 'transparent', border: 'none', color: COLOR.semantic.down, fontSize: TYPE.size.xs, fontWeight: TYPE.weight.bold, cursor: 'pointer' }}
+                            >
+                                RESET
+                            </button>
+                        )}
+                    </div>
+                </WidgetShell.Toolbar.Right>
             </WidgetShell.Toolbar>
 
-            <div style={{ flex: 1, padding: SPACE[4], overflowY: 'auto' }} className="custom-scrollbar">
+            <div style={{ flex: 1, padding: SPACE[3], overflowY: 'auto' }} className="custom-scrollbar">
                 {indicators ? (
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: SPACE[4] }}>
                         {/* RSI SECTION */}
-                        <div style={{ background: COLOR.bg.surface, border: BORDER.standard, padding: '16px' }}>
-                            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '12px' }}>
-                                <span style={{ fontSize: '9px', fontWeight: TYPE.weight.black, color: COLOR.text.muted }}>RSI (14)</span>
-                                <span style={{ fontSize: '10px', fontWeight: TYPE.weight.bold, color: getRSISentiment(indicators.rsi).color }}>{getRSISentiment(indicators.rsi).label}</span>
+                        <div style={{ background: COLOR.bg.surface, border: BORDER.standard, padding: SPACE[3] }}>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: SPACE[2] }}>
+                                <Text size="xs" weight="black" color="muted">RSI (14)</Text>
+                                <Text size="xs" weight="bold" color={getRSISentiment(indicators.rsi).color}>
+                                    {getRSISentiment(indicators.rsi).label}
+                                </Text>
                             </div>
-                            <div style={{ height: '4px', background: COLOR.bg.elevated, position: 'relative', borderRadius: '2px' }}>
+                            <div style={{ height: '4px', background: COLOR.bg.elevated, position: 'relative', borderRadius: '2px', marginBottom: SPACE[2] }}>
                                 <div style={{ 
                                     position: 'absolute', 
                                     left: '30%', 
@@ -69,8 +74,8 @@ export const TechnicalsWidget: React.FC = () => {
                                     top: 0, 
                                     bottom: 0, 
                                     background: 'rgba(255,255,255,0.05)',
-                                    borderLeft: '1px solid #333',
-                                    borderRight: '1px solid #333'
+                                    borderLeft: `1px solid ${COLOR.border.standard}`,
+                                    borderRight: `1px solid ${COLOR.border.standard}`
                                 }} />
                                 <div style={{ 
                                     position: 'absolute', 
@@ -78,18 +83,16 @@ export const TechnicalsWidget: React.FC = () => {
                                     top: '-4px', 
                                     width: '2px', 
                                     height: '12px', 
-                                    background: '#fff',
-                                    boxShadow: '0 0 8px #fff'
+                                    background: COLOR.text.primary,
+                                    boxShadow: `0 0 8px ${COLOR.text.primary}`
                                 }} />
                             </div>
-                            <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '8px' }}>
-                                <span style={{ fontFamily: TYPE.family.mono, fontSize: '12px', fontWeight: 'bold' }}>{indicators.rsi?.toFixed(2)}</span>
-                            </div>
+                            <Text family="mono" size="lg" weight="black">{indicators.rsi?.toFixed(2)}</Text>
                         </div>
 
                         {/* TREND SECTION */}
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                            <span style={{ fontSize: '9px', fontWeight: TYPE.weight.black, color: COLOR.text.muted, letterSpacing: '0.1em' }}>MOVING AVERAGES</span>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: SPACE[2] }}>
+                            <Text size="xs" weight="black" color="muted" style={{ letterSpacing: '0.1em' }}>MOVING AVERAGES</Text>
                             {[
                                 { label: 'SMA 20', val: indicators.sma20 },
                                 { label: 'EMA 50', val: indicators.ema50 },
@@ -98,12 +101,12 @@ export const TechnicalsWidget: React.FC = () => {
                                 const rel = getPriceRelation(indicators.lastPrice, ma.val);
                                 return (
                                     <div key={ma.label} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '10px 12px', background: COLOR.bg.surface, border: BORDER.standard }}>
-                                        <span style={{ fontSize: '10px', fontWeight: 'bold', color: COLOR.text.secondary }}>{ma.label}</span>
+                                        <Text size="sm" weight="bold" color="secondary">{ma.label}</Text>
                                         <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                                            <span style={{ fontFamily: TYPE.family.mono, fontSize: '11px', color: COLOR.text.primary }}>{ma.val?.toFixed(2)}</span>
-                                            <div style={{ display: 'flex', alignItems: 'center', gap: '4px', minWidth: '60px', justifyContent: 'flex-end', color: rel.color }}>
-                                                {rel.icon}
-                                                <span style={{ fontSize: '9px', fontWeight: 'black' }}>{rel.label}</span>
+                                            <Price value={ma.val} size="sm" weight="black" />
+                                            <div style={{ display: 'flex', alignItems: 'center', gap: '4px', minWidth: '70px', justifyContent: 'flex-end' }}>
+                                                <div style={{ color: COLOR.semantic[rel.color] }}>{rel.icon}</div>
+                                                <Text size="xs" weight="black" color={rel.color}>{rel.label}</Text>
                                             </div>
                                         </div>
                                     </div>
@@ -112,16 +115,19 @@ export const TechnicalsWidget: React.FC = () => {
                         </div>
                     </div>
                 ) : (
-                    <div style={{ padding: '40px', textAlign: 'center', color: COLOR.text.muted, fontSize: TYPE.size.sm }}>CALCULATING_SIGNALS...</div>
+                    <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '12px', color: COLOR.text.muted }}>
+                         <RefreshCw size={16} className="animate-spin" />
+                         <Text size="sm" weight="bold">CALCULATING_SIGNALS...</Text>
+                    </div>
                 )}
             </div>
 
-            <div style={{ padding: '8px 12px', borderTop: BORDER.standard, display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: COLOR.bg.surface }}>
-               <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                   <Info size={11} style={{ color: COLOR.text.muted }} />
-                   <span style={{ fontSize: '8px', color: COLOR.text.muted, fontWeight: TYPE.weight.bold }}>INDICATORS_LAGGING: DAILY_CHART</span>
+            <div style={{ height: '32px', padding: '0 12px', background: COLOR.bg.surface, borderTop: BORDER.strong, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+               <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                   <Info size={12} color={COLOR.text.muted} />
+                   <Text size="xs" color="muted" weight="bold">INDICATORS_LAGGING: DAILY_CHART</Text>
                </div>
-               <span style={{ fontSize: '8px', fontWeight: TYPE.weight.black, color: COLOR.semantic.info }}>QUANT_ENGINE_V1</span>
+               <Badge label="QUANT_ENGINE_V1" variant="info" />
             </div>
         </WidgetShell>
     );

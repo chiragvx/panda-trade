@@ -26,10 +26,10 @@ interface FirePoint {
 }
 
 const getFireColor = (frp: number): string => {
-    if (frp > 100) return '#ff0000'; // Extreme
-    if (frp > 50) return '#ff7700';  // High
-    if (frp > 10) return '#ffaa00';  // Moderate
-    return '#ffee00';               // Low
+    if (frp > 100) return COLOR.semantic.down; // Extreme
+    if (frp > 50) return COLOR.semantic.warning;  // High
+    if (frp > 10) return COLOR.semantic.info;  // Moderate
+    return COLOR.text.muted;               // Low
 };
 
 // Global memory cache to prevent spamming the API on unmounts/remounts
@@ -124,29 +124,31 @@ const FireMap: React.FC = () => {
         <WidgetShell>
             <WidgetShell.Toolbar>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flex: 1 }}>
-                    <Flame size={12} color={COLOR.semantic.down} />
-                    <span style={{ fontSize: '9px', fontWeight: 'bold', color: COLOR.text.secondary, textTransform: 'uppercase' }}>
+                    <Flame size={14} color={COLOR.semantic.down} />
+                    <span style={{ fontSize: TYPE.size.xs, fontWeight: TYPE.weight.black, color: COLOR.text.primary, letterSpacing: TYPE.letterSpacing.caps }}>
                         NASA_FIRMS_THERMAL_SCANNER
                     </span>
                     <div style={{ 
-                        fontSize: '8px', 
-                        padding: '1px 6px', 
-                        background: '#ff000020', 
-                        color: '#ff3333', 
+                        fontSize: TYPE.size.xs, 
+                        padding: '1px 8px', 
+                        background: `${COLOR.semantic.down}20`, 
+                        color: COLOR.semantic.down, 
+                        border: `1px solid ${COLOR.semantic.down}40`,
                         borderRadius: '2px', 
-                        fontWeight: 'bold',
+                        fontWeight: TYPE.weight.black,
                         display: 'flex',
                         alignItems: 'center',
-                        gap: '4px'
+                        gap: '4px',
+                        letterSpacing: TYPE.letterSpacing.caps
                     }}>
-                        <Activity size={8} /> LIVE
+                        <Activity size={10} /> LIVE
                     </div>
                 </div>
-                <div style={{ fontSize: '9px', color: COLOR.text.muted, display: 'flex', alignItems: 'center', gap: '12px' }}>
-                    <span>E_FIRE: {stats.extreme}</span>
-                    <span>GLOBAL_HITS: {stats.total}</span>
-                    <button onClick={() => fetchFires(true)} style={{ background: 'transparent', border: 'none', color: '#666', cursor: 'pointer' }}>
-                        <Info size={12} />
+                <div style={{ fontSize: TYPE.size.xs, color: COLOR.text.muted, display: 'flex', alignItems: 'center', gap: '12px', fontWeight: TYPE.weight.black, fontFamily: TYPE.family.mono }}>
+                    <span>D_SCAN: {stats.extreme}</span>
+                    <span>GLOBAL: {stats.total}</span>
+                    <button onClick={() => fetchFires(true)} style={{ background: 'transparent', border: 'none', color: COLOR.text.muted, cursor: 'pointer', padding: '0 4px' }}>
+                        <Info size={14} />
                     </button>
                 </div>
             </WidgetShell.Toolbar>
@@ -156,27 +158,27 @@ const FireMap: React.FC = () => {
                 <div style={{ width: '280px', borderRight: BORDER.standard, background: COLOR.bg.surface, display: 'flex', flexDirection: 'column' }}>
                     <div style={{ padding: '16px', borderBottom: BORDER.standard, background: COLOR.bg.elevated }}>
                             {nasaApiKey ? (
-                                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', background: COLOR.bg.surface, border: BORDER.standard, padding: '8px 12px', borderRadius: '4px', marginBottom: '20px' }}>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', background: COLOR.bg.surface, border: BORDER.standard, padding: '8px 12px', borderRadius: '2px', marginBottom: '20px' }}>
                                     <Search size={14} color={COLOR.text.muted} />
                                     <input 
                                         value={searchQuery}
                                         onChange={e => setSearchQuery(e.target.value)}
                                         placeholder="LOCATE_COORDS..."
-                                        style={{ background: 'transparent', border: 'none', outline: 'none', color: '#fff', fontSize: '11px', fontFamily: TYPE.family.mono, width: '100%' }}
+                                        style={{ background: 'transparent', border: 'none', outline: 'none', color: COLOR.text.primary, fontSize: TYPE.size.xs, fontWeight: TYPE.weight.bold, fontFamily: TYPE.family.mono, width: '100%' }}
                                     />
                                 </div>
                             ) : (
-                                <div style={{ padding: '12px', background: '#ff000010', border: '1px solid #ff000040', borderRadius: '4px', marginBottom: '20px', textAlign: 'center' }}>
-                                    <AlertTriangle size={20} color={COLOR.semantic.down} style={{ margin: '0 auto 8px' }} />
-                                    <div style={{ fontSize: '10px', color: COLOR.semantic.down, fontWeight: 'bold' }}>API_KEY_REQUIRED</div>
-                                    <div style={{ fontSize: '9px', color: COLOR.text.muted, marginTop: '4px' }}>Add NASA FIRMS Map Key in API Dashboard</div>
+                                <div style={{ padding: '12px', background: `${COLOR.semantic.down}10`, border: `1px solid ${COLOR.semantic.down}40`, borderRadius: '4px', marginBottom: '20px', textAlign: 'center' }}>
+                                    <AlertTriangle size={24} color={COLOR.semantic.down} style={{ margin: '0 auto 8px' }} />
+                                    <div style={{ fontSize: TYPE.size.xs, color: COLOR.semantic.down, fontWeight: TYPE.weight.black, letterSpacing: TYPE.letterSpacing.caps }}>API_KEY_REQUIRED</div>
+                                    <div style={{ fontSize: TYPE.size.xs, color: COLOR.text.muted, marginTop: '4px', fontWeight: TYPE.weight.bold }}>Add NASA FIRMS Map Key in API Dashboard</div>
                                 </div>
                             )}
 
                         <div style={{ marginBottom: '16px' }}>
                             <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
-                                <label style={{ fontSize: '9px', fontWeight: 'bold', color: '#666' }}>FRP_THRESHOLD (MW)</label>
-                                <span style={{ fontSize: '10px', color: COLOR.semantic.down, fontWeight: 'bold' }}>{frpThreshold}MW+</span>
+                                <label style={{ fontSize: TYPE.size.xs, fontWeight: TYPE.weight.black, color: COLOR.text.muted, letterSpacing: TYPE.letterSpacing.caps }}>SCAN_THRESHOLD</label>
+                                <span style={{ fontSize: TYPE.size.xs, color: COLOR.semantic.down, fontWeight: TYPE.weight.black }}>{frpThreshold}MW+</span>
                             </div>
                             <input 
                                 type="range" 
@@ -186,15 +188,15 @@ const FireMap: React.FC = () => {
                                 onChange={e => setFrpThreshold(Number(e.target.value))}
                                 style={{ width: '100%', cursor: 'pointer', accentColor: COLOR.semantic.down }}
                             />
-                            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '8px', color: '#444', marginTop: '4px' }}>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: TYPE.size.xs, color: COLOR.text.muted, marginTop: '4px', fontWeight: TYPE.weight.bold }}>
                                 <span>ALL_PULSES</span>
                                 <span>MAJOR_INFERNO</span>
                             </div>
                         </div>
 
                         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
-                            <StatBox label="EXTREME" value={stats.extreme} color="#ff0000" />
-                            <StatBox label="FILTERED" value={filteredFires.length} color="#ff7700" />
+                            <StatBox label="EXTREME" value={stats.extreme} color={COLOR.semantic.down} />
+                            <StatBox label="FILTERED" value={filteredFires.length} color={COLOR.semantic.warning} />
                         </div>
                     </div>
 
@@ -202,7 +204,7 @@ const FireMap: React.FC = () => {
                         {filteredFires.length === 0 ? (
                             <div style={{ padding: '40px 20px', textAlign: 'center', opacity: 0.3 }}>
                                 <AlertTriangle size={32} style={{ margin: '0 auto 12px' }} />
-                                <div style={{ fontSize: '10px', fontWeight: 'bold' }}>NO ANOMALIES FILTERED</div>
+                                <div style={{ fontSize: TYPE.size.xs, fontWeight: TYPE.weight.black, letterSpacing: TYPE.letterSpacing.caps }}>NO_ANOMALIES_FILTERED</div>
                             </div>
                         ) : (
                             filteredFires.slice(0, 50).map((f, i) => (
@@ -213,7 +215,7 @@ const FireMap: React.FC = () => {
                 </div>
 
                 {/* Map View */}
-                <div style={{ flex: 1, background: '#050505', position: 'relative' }}>
+                <div style={{ flex: 1, background: COLOR.bg.base, position: 'relative' }}>
                     <MapContainer center={[20, 0]} zoom={3} style={{ height: '100%', width: '100%' }} zoomControl={false}>
                         <TileLayer url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png" />
                         <ZoomControl position="bottomright" />
@@ -253,53 +255,52 @@ const MapController: React.FC<{ center?: [number, number] }> = ({ center }) => {
 };
 
 const StatBox: React.FC<{ label: string, value: number, color: string }> = ({ label, value, color }) => (
-    <div style={{ background: '#0a0a0a', border: '1px solid #222', padding: '10px', borderRadius: '4px' }}>
-        <div style={{ fontSize: '8px', color: '#666', marginBottom: '2px' }}>{label}</div>
-        <div style={{ fontSize: '14px', fontWeight: 'bold', color: color }}>{value}</div>
+    <div style={{ background: COLOR.bg.surface, border: BORDER.standard, padding: '10px', borderRadius: '2px' }}>
+        <div style={{ fontSize: TYPE.size.xs, color: COLOR.text.muted, marginBottom: '2px', fontWeight: TYPE.weight.black, letterSpacing: TYPE.letterSpacing.caps }}>{label}</div>
+        <div style={{ fontSize: '16px', fontWeight: TYPE.weight.black, color: color, fontFamily: TYPE.family.mono }}>{value}</div>
     </div>
 );
 
 const FireRow: React.FC<{ fire: FirePoint, onClick: () => void }> = ({ fire, onClick }) => (
     <div 
         onClick={onClick}
-        style={{ padding: '12px', borderBottom: '1px solid #111', cursor: 'pointer' }}
-        onMouseOver={e => (e.currentTarget.style.background = '#111')}
-        onMouseOut={e => (e.currentTarget.style.background = 'transparent')}
+        style={{ padding: '12px', borderBottom: BORDER.standard, cursor: 'pointer', transition: 'background 0.1s linear' }}
+        className="hover:bg-bg-elevated"
     >
         <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px' }}>
-            <span style={{ fontSize: '11px', fontWeight: 'bold', color: '#fff' }}>{fire.frp} MW POWER</span>
-            <span style={{ fontSize: '9px', padding: '1px 5px', background: `${getFireColor(fire.frp)}20`, color: getFireColor(fire.frp), fontWeight: 'bold' }}>
+            <span style={{ fontSize: TYPE.size.xs, fontWeight: TYPE.weight.black, color: COLOR.text.primary }}>{fire.frp} MW POWER</span>
+            <span style={{ fontSize: TYPE.size.xs, padding: '1px 6px', background: `${getFireColor(fire.frp)}20`, border: `1px solid ${getFireColor(fire.frp)}40`, color: getFireColor(fire.frp), fontWeight: TYPE.weight.black, letterSpacing: TYPE.letterSpacing.caps, borderRadius: '2px' }}>
                 {fire.daynight === 'D' ? 'DAY' : 'NIGHT'}
             </span>
         </div>
-        <div style={{ fontSize: '9px', color: '#555', fontFamily: TYPE.family.mono }}>
+        <div style={{ fontSize: TYPE.size.xs, color: COLOR.text.muted, fontFamily: TYPE.family.mono, fontWeight: TYPE.weight.bold }}>
             LAT: {fire.latitude.toFixed(4)} LON: {fire.longitude.toFixed(4)}
         </div>
     </div>
 );
 
 const FirePopup: React.FC<{ fire: FirePoint }> = ({ fire }) => (
-    <div style={{ background: '#000', color: '#fff', padding: '4px', fontSize: '11px' }}>
-        <div style={{ borderBottom: '1px solid #333', paddingBottom: '6px', marginBottom: '8px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+    <div style={{ background: COLOR.bg.overlay, color: COLOR.text.primary, padding: '8px', fontSize: TYPE.size.xs }}>
+        <div style={{ borderBottom: BORDER.standard, paddingBottom: '6px', marginBottom: '8px', display: 'flex', alignItems: 'center', gap: '8px' }}>
             <Flame size={14} color={getFireColor(fire.frp)} />
-            <div style={{ fontWeight: 'bold' }}>THERMAL_SCAN_REPORT</div>
+            <div style={{ fontWeight: TYPE.weight.black, letterSpacing: TYPE.letterSpacing.caps }}>THERMAL_SCAN_REPORT</div>
         </div>
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
             <div>
-                <div style={{ fontSize: '7px', color: '#666' }}>RADIATIVE_POWER</div>
-                <div style={{ fontWeight: 'bold', fontSize: '12px', color: getFireColor(fire.frp) }}>{fire.frp} MW</div>
+                <div style={{ fontSize: TYPE.size.xs, color: COLOR.text.muted, fontWeight: TYPE.weight.black, letterSpacing: TYPE.letterSpacing.caps }}>RADIATIVE_POWER</div>
+                <div style={{ fontWeight: TYPE.weight.black, fontSize: '12px', color: getFireColor(fire.frp), fontFamily: TYPE.family.mono }}>{fire.frp} MW</div>
             </div>
             <div>
-                <div style={{ fontSize: '7px', color: '#666' }}>SAT_BRIGHTNESS</div>
-                <div style={{ fontWeight: 'bold' }}>{fire.bright_ti4} K</div>
+                <div style={{ fontSize: TYPE.size.xs, color: COLOR.text.muted, fontWeight: TYPE.weight.black, letterSpacing: TYPE.letterSpacing.caps }}>SAT_BRIGHTNESS</div>
+                <div style={{ fontWeight: TYPE.weight.black, fontFamily: TYPE.family.mono }}>{fire.bright_ti4} K</div>
             </div>
             <div>
-                <div style={{ fontSize: '7px', color: '#666' }}>ACQ_TIME</div>
-                <div style={{ fontWeight: 'bold' }}>{fire.acq_date} {fire.acq_time}</div>
+                <div style={{ fontSize: TYPE.size.xs, color: COLOR.text.muted, fontWeight: TYPE.weight.black, letterSpacing: TYPE.letterSpacing.caps }}>ACQ_TIME</div>
+                <div style={{ fontWeight: TYPE.weight.black, fontFamily: TYPE.family.mono }}>{fire.acq_date} {fire.acq_time}</div>
             </div>
             <div>
-                <div style={{ fontSize: '7px', color: '#666' }}>LAT/LON</div>
-                <div style={{ fontWeight: 'bold' }}>{fire.latitude.toFixed(3)}, {fire.longitude.toFixed(3)}</div>
+                <div style={{ fontSize: TYPE.size.xs, color: COLOR.text.muted, fontWeight: TYPE.weight.black, letterSpacing: TYPE.letterSpacing.caps }}>LAT/LON</div>
+                <div style={{ fontWeight: TYPE.weight.black, fontFamily: TYPE.family.mono }}>{fire.latitude.toFixed(3)}, {fire.longitude.toFixed(3)}</div>
             </div>
         </div>
     </div>

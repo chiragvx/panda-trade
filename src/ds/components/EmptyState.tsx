@@ -41,8 +41,8 @@ export const EmptyState: React.FC<EmptyStateProps> = ({
         </div>
       )}
       <div style={{ 
-        fontSize: '10px', 
-        fontWeight: TYPE.weight.bold, 
+        fontSize: TYPE.size.xs, 
+        fontWeight: TYPE.weight.black, 
         color: COLOR.text.muted, 
         textTransform: 'uppercase', 
         letterSpacing: TYPE.letterSpacing.caps, 
@@ -53,11 +53,12 @@ export const EmptyState: React.FC<EmptyStateProps> = ({
       {subMessage && (
         <div style={{ 
           marginTop: '8px', 
-          fontSize: '9px', 
+          fontSize: TYPE.size.xs, 
           color: COLOR.text.muted, 
           fontStyle: 'italic', 
-          maxWidth: '240px',
-          fontFamily: TYPE.family.mono
+          maxWidth: '280px',
+          fontFamily: TYPE.family.mono,
+          opacity: 0.8
         }}>
           {subMessage}
         </div>

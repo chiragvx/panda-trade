@@ -25,15 +25,23 @@
   --color-purple:     #b06aff;
 
   --interactive-hover:    #111111;
-  --interactive-selected: #221105;
+  --interactive-selected: #1a110a;
   --interactive-focus:    #FF7722;
 
   --font-mono: "JetBrains Mono", "Fira Code", "Consolas", monospace;
 
-  --row-compact:  36px;
-  --row-default:  44px;
-  --row-relaxed:  52px;
-  --row-header:   36px;
+  /* Typography scale — 11px floor */
+  --text-xs: 11px;
+  --text-sm: 12px;
+  --text-md: 12px;
+  --text-lg: 14px;
+  --text-xl: 16px;
+
+  /* Row heights — user confirmed 32px */
+  --row-compact:  28px;
+  --row-default:  32px;
+  --row-relaxed:  36px;
+  --row-header:   32px;
   --space-standard: 8px;
 }
 

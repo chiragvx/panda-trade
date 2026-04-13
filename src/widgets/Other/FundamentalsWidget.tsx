@@ -13,20 +13,21 @@ import { Price } from '../../ds/components/Price';
 const MetricCard: React.FC<{ label: string; value: string; subValue?: string; icon?: React.ReactNode; color?: string }> = ({ label, value, subValue, icon, color }) => (
   <div style={{ 
     padding: SPACE[3], 
-    background: COLOR.bg.surface, 
+    background: COLOR.bg.elevated, 
     border: BORDER.standard, 
     display: 'flex', 
     flexDirection: 'column', 
     gap: '4px',
-    transition: 'border-color 0.2s',
-    cursor: 'default'
+    transition: 'border-color 0.1s linear',
+    cursor: 'default',
+    borderRadius: '2px'
   }} className="hover:border-interactive-focus">
     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-      <span style={{ fontSize: '9px', fontWeight: TYPE.weight.black, color: COLOR.text.muted, letterSpacing: '0.1em' }}>{label}</span>
+      <span style={{ fontSize: TYPE.size.xs, fontWeight: TYPE.weight.black, color: COLOR.text.muted, letterSpacing: TYPE.letterSpacing.caps }}>{label}</span>
       {icon}
     </div>
-    <span style={{ fontSize: '14px', fontWeight: TYPE.weight.bold, color: color || COLOR.text.primary, fontFamily: TYPE.family.mono }}>{value}</span>
-    {subValue && <span style={{ fontSize: '9px', color: COLOR.text.muted }}>{subValue}</span>}
+    <span style={{ fontSize: '14px', fontWeight: TYPE.weight.black, color: color || COLOR.text.primary, fontFamily: TYPE.family.mono }}>{value}</span>
+    {subValue && <span style={{ fontSize: TYPE.size.xs, color: COLOR.text.muted, fontWeight: TYPE.weight.bold }}>{subValue}</span>}
   </div>
 );
 import { NIFTY_50 } from '../../utils/defaultSymbol';
@@ -100,14 +101,14 @@ export const FundamentalsWidget: React.FC = () => {
             <div style={{ width: '100%', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                        <span style={{ fontSize: '14px', fontWeight: TYPE.weight.black, color: COLOR.text.primary }}>{displayTicker}</span>
-                        <span style={{ fontSize: '9px', padding: '1px 4px', background: COLOR.bg.elevated, border: BORDER.standard, color: COLOR.text.muted, fontWeight: TYPE.weight.bold }}>{activeSymbol.exchange}</span>
+                        <span style={{ fontSize: '14px', fontWeight: TYPE.weight.black, color: COLOR.text.primary, letterSpacing: TYPE.letterSpacing.tight }}>{displayTicker}</span>
+                        <span style={{ fontSize: TYPE.size.xs, padding: '1px 6px', background: COLOR.bg.surface, border: BORDER.standard, color: COLOR.text.muted, fontWeight: TYPE.weight.black, borderRadius: '2px', letterSpacing: TYPE.letterSpacing.caps }}>{activeSymbol.exchange}</span>
                     </div>
-                    <span style={{ fontSize: '10px', color: COLOR.text.muted, fontWeight: TYPE.weight.medium }}>{displayName}</span>
+                    <span style={{ fontSize: TYPE.size.xs, color: COLOR.text.muted, fontWeight: TYPE.weight.black, textTransform: 'uppercase', letterSpacing: TYPE.letterSpacing.caps }}>{displayName}</span>
                 </div>
                 <div style={{ textAlign: 'right' }}>
-                    <Price value={ltp} size="lg" weight="bold" />
-                    <div style={{ fontSize: '10px', color: COLOR.text.muted, fontWeight: TYPE.weight.bold }}>LAST_SIGNAL (UPSTOX)</div>
+                    <Price value={ltp} size="lg" weight="black" />
+                    <div style={{ fontSize: TYPE.size.xs, color: COLOR.text.muted, fontWeight: TYPE.weight.black, letterSpacing: TYPE.letterSpacing.caps }}>LAST_SIGNAL (UPSTOX)</div>
                 </div>
             </div>
 
@@ -122,9 +123,9 @@ export const FundamentalsWidget: React.FC = () => {
                 {localSymbol && (
                     <button 
                         onClick={() => setLocalSymbol(null)}
-                        style={{ background: 'transparent', border: 'none', color: COLOR.semantic.down, fontSize: '9px', fontWeight: 'bold', cursor: 'pointer' }}
+                        style={{ background: 'transparent', border: 'none', color: COLOR.semantic.down, fontSize: TYPE.size.xs, fontWeight: TYPE.weight.black, cursor: 'pointer', letterSpacing: TYPE.letterSpacing.caps }}
                     >
-                        RESET_TO_GLOBAL
+                        RESET_GLOBAL
                     </button>
                 )}
             </div>
@@ -133,13 +134,13 @@ export const FundamentalsWidget: React.FC = () => {
         <div style={{ flex: 1, overflowY: 'auto', padding: SPACE[4] }} className="custom-scrollbar">
             {isLoading ? (
                 <div style={{ height: '100px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                    <span style={{ fontSize: '10px', color: COLOR.text.muted, fontFamily: TYPE.family.mono }}>FETCHING_TRADIENT_DATA...</span>
+                    <span style={{ fontSize: TYPE.size.xs, color: COLOR.text.muted, fontFamily: TYPE.family.mono, fontWeight: TYPE.weight.black }}>FETCHING_TRADIENT_DATA...</span>
                 </div>
             ) : !data ? (
-                <div style={{ padding: '24px', textAlign: 'center', background: '#0a0a0a', border: BORDER.standard }}>
+                <div style={{ padding: '24px', textAlign: 'center', background: COLOR.bg.elevated, border: BORDER.standard, borderRadius: '2px' }}>
                     <AlertCircle size={24} color={COLOR.text.muted} style={{ margin: '0 auto 12px' }} />
-                    <div style={{ fontSize: '10px', color: COLOR.text.muted, fontWeight: 'bold' }}>FUNDAMENTALS_NOT_FOUND</div>
-                    <div style={{ fontSize: '9px', color: COLOR.text.muted, marginTop: '4px' }}>Symbol "{activeSymbol.ticker}" not indexed in Tradient API.</div>
+                    <div style={{ fontSize: TYPE.size.xs, color: COLOR.text.primary, fontWeight: TYPE.weight.black, letterSpacing: TYPE.letterSpacing.caps }}>FUNDAMENTALS_NOT_FOUND</div>
+                    <div style={{ fontSize: TYPE.size.xs, color: COLOR.text.muted, marginTop: '4px', fontWeight: TYPE.weight.bold }}>Symbol "{activeSymbol.ticker}" not indexed in Tradient API.</div>
                 </div>
             ) : (
                 <>
@@ -151,18 +152,18 @@ export const FundamentalsWidget: React.FC = () => {
                     </div>
 
                     <div style={{ marginBottom: SPACE[4] }}>
-                        <span style={{ fontSize: '9px', fontWeight: TYPE.weight.black, color: COLOR.text.muted, letterSpacing: '0.15em', display: 'block', marginBottom: '8px' }}>52 WEEK RANGE</span>
-                        <div style={{ background: COLOR.bg.surface, padding: '16px', border: BORDER.standard, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <span style={{ fontSize: TYPE.size.xs, fontWeight: TYPE.weight.black, color: COLOR.text.muted, letterSpacing: TYPE.letterSpacing.caps, display: 'block', marginBottom: '8px' }}>52_WEEK_RANGE</span>
+                        <div style={{ background: COLOR.bg.elevated, padding: '16px', border: BORDER.standard, display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderRadius: '2px' }}>
                             <div>
-                                <div style={{ fontSize: '8px', color: COLOR.text.muted }}>LOW</div>
-                                <div style={{ fontSize: '11px', fontWeight: 'bold', color: COLOR.semantic.down }}>{fundamentals?.low52}</div>
+                                <div style={{ fontSize: TYPE.size.xs, color: COLOR.text.muted, fontWeight: TYPE.weight.black, letterSpacing: TYPE.letterSpacing.caps }}>LOW</div>
+                                <div style={{ fontSize: '12px', fontWeight: TYPE.weight.black, color: COLOR.semantic.down, fontFamily: TYPE.family.mono }}>{fundamentals?.low52}</div>
                             </div>
-                            <div style={{ flex: 1, height: '4px', background: '#222', margin: '0 16px', borderRadius: '4px', position: 'relative' }}>
-                                 {/* Progress indicator could go here */}
+                            <div style={{ flex: 1, height: '4px', background: COLOR.bg.surface, margin: '0 16px', borderRadius: '4px', position: 'relative', overflow: 'hidden' }}>
+                                 <div style={{ position: 'absolute', inset: 0, background: COLOR.bg.border }} />
                             </div>
                             <div>
-                                <div style={{ fontSize: '8px', color: COLOR.text.muted }}>HIGH</div>
-                                <div style={{ fontSize: '11px', fontWeight: 'bold', color: COLOR.semantic.up }}>{fundamentals?.high52}</div>
+                                <div style={{ fontSize: TYPE.size.xs, color: COLOR.text.muted, fontWeight: TYPE.weight.black, letterSpacing: TYPE.letterSpacing.caps }}>HIGH</div>
+                                <div style={{ fontSize: '12px', fontWeight: TYPE.weight.black, color: COLOR.semantic.up, fontFamily: TYPE.family.mono }}>{fundamentals?.high52}</div>
                             </div>
                         </div>
                     </div>
@@ -175,12 +176,12 @@ export const FundamentalsWidget: React.FC = () => {
             )}
         </div>
 
-        <div style={{ padding: '8px 12px', borderTop: BORDER.standard, display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: COLOR.bg.surface }}>
+        <div style={{ padding: '8px 12px', borderTop: BORDER.standard, display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: COLOR.bg.elevated }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                <Info size={11} style={{ color: COLOR.text.muted }} />
-                <span style={{ fontSize: '8px', color: COLOR.text.muted, fontWeight: TYPE.weight.bold }}>DATA_REFRESHED: REAL-TIME</span>
+                <Info size={12} color={COLOR.text.muted} />
+                <span style={{ fontSize: TYPE.size.xs, color: COLOR.text.muted, fontWeight: TYPE.weight.black, letterSpacing: TYPE.letterSpacing.caps }}>DATA_REALTIME</span>
             </div>
-            <span style={{ fontSize: '8px', fontWeight: TYPE.weight.bold, color: COLOR.semantic.info }}>ANALYTICS ENGINE V2</span>
+            <span style={{ fontSize: TYPE.size.xs, fontWeight: TYPE.weight.black, color: COLOR.semantic.info, letterSpacing: TYPE.letterSpacing.caps }}>ANALYTICS: V2.1</span>
         </div>
     </WidgetShell>
   );

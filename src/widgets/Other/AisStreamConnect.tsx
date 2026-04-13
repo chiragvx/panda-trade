@@ -44,8 +44,8 @@ export const AisStreamConnect: React.FC = () => {
             <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                 <Anchor size={20} color={COLOR.semantic.info} />
                 <div>
-                   <h3 style={{ fontSize: TYPE.size.md, fontWeight: '900', color: '#fff', margin: 0 }}>AISSTREAM_PROTOCOL</h3>
-                   <span style={{ fontSize: '9px', color: COLOR.text.muted }}>Required for life-stream Marine tracking data.</span>
+                   <h3 style={{ fontSize: TYPE.size.md, fontWeight: TYPE.weight.black, color: COLOR.text.primary, margin: 0, letterSpacing: TYPE.letterSpacing.caps }}>AISSTREAM_PROTOCOL</h3>
+                   <span style={{ fontSize: TYPE.size.xs, color: COLOR.text.muted, fontWeight: TYPE.weight.bold, letterSpacing: TYPE.letterSpacing.tight }}>Required for life-stream Marine tracking data.</span>
                 </div>
             </div>
 
@@ -67,10 +67,12 @@ export const AisStreamConnect: React.FC = () => {
                             border: 'none',
                             color: COLOR.text.inverse,
                             padding: '0 16px',
-                            fontSize: '10px',
-                            fontWeight: 'bold',
+                            fontSize: TYPE.size.xs,
+                            fontWeight: TYPE.weight.black,
                             cursor: 'pointer',
-                            whiteSpace: 'nowrap'
+                            whiteSpace: 'nowrap',
+                            letterSpacing: TYPE.letterSpacing.caps,
+                            borderRadius: '2px'
                         }}
                     >
                         {isSaving ? 'UPDATING...' : 'SAVE'}
@@ -79,9 +81,9 @@ export const AisStreamConnect: React.FC = () => {
             </div>
 
             {aisStreamApiKey && (
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '9px', color: COLOR.semantic.up }}>
-                    <ShieldCheck size={10} />
-                    <span>API_KEY_LOCAL_STORAGE_ACTIVE</span>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: TYPE.size.xs, color: COLOR.semantic.up, fontWeight: TYPE.weight.black, letterSpacing: TYPE.letterSpacing.caps }}>
+                    <ShieldCheck size={12} />
+                    <span>API_KEY_STORAGE_ACTIVE</span>
                 </div>
             )}
         </div>

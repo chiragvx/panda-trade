@@ -222,7 +222,7 @@ export const OptionChainWidget: React.FC = () => {
     return (
       <div key={`${opt.instrument_key}-${col}`} onClick={() => basketMode && setBasket(prev => prev.includes(opt.instrument_key) ? prev.filter(k => k !== opt.instrument_key) : [...prev, opt.instrument_key])} style={{ 
         width: COLUMN_WIDTH, height: FINAL_ROW_HEIGHT, display: 'flex', alignItems: 'center', justifyContent: side === 'CE' ? 'flex-end' : 'flex-start', padding: '0 8px', borderRight: BORDER.standard, flexShrink: 0, boxSizing: 'border-box',
-        background: isSelected ? `${COLOR.semantic.info}25` : inTheMoney ? `${COLOR.semantic.warning}08` : 'transparent', fontSize: '10px', color: col === 'IV' ? COLOR.semantic.info : COLOR.text.primary, cursor: basketMode ? 'pointer' : 'default', position: 'relative', overflow: 'hidden'
+        background: isSelected ? `${COLOR.semantic.info}25` : inTheMoney ? `${COLOR.semantic.warning}08` : 'transparent', fontSize: TYPE.size.xs, fontWeight: TYPE.weight.bold, color: col === 'IV' ? COLOR.semantic.info : COLOR.text.primary, cursor: basketMode ? 'pointer' : 'default', position: 'relative', overflow: 'hidden', fontFamily: TYPE.family.mono
       }} className="group">
         {content}
         {col === 'LTP' && !basketMode && (
@@ -252,7 +252,7 @@ export const OptionChainWidget: React.FC = () => {
                         {localKey && (
                             <button 
                                 onClick={(e) => { e.stopPropagation(); setLocalKey(null); setLocalTicker(null); }}
-                                style={{ background: COLOR.semantic.down, border: 'none', color: '#fff', fontSize: '8px', padding: '1px 4px', borderRadius: '2px', marginLeft: '4px' }}
+                                style={{ background: COLOR.semantic.down, border: 'none', color: COLOR.text.inverse, fontSize: TYPE.size.xs, fontWeight: TYPE.weight.black, padding: '1px 6px', borderRadius: '2px', marginLeft: '4px', cursor: 'pointer' }}
                             >
                                 RESET
                             </button>
@@ -271,7 +271,7 @@ export const OptionChainWidget: React.FC = () => {
                                             setShowSearch(false); 
                                             setSearch(''); 
                                         }} style={{ padding: '8px 12px', cursor: 'pointer', display: 'flex', justifyContent: 'space-between' }} className="hover:bg-interactive-hover">
-                                            <div style={{ display: 'flex', flexDirection: 'column' }}><span style={{ fontWeight: 'bold', fontSize: '11px' }}>{res.ticker}</span><span style={{ fontSize: '9px', color: COLOR.text.muted }}>{res.name}</span></div>
+                                            <div style={{ display: 'flex', flexDirection: 'column' }}><span style={{ fontWeight: TYPE.weight.black, fontSize: TYPE.size.xs }}>{res.ticker}</span><span style={{ fontSize: TYPE.size.xs, color: COLOR.text.muted, fontWeight: TYPE.weight.bold }}>{res.name}</span></div>
                                             <Badge label={res.exchange} variant="exchange-nse" />
                                         </div>
                                     ))}
@@ -288,21 +288,21 @@ export const OptionChainWidget: React.FC = () => {
                 </div>
             </div>
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <button onClick={() => setBasketMode(!basketMode)} style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '2px 10px', background: basketMode ? `${COLOR.semantic.info}22` : 'transparent', border: basketMode ? `1px solid ${COLOR.semantic.info}` : BORDER.standard, color: basketMode ? COLOR.semantic.info : COLOR.text.primary, fontSize: '10px' }}><ShoppingBag size={12} /> BASKET ({basket.length})</button>
-                <button onClick={() => setShowGreeks(!showGreeks)} style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '2px 10px', background: showGreeks ? `${COLOR.semantic.info}22` : 'transparent', border: showGreeks ? `1px solid ${COLOR.semantic.info}` : BORDER.standard, color: showGreeks ? COLOR.semantic.info : COLOR.text.primary, fontSize: '10px' }}><Sigma size={12} /> GREEKS</button>
-                <button onClick={() => currentRootKey && fetchChain(currentRootKey, selectedExpiry)} style={{ padding: '4px', border: BORDER.standard, color: COLOR.text.muted }}><RotateCcw size={12} /></button>
+                <button onClick={() => setBasketMode(!basketMode)} style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '2px 10px', background: basketMode ? `${COLOR.semantic.info}22` : 'transparent', border: basketMode ? `1px solid ${COLOR.semantic.info}` : BORDER.standard, color: basketMode ? COLOR.semantic.info : COLOR.text.primary, fontSize: TYPE.size.xs, fontWeight: TYPE.weight.black, cursor: 'pointer', borderRadius: '2px' }}><ShoppingBag size={12} /> BASKET ({basket.length})</button>
+                <button onClick={() => setShowGreeks(!showGreeks)} style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '2px 10px', background: showGreeks ? `${COLOR.semantic.info}22` : 'transparent', border: showGreeks ? `1px solid ${COLOR.semantic.info}` : BORDER.standard, color: showGreeks ? COLOR.semantic.info : COLOR.text.primary, fontSize: TYPE.size.xs, fontWeight: TYPE.weight.black, cursor: 'pointer', borderRadius: '2px' }}><Sigma size={12} /> GREEKS</button>
+                <button onClick={() => currentRootKey && fetchChain(currentRootKey, selectedExpiry)} style={{ padding: '4px', border: BORDER.standard, color: COLOR.text.muted, cursor: 'pointer', background: 'transparent' }}><RotateCcw size={12} /></button>
             </div>
         </WidgetShell.Toolbar>
 
         <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden', position: 'relative' }}>
             {/* Table Header — fixed, no vertical scroll */}
-            <div style={{ display: 'flex', height: '28px', flexShrink: 0, background: COLOR.bg.surface, borderBottom: BORDER.standard, fontSize: '9px', fontWeight: TYPE.weight.bold, color: COLOR.text.muted, boxSizing: 'border-box', overflow: 'hidden' }}>
+            <div style={{ display: 'flex', height: '32px', flexShrink: 0, background: COLOR.bg.surface, borderBottom: BORDER.standard, fontSize: TYPE.size.xs, fontWeight: TYPE.weight.black, color: COLOR.text.muted, boxSizing: 'border-box', overflow: 'hidden', fontFamily: TYPE.family.mono }}>
                 <div ref={ceHeaderRef} onScroll={syncScroll} style={{ flex: 1, overflowX: 'auto', overflowY: 'hidden', direction: 'rtl', borderRight: BORDER.standard }} className="hide-scrollbar">
                     <div style={{ display: 'flex', direction: 'ltr', width: CE_TOTAL_W, flexShrink: 0 }}>
                         {ceCols.map(c => <div key={c} style={{ width: COLUMN_WIDTH, display: 'flex', alignItems: 'center', justifyContent: 'flex-end', padding: '0 8px', borderRight: BORDER.standard, flexShrink: 0, boxSizing: 'border-box' }}>{c}</div>)}
                     </div>
                 </div>
-                <div style={{ width: STRIKE_W, flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', background: COLOR.bg.elevated, borderRight: BORDER.standard, zIndex: 20, boxSizing: 'border-box' }}>STRIKE</div>
+                <div style={{ width: STRIKE_W, flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', background: COLOR.bg.elevated, borderRight: BORDER.standard, zIndex: 20, boxSizing: 'border-box', color: COLOR.text.primary }}>STRIKE</div>
                 <div ref={peHeaderRef} onScroll={syncScroll} style={{ flex: 1, overflowX: 'auto', overflowY: 'hidden', display: 'flex' }} className="hide-scrollbar">
                     <div style={{ display: 'flex', width: PE_TOTAL_W, flexShrink: 0 }}>
                         {peCols.map(c => <div key={c} style={{ width: COLUMN_WIDTH, display: 'flex', alignItems: 'center', justifyContent: 'flex-start', padding: '0 8px', borderRight: BORDER.standard, flexShrink: 0, boxSizing: 'border-box' }}>{c}</div>)}
@@ -316,13 +316,13 @@ export const OptionChainWidget: React.FC = () => {
                 {/* CE BODY */}
                 <div ref={ceBodyRef} onScroll={syncScroll} style={{ flex: 1, overflowX: 'auto', overflowY: 'hidden', direction: 'rtl', borderRight: BORDER.standard }} className="hide-scrollbar">
                     <div style={{ display: 'flex', flexDirection: 'column', direction: 'ltr', width: CE_TOTAL_W, flexShrink: 0 }}>
-                        {hasMoreAbove && <div onClick={() => setStrikeLimit(p => p + 20)} style={{ height: FINAL_ROW_HEIGHT, minHeight: FINAL_ROW_HEIGHT, flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', background: COLOR.semantic.info, color: '#fff', fontSize: '9px', fontWeight: 'bold', cursor: 'pointer', boxSizing: 'border-box' }}>LOAD MORE</div>}
+                        {hasMoreAbove && <div onClick={() => setStrikeLimit(p => p + 20)} style={{ height: FINAL_ROW_HEIGHT, minHeight: FINAL_ROW_HEIGHT, flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', background: COLOR.semantic.info, color: COLOR.text.inverse, fontSize: TYPE.size.xs, fontWeight: TYPE.weight.black, cursor: 'pointer', boxSizing: 'border-box', letterSpacing: TYPE.letterSpacing.caps }}>LOAD_MORE_STRIKES</div>}
                         {visibleChain.map(row => (
-                            <div key={row.strike} style={{ display: 'flex', height: FINAL_ROW_HEIGHT, minHeight: FINAL_ROW_HEIGHT, flexShrink: 0, borderBottom: '1px solid #1a1a1a', boxSizing: 'border-box', overflow: 'hidden' }}>
+                            <div key={row.strike} style={{ display: 'flex', height: FINAL_ROW_HEIGHT, minHeight: FINAL_ROW_HEIGHT, flexShrink: 0, borderBottom: BORDER.standard, boxSizing: 'border-box', overflow: 'hidden' }}>
                                 {ceCols.map(c => renderCell(row.ce, row.strike, c, 'CE'))}
                             </div>
                         ))}
-                        {hasMoreBelow && <div onClick={() => setStrikeLimit(p => p + 20)} style={{ height: FINAL_ROW_HEIGHT, minHeight: FINAL_ROW_HEIGHT, flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', background: COLOR.semantic.info, color: '#fff', fontSize: '9px', fontWeight: 'bold', cursor: 'pointer', boxSizing: 'border-box' }}>LOAD MORE</div>}
+                        {hasMoreBelow && <div onClick={() => setStrikeLimit(p => p + 20)} style={{ height: FINAL_ROW_HEIGHT, minHeight: FINAL_ROW_HEIGHT, flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', background: COLOR.semantic.info, color: COLOR.text.inverse, fontSize: TYPE.size.xs, fontWeight: TYPE.weight.black, cursor: 'pointer', boxSizing: 'border-box', letterSpacing: TYPE.letterSpacing.caps }}>LOAD_MORE_STRIKES</div>}
                     </div>
                 </div>
 
@@ -330,7 +330,7 @@ export const OptionChainWidget: React.FC = () => {
                 <div style={{ width: STRIKE_W, flexShrink: 0, display: 'flex', flexDirection: 'column', background: COLOR.bg.elevated, borderRight: BORDER.standard, zIndex: 5 }}>
                     {hasMoreAbove && <div style={{ height: FINAL_ROW_HEIGHT, minHeight: FINAL_ROW_HEIGHT, flexShrink: 0, boxSizing: 'border-box' }} />}
                     {visibleChain.map(row => (
-                        <div key={row.strike} style={{ height: FINAL_ROW_HEIGHT, minHeight: FINAL_ROW_HEIGHT, flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', borderBottom: '1px solid #1a1a1a', fontWeight: 'bold', fontSize: '10px', color: COLOR.text.primary, position: 'relative', boxSizing: 'border-box' }}>
+                        <div key={row.strike} style={{ height: FINAL_ROW_HEIGHT, minHeight: FINAL_ROW_HEIGHT, flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', borderBottom: BORDER.standard, fontWeight: TYPE.weight.black, fontSize: TYPE.size.xs, color: COLOR.text.primary, position: 'relative', boxSizing: 'border-box', fontFamily: TYPE.family.mono }}>
                             {Math.abs(row.strike - currentSpot) <= 25 && <div style={{ position: 'absolute', inset: 0, borderTop: `1px solid ${COLOR.semantic.info}`, borderBottom: `1px solid ${COLOR.semantic.info}`, pointerEvents: 'none' }} />}
                             {row.strike.toLocaleString()}
                         </div>
@@ -341,13 +341,13 @@ export const OptionChainWidget: React.FC = () => {
                 {/* PE BODY */}
                 <div ref={peBodyRef} onScroll={syncScroll} style={{ flex: 1, overflowX: 'auto', overflowY: 'hidden', display: 'flex' }} className="hide-scrollbar">
                     <div style={{ display: 'flex', flexDirection: 'column', width: PE_TOTAL_W, flexShrink: 0 }}>
-                        {hasMoreAbove && <div onClick={() => setStrikeLimit(p => p + 20)} style={{ height: FINAL_ROW_HEIGHT, minHeight: FINAL_ROW_HEIGHT, flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', background: COLOR.semantic.info, color: '#fff', fontSize: '9px', fontWeight: 'bold', cursor: 'pointer', boxSizing: 'border-box' }}>LOAD MORE</div>}
+                        {hasMoreAbove && <div onClick={() => setStrikeLimit(p => p + 20)} style={{ height: FINAL_ROW_HEIGHT, minHeight: FINAL_ROW_HEIGHT, flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', background: COLOR.semantic.info, color: COLOR.text.inverse, fontSize: TYPE.size.xs, fontWeight: TYPE.weight.black, cursor: 'pointer', boxSizing: 'border-box', letterSpacing: TYPE.letterSpacing.caps }}>LOAD_MORE_STRIKES</div>}
                         {visibleChain.map(row => (
-                            <div key={row.strike} style={{ display: 'flex', height: FINAL_ROW_HEIGHT, minHeight: FINAL_ROW_HEIGHT, flexShrink: 0, borderBottom: '1px solid #1a1a1a', boxSizing: 'border-box', overflow: 'hidden' }}>
+                            <div key={row.strike} style={{ display: 'flex', height: FINAL_ROW_HEIGHT, minHeight: FINAL_ROW_HEIGHT, flexShrink: 0, borderBottom: BORDER.standard, boxSizing: 'border-box', overflow: 'hidden' }}>
                                 {peCols.map(c => renderCell(row.pe, row.strike, c, 'PE'))}
                             </div>
                         ))}
-                        {hasMoreBelow && <div onClick={() => setStrikeLimit(p => p + 20)} style={{ height: FINAL_ROW_HEIGHT, minHeight: FINAL_ROW_HEIGHT, flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', background: COLOR.semantic.info, color: '#fff', fontSize: '9px', fontWeight: 'bold', cursor: 'pointer', boxSizing: 'border-box' }}>LOAD MORE</div>}
+                        {hasMoreBelow && <div onClick={() => setStrikeLimit(p => p + 20)} style={{ height: FINAL_ROW_HEIGHT, minHeight: FINAL_ROW_HEIGHT, flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', background: COLOR.semantic.info, color: COLOR.text.inverse, fontSize: TYPE.size.xs, fontWeight: TYPE.weight.black, cursor: 'pointer', boxSisizing: 'border-box', letterSpacing: TYPE.letterSpacing.caps }}>LOAD_MORE_STRIKES</div>}
                     </div>
                 </div>
 

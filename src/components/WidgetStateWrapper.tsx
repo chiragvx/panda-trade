@@ -39,7 +39,7 @@ export const WidgetStateWrapper: React.FC<WidgetStateWrapperProps> = ({ children
         flexDirection: 'column',
         alignItems: 'center',
         justifyContent: 'center',
-        background: '#050505',
+        background: COLOR.bg.base,
         gap: '16px',
         padding: '24px',
         textAlign: 'center'
@@ -48,32 +48,33 @@ export const WidgetStateWrapper: React.FC<WidgetStateWrapperProps> = ({ children
           width: '48px',
           height: '48px',
           borderRadius: '50%',
-          background: 'rgba(255, 59, 87, 0.1)',
+          background: `${COLOR.semantic.down}15`,
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
-          color: '#ff3b57'
+          color: COLOR.semantic.down
         }}>
           <WifiOff size={24} />
         </div>
         <div>
           <div style={{ 
-            fontSize: '11px', 
-            fontWeight: '900', 
-            color: '#fff', 
-            letterSpacing: '0.1em',
+            fontSize: TYPE.size.xs, 
+            fontWeight: TYPE.weight.black, 
+            color: COLOR.text.primary, 
+            letterSpacing: TYPE.letterSpacing.caps,
             marginBottom: '4px',
             fontFamily: TYPE.family.mono 
           }}>
             CONNECTION_LOST
           </div>
           <div style={{ 
-            fontSize: '10px', 
+            fontSize: TYPE.size.xs, 
             color: COLOR.text.muted,
             lineHeight: '1.4',
-            maxWidth: '180px'
+            maxWidth: '220px',
+            fontWeight: TYPE.weight.bold
           }}>
-            BROKER SESSION TERMINATED. PLEASE RE-AUTHENTICATE TO RESUME STREAM.
+            BROKER_SESSION_TERMINATED. ACTIVATE_GATEWAY_TO_RESUME_SYNC.
           </div>
         </div>
       </div>

@@ -95,32 +95,33 @@ export const HeatmapWidget: React.FC = () => {
   }, [data, dimensions]);
 
   const getHeatColor = (pct: number) => {
-    if (pct === 0) return '#09090b';
+    if (pct === 0) return COLOR.bg.elevated;
     const absPct = Math.abs(pct);
     const opacity = Math.min(0.2 + (absPct / 20), 0.7); 
-    return pct > 0 ? `rgba(52, 211, 153, ${opacity})` : `rgba(248, 113, 113, ${opacity})`;
+    const color = pct > 0 ? COLOR.semantic.up : COLOR.semantic.down;
+    return `${color}${Math.round(opacity * 255).toString(16).padStart(2, '0')}`;
   };
 
   return (
-    <div style={{ height: '100%', background: '#000', padding: '12px', overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
-       <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '16px', padding: '0 4px', alignItems: 'center' }}>
+    <div style={{ height: '100%', background: COLOR.bg.base, padding: SPACE[4], overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
+       <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: SPACE[4], padding: '0 4px', alignItems: 'center' }}>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
-                <span style={{ fontSize: '10px', fontWeight: '900', color: COLOR.text.primary, letterSpacing: '0.15em', textTransform: 'uppercase' }}>PORTFOLIO HEATMAP</span>
-                <span style={{ fontSize: '8px', color: COLOR.text.muted, fontFamily: TYPE.family.mono }}>SIZE = INVESTMENT VALUE | COLOR = UNREALIZED P&L%</span>
+                <span style={{ fontSize: TYPE.size.xs, fontWeight: TYPE.weight.black, color: COLOR.text.primary, letterSpacing: TYPE.letterSpacing.caps, textTransform: 'uppercase' }}>PORTFOLIO_HEATMAP</span>
+                <span style={{ fontSize: TYPE.size.xs, color: COLOR.text.muted, fontFamily: TYPE.family.mono, fontWeight: TYPE.weight.bold }}>SIZE=VALUE | COLOR=PNL%</span>
             </div>
             <div style={{ display: 'flex', gap: '16px' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                    <div style={{ width: '10px', height: '10px', background: 'rgba(52, 211, 153, 0.6)', border: '1px solid #34d399' }} />
-                    <span style={{ fontSize: '8px', color: COLOR.text.muted, fontWeight: 'bold' }}>PROFIT</span>
+                    <div style={{ width: '10px', height: '10px', background: COLOR.semantic.up, border: BORDER.standard, opacity: 0.6 }} />
+                    <span style={{ fontSize: TYPE.size.xs, color: COLOR.text.muted, fontWeight: TYPE.weight.black, letterSpacing: TYPE.letterSpacing.caps }}>PROFIT</span>
                 </div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                    <div style={{ width: '10px', height: '10px', background: 'rgba(248, 113, 113, 0.6)', border: '1px solid #f87171' }} />
-                    <span style={{ fontSize: '8px', color: COLOR.text.muted, fontWeight: 'bold' }}>LOSS</span>
+                    <div style={{ width: '10px', height: '10px', background: COLOR.semantic.down, border: BORDER.standard, opacity: 0.6 }} />
+                    <span style={{ fontSize: TYPE.size.xs, color: COLOR.text.muted, fontWeight: TYPE.weight.black, letterSpacing: TYPE.letterSpacing.caps }}>LOSS</span>
                 </div>
             </div>
        </div>
 
-       <div ref={containerRef} style={{ flex: 1, position: 'relative', background: '#050505', border: '1px solid #111' }}>
+       <div ref={containerRef} style={{ flex: 1, position: 'relative', background: COLOR.bg.base, border: BORDER.standard }}>
             {treemapData.map((h, i) => {
                 const color = getHeatColor(h.pnlPct);
                 const isLoss = h.pnl < 0;
@@ -130,7 +131,7 @@ export const HeatmapWidget: React.FC = () => {
                         key={h.instrument_token || i}
                         initial={false}
                         animate={{ left: h.x, top: h.y, width: h.w - 1, height: h.h - 1 }}
-                        whileHover={{ zIndex: 10, outline: `1px solid ${isLoss ? '#f87171' : '#34d399'}`, filter: 'brightness(1.2)' }}
+                        whileHover={{ zIndex: 10, outline: `1px solid ${isLoss ? COLOR.semantic.down : COLOR.semantic.up}`, filter: 'brightness(1.2)' }}
                         onClick={() => openHoldingDetails(h)}
                         style={{
                             position: 'absolute', background: color, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
@@ -140,13 +141,13 @@ export const HeatmapWidget: React.FC = () => {
                         {showDetails && (
                             <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center' }}>
                                 <span style={{ 
-                                    fontSize: Math.min(h.w / 5.5, 14), fontWeight: TYPE.weight.medium, color: COLOR.text.primary, 
+                                    fontSize: Math.max(TYPE.size.xs, Math.min(h.w / 5.5, 14)), fontWeight: TYPE.weight.black, color: COLOR.text.primary, 
                                     fontFamily: TYPE.family.mono, letterSpacing: '-0.02em', lineHeight: '1.1' 
                                 }}>
                                     {h.trading_symbol}
                                 </span>
                                 <span style={{ 
-                                    fontSize: Math.min(h.w / 11, 9), fontWeight: TYPE.weight.regular, color: 'rgba(255,255,255,0.8)', 
+                                    fontSize: Math.max(TYPE.size.xs, Math.min(h.w / 11, 11)), fontWeight: TYPE.weight.bold, color: COLOR.text.primary, 
                                     fontFamily: TYPE.family.mono, marginTop: '2px', letterSpacing: '0.05em' 
                                 }}>
                                     {h.pnlPct > 0 ? '+' : ''}{h.pnlPct.toFixed(2)}%

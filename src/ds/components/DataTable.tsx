@@ -53,7 +53,7 @@ export const DataTable = <T extends Record<string, any>>({
                   onClick={() => col.sortable && onSort?.(col.key)}
                   style={{
                     padding: '0 12px',
-                    fontSize: '9px',
+                    fontSize: TYPE.size.xs,
                     fontWeight: TYPE.weight.black,
                     color: isActive ? COLOR.text.primary : COLOR.text.muted,
                     textTransform: 'uppercase',
@@ -91,7 +91,8 @@ export const DataTable = <T extends Record<string, any>>({
               onClick={() => onRowClick?.(item, rowIdx)}
               style={{ 
                 height: ROW_HEIGHT[rowHeight], 
-                cursor: onRowClick ? 'pointer' : 'default'
+                cursor: onRowClick ? 'pointer' : 'default',
+                transition: 'background 60ms linear',
               }}
               className="group hover:bg-interactive-hover"
             >
@@ -102,7 +103,7 @@ export const DataTable = <T extends Record<string, any>>({
                     key={col.key}
                     style={{ 
                       padding: '0 12px', 
-                      fontSize: '11px', 
+                      fontSize: TYPE.size.sm,
                       fontFamily: TYPE.family.mono,
                       fontWeight: TYPE.weight.medium,
                       color: COLOR.text.primary,

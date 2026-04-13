@@ -1,6 +1,15 @@
 import React, { useState } from 'react';
-import { Key, Globe, Shield, Zap, Anchor, Activity, Server, ArrowRight, Check, AlertCircle, X, Plane } from 'lucide-react';
-import { COLOR, TYPE, BORDER, SPACE } from '../../ds/tokens';
+import { Key, Globe, Shield, Zap, Anchor, Activity, Server, ArrowRight, Check, X, Plane } from 'lucide-react';
+import { 
+  COLOR, 
+  TYPE, 
+  BORDER, 
+  SPACE, 
+  Text, 
+  Badge, 
+  Button, 
+  Input 
+} from '../../ds';
 import { useSettingsStore } from '../../store/useSettingsStore';
 import { useUpstoxStore } from '../../store/useUpstoxStore';
 
@@ -32,13 +41,12 @@ export const GenericConnect: React.FC<{ onClose: () => void }> = ({ onClose }) =
         setTimeout(() => {
             setIsTesting(false);
             setTestResult('SUCCESS');
-        }, 1500);
+        }, 1200);
     };
 
     const handleSave = () => {
         if (!selectedProvider) return;
         
-        // Save Credentials logic
         if (selectedProvider.id === 'upstox-01') {
             setCredentials(formData.apiKey, formData.apiSecret);
         } else if (selectedProvider.id === 'aisstream-01') {
@@ -49,169 +57,124 @@ export const GenericConnect: React.FC<{ onClose: () => void }> = ({ onClose }) =
             setOpenSkyCredentials(formData.apiKey, formData.apiSecret);
         }
 
-        // Add to dashboard
         addConnection(selectedProvider.id);
         onClose();
     };
 
     return (
-        <div style={{ padding: SPACE[6], display: 'flex', flexDirection: 'column' }}>
+        <div style={{ padding: SPACE[6], display: 'flex', flexDirection: 'column', background: COLOR.bg.surface, color: COLOR.text.primary }}>
             {/* Header */}
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: SPACE[6] }}>
                 <div>
-                    <h2 style={{ fontSize: '18px', fontWeight: '900', color: '#fff', margin: 0 }}>
+                    <Text size="lg" weight="black" style={{ letterSpacing: TYPE.letterSpacing.caps }} block>
                         {step === 1 ? 'CONNECT_NEW_BACKEND' : `CONFIG_${selectedProvider?.name.toUpperCase()}`}
-                    </h2>
-                    <p style={{ fontSize: '11px', color: '#666', margin: '4px 0 0 0' }}>
-                        {step === 1 ? 'Select a provider to establish a new secure connection.' : 'Enter your credentials to authorize this terminal.'}
-                    </p>
+                    </Text>
+                    <Text size="xs" color="muted" weight="bold">
+                        {step === 1 
+                            ? 'Select a provider to establish a multi-service data tunnel.' 
+                            : 'Enter credentials for terminal authorization.'}
+                    </Text>
                 </div>
-                <button onClick={onClose} style={{ background: 'transparent', border: 'none', color: '#444', cursor: 'pointer' }}>
+                <button 
+                  onClick={onClose} 
+                  style={{ background: 'transparent', border: 'none', color: COLOR.text.muted, cursor: 'pointer' }}
+                >
                     <X size={20} />
                 </button>
             </div>
 
             {step === 1 ? (
                 /* Provider Selection Area */
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '12px' }}>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: SPACE[3] }}>
                     {PROVIDERS.map(p => (
                         <div 
                             key={p.id}
                             onClick={() => handleProviderSelect(p)}
                             style={{ 
-                                background: '#111', 
-                                border: '1px solid #222', 
-                                padding: '16px', 
-                                borderRadius: '4px', 
+                                background: COLOR.bg.elevated, 
+                                border: BORDER.standard, 
+                                padding: SPACE[4], 
+                                borderRadius: '2px', 
                                 cursor: 'pointer',
                                 transition: 'all 0.1s linear'
                             }}
                             onMouseOver={e => (e.currentTarget.style.borderColor = p.color)}
-                            onMouseOut={e => (e.currentTarget.style.borderColor = '#222')}
+                            onMouseOut={e => (e.currentTarget.style.borderColor = COLOR.border.standard)}
                         >
-                            <div style={{ color: p.color, marginBottom: '8px' }}>{p.icon}</div>
-                            <div style={{ fontSize: '13px', color: '#fff', fontWeight: 'bold' }}>{p.name}</div>
-                            <div style={{ fontSize: '9px', color: '#666', marginTop: '2px' }}>{p.type}</div>
+                            <div style={{ color: p.color, marginBottom: SPACE[2] }}>{p.icon}</div>
+                            <Text size="sm" weight="black" block>{p.name}</Text>
+                            <Badge label={p.type} variant="muted" />
                         </div>
                     ))}
                 </div>
             ) : (
                 /* Credentials Form Area */
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: SPACE[4] }}>
                     <div>
-                        <label style={labelStyle}>API_KEY / CLIENT_ID</label>
-                        <input 
+                        <Text variant="label" size="xs" color="muted" weight="black" style={{ marginBottom: SPACE[1] }} block>
+                            IDENT_KEY / CLIENT_ID
+                        </Text>
+                        <Input 
                             value={formData.apiKey}
                             onChange={e => setFormData({ ...formData, apiKey: e.target.value })}
-                            placeholder="e.g. key_live_12345"
-                            style={inputStyle}
+                            placeholder="e.g. panda_live_0123"
                         />
                     </div>
                     {selectedProvider?.id === 'nasa-01' && (
-                        <div style={{ fontSize: '9px', color: '#888', marginTop: '-12px', paddingLeft: '2px' }}>
-                            <a href="https://firms.modaps.eosdis.nasa.gov/api/data_availability/" target="_blank" rel="noreferrer" style={{ color: COLOR.semantic.info, textDecoration: 'none' }}>Get your free MAP KEY here ↗</a>
+                        <div style={{ marginTop: '-8px' }}>
+                            <Button variant="ghost" size="xs" onClick={() => window.open('https://firms.modaps.eosdis.nasa.gov/api/data_availability/')} style={{ color: COLOR.semantic.info }}>
+                                OBTAIN_MAP_KEY_SECURE ↗
+                            </Button>
                         </div>
                     )}
                     {selectedProvider?.id !== 'aisstream-01' && selectedProvider?.id !== 'nasa-01' && (
                         <div>
-                            <label style={labelStyle}>API_SECRET / AUTH_TOKEN</label>
-                            <input 
+                            <Text variant="label" size="xs" color="muted" weight="black" style={{ marginBottom: SPACE[1] }} block>
+                                AUTH_SECRET / ACCESS_TOKEN
+                            </Text>
+                            <Input 
                                 type="password"
                                 value={formData.apiSecret}
                                 onChange={e => setFormData({ ...formData, apiSecret: e.target.value })}
                                 placeholder="••••••••••••••••"
-                                style={inputStyle}
-                            />
-                        </div>
-                    )}
-                    {selectedProvider?.id === 'custom' && (
-                        <div>
-                            <label style={labelStyle}>REST_WS_ENDPOINT</label>
-                            <input 
-                                value={formData.endpoint}
-                                onChange={e => setFormData({ ...formData, endpoint: e.target.value })}
-                                placeholder="https://api.yourbackend.com/v1"
-                                style={inputStyle}
                             />
                         </div>
                     )}
 
-                    <div style={{ marginTop: '12px', display: 'flex', gap: '8px' }}>
-                        <button 
+                    <div style={{ marginTop: SPACE[3], display: 'flex', gap: SPACE[2] }}>
+                        <Button 
+                            variant="secondary" 
                             onClick={() => setStep(1)}
-                            style={{ background: 'transparent', border: '1px solid #333', color: '#666', padding: '10px 16px', borderRadius: '4px', fontSize: '11px', fontWeight: 'bold', cursor: 'pointer' }}
+                            style={{ flex: 0.3 }}
                         >
-                            Back
-                        </button>
-                        <button 
+                            BACK
+                        </Button>
+                        <Button 
+                            variant="primary"
                             onClick={handleTest}
-                            disabled={isTesting || !formData.apiKey}
-                            style={{ 
-                                flex: 1,
-                                background: '#1a1a1a', 
-                                border: '1px solid #333', 
-                                color: '#fff', 
-                                padding: '10px', 
-                                borderRadius: '4px', 
-                                fontSize: '11px', 
-                                fontWeight: 'bold', 
-                                cursor: 'pointer',
-                                display: 'flex',
-                                alignItems: 'center',
-                                justifyContent: 'center',
-                                gap: '8px'
-                            }}
+                            loading={isTesting}
+                            disabled={!formData.apiKey}
+                            style={{ flex: 1 }}
                         >
-                            {isTesting ? 'Validating...' : (testResult === 'SUCCESS' ? 'Validated' : 'Test Connection')}
-                            {testResult === 'SUCCESS' && <Check size={14} color={COLOR.semantic.up} />}
-                        </button>
+                            {testResult === 'SUCCESS' ? 'VALIDATED' : 'TEST_CONNECTION'}
+                            {testResult === 'SUCCESS' && <Check size={14} style={{ marginLeft: '8px' }} />}
+                        </Button>
                     </div>
 
-                    <button 
+                    <Button 
+                        variant="primary"
                         onClick={handleSave}
-                        disabled={!testResult && selectedProvider?.id !== 'custom'}
+                        disabled={!testResult}
                         style={{ 
-                            background: testResult === 'SUCCESS' ? COLOR.semantic.info : '#222', 
-                            color: testResult === 'SUCCESS' ? COLOR.text.inverse : '#444', 
-                            border: 'none', 
-                            padding: '12px', 
-                            borderRadius: '4px', 
-                            fontSize: '12px', 
-                            fontWeight: 'bold', 
-                            cursor: testResult === 'SUCCESS' ? 'pointer' : 'not-allowed',
-                            marginTop: '8px',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            gap: '8px'
+                            background: testResult === 'SUCCESS' ? COLOR.semantic.info : COLOR.bg.elevated,
+                            color: testResult === 'SUCCESS' ? COLOR.text.inverse : COLOR.text.muted,
+                            marginTop: SPACE[2]
                         }}
                     >
-                        Save Connection <ArrowRight size={14} />
-                    </button>
+                        AUTHORIZE_CONNECTION <ArrowRight size={14} style={{ marginLeft: '8px' }} />
+                    </Button>
                 </div>
             )}
         </div>
     );
-};
-
-const inputStyle: React.CSSProperties = {
-    width: '100%',
-    background: '#0a0a0a',
-    border: '1px solid #333',
-    padding: '10px 12px',
-    fontSize: '13px',
-    fontFamily: TYPE.family.mono,
-    color: '#fff',
-    outline: 'none',
-    borderRadius: '4px',
-};
-
-const labelStyle: React.CSSProperties = {
-    fontSize: '9px',
-    fontWeight: 'bold',
-    color: '#666',
-    textTransform: 'uppercase',
-    letterSpacing: '0.05em',
-    marginBottom: '6px',
-    display: 'block'
 };

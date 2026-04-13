@@ -39,7 +39,7 @@ export const DisclaimerModal: React.FC = () => {
                         transition={{ duration: 0.2, ease: 'easeOut' }}
                         style={{
                             width: '500px',
-                            background: '#000',
+                            background: COLOR.bg.base,
                             border: `1px solid ${COLOR.semantic.down}80`,
                             display: 'flex',
                             flexDirection: 'column',
@@ -54,10 +54,10 @@ export const DisclaimerModal: React.FC = () => {
                         <div style={{
                             width: '100%',
                             height: '24px',
-                            background: '#000',
+                            background: COLOR.bg.base,
                             overflow: 'hidden',
                             position: 'relative',
-                            borderBottom: '1px solid #000',
+                            borderBottom: BORDER.standard,
                         }}>
                              <motion.div 
                                 animate={{ x: [0, -56.57] }}
@@ -65,7 +65,7 @@ export const DisclaimerModal: React.FC = () => {
                                 style={{ 
                                     width: 'calc(100% + 60px)', 
                                     height: '100%',
-                                    background: 'repeating-linear-gradient(45deg, #FFD700, #FFD700 20px, #000 20px, #000 40px)',
+                                    background: `repeating-linear-gradient(45deg, ${COLOR.semantic.warning}, ${COLOR.semantic.warning} 20px, ${COLOR.bg.base} 20px, ${COLOR.bg.base} 40px)`,
                                 }}
                              />
                         </div>

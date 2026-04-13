@@ -42,8 +42,8 @@ export const ETFScanner: React.FC = () => {
         <WidgetShell>
             <WidgetShell.Toolbar>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                    <Layers size={14} style={{ color: COLOR.semantic.info }} />
-                    <span style={{ fontSize: '10px', fontWeight: TYPE.weight.black, color: COLOR.text.primary, letterSpacing: '0.1em' }}>ETF_EXPLORER</span>
+                    <Layers size={14} color={COLOR.semantic.info} />
+                    <span style={{ fontSize: TYPE.size.xs, fontWeight: TYPE.weight.black, color: COLOR.text.primary, letterSpacing: TYPE.letterSpacing.caps }}>ETF_EXPLORER</span>
                 </div>
             </WidgetShell.Toolbar>
 
@@ -68,8 +68,8 @@ export const ETFScanner: React.FC = () => {
                                     className="hover:bg-bg-elevated"
                                 >
                                     <div style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
-                                        <span style={{ fontSize: '11px', fontWeight: 'bold', color: COLOR.text.primary }}>{etf.name || etf.trading_symbol}</span>
-                                        <span style={{ fontSize: '8px', color: COLOR.text.muted }}>{etf.trading_symbol} • {etf.exchange}</span>
+                                        <span style={{ fontSize: TYPE.size.xs, fontWeight: TYPE.weight.black, color: COLOR.text.primary }}>{etf.name || etf.trading_symbol}</span>
+                                        <span style={{ fontSize: TYPE.size.xs, color: COLOR.text.muted, fontWeight: TYPE.weight.bold }}>{etf.trading_symbol} • {etf.exchange}</span>
                                     </div>
                                     
                                     {priceData && (
@@ -85,10 +85,10 @@ export const ETFScanner: React.FC = () => {
                 )}
             </div>
 
-            <div style={{ padding: '8px 12px', borderTop: BORDER.standard, display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: COLOR.bg.surface }}>
+            <div style={{ padding: '8px 12px', borderTop: BORDER.standard, display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: COLOR.bg.elevated }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                    <Info size={11} style={{ color: COLOR.text.muted }} />
-                    <span style={{ fontSize: '8px', color: COLOR.text.muted, fontWeight: TYPE.weight.bold }}>LIQUIDITY_RANKED: NSE/BSE</span>
+                    <Info size={12} color={COLOR.text.muted} />
+                    <span style={{ fontSize: TYPE.size.xs, color: COLOR.text.muted, fontWeight: TYPE.weight.black, letterSpacing: TYPE.letterSpacing.caps }}>LIQUIDITY_RANKED: NSE/BSE</span>
                 </div>
             </div>
         </WidgetShell>
