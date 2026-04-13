@@ -18,7 +18,14 @@ interface ConnectionMeta {
 
 export const ApiDashboard: React.FC = () => {
     const { status: upstoxStatus, apiKey: upstoxKey, logout: upstoxLogout } = useUpstoxStore();
-    const { aisStreamApiKey, setAisStreamApiKey, enabledConnections, removeConnection } = useSettingsStore();
+    const { 
+        aisStreamApiKey, 
+        nasaApiKey, 
+        openSkyUsername, 
+        setAisStreamApiKey, 
+        enabledConnections, 
+        removeConnection 
+    } = useSettingsStore();
     
     const [searchQuery, setSearchQuery] = useState('');
     const [statusFilter, setStatusFilter] = useState<'ALL' | 'CONNECTED' | 'DISCONNECTED'>('ALL');
@@ -54,8 +61,8 @@ export const ApiDashboard: React.FC = () => {
             displayName: 'NASA FIRMS Protocol',
             description: 'Global live thermal anomaly and fire scanner via VIIRS S-NPP.',
             icon: <Activity size={18} />,
-            status: useSettingsStore.getState().nasaApiKey ? 'connected' : 'disconnected',
-            lastActivity: useSettingsStore.getState().nasaApiKey ? 'Live Now' : 'Never'
+            status: nasaApiKey ? 'connected' : 'disconnected',
+            lastActivity: nasaApiKey ? 'Live Now' : 'Never'
         },
         {
             id: 'opensky-01',
@@ -64,10 +71,10 @@ export const ApiDashboard: React.FC = () => {
             displayName: 'OpenSky Network Protocol',
             description: 'High-fidelity global flight tracking and state vector data stream.',
             icon: <Plane size={18} />,
-            status: useSettingsStore.getState().openSkyUsername ? 'connected' : 'disconnected',
-            lastActivity: useSettingsStore.getState().openSkyUsername ? 'Live Now' : 'Never'
+            status: openSkyUsername ? 'connected' : 'disconnected',
+            lastActivity: openSkyUsername ? 'Live Now' : 'Never'
         }
-    ], [upstoxStatus, upstoxKey, aisStreamApiKey, useSettingsStore.getState().nasaApiKey, useSettingsStore.getState().openSkyUsername]);
+    ], [upstoxStatus, upstoxKey, aisStreamApiKey, nasaApiKey, openSkyUsername]);
 
     // Derived list based on what user has "added"
     const connections = useMemo(() => 

@@ -102,44 +102,63 @@ const MarineMap: React.FC = () => {
 
         ws.onmessage = (event) => {
             const data = JSON.parse(event.data);
-            if (data.MessageType === 'PositionReport') {
-                const pos = data.Message.PositionReport;
+            const mType = data.MessageType;
+            
+            // Handle multiple position report types
+            if (['PositionReport', 'StandardClassBPositionReport', 'ExtendedClassBPositionReport', 'StandardSearchAndRescueAircraftReport'].includes(mType)) {
+                const pos = data.Message[mType];
                 const meta = data.MetaData;
                 const mmsi = meta.MMSI;
                 
+                // AISStream occasionally uses different casing or field names for some types
+                const lat = pos.Latitude ?? pos.latitude;
+                const lon = pos.Longitude ?? pos.longitude;
+                const course = pos.TrueHeading ?? pos.Cog ?? pos.cog ?? 0;
+                const speed = pos.Sog ?? pos.sog ?? 0;
+
+                if (lat === undefined || lon === undefined) return;
+
                 setVessels(prev => ({
                     ...prev,
                     [mmsi]: {
                         ...prev[mmsi],
                         mmsi,
-                        name: meta.ShipName || prev[mmsi]?.name || 'UNKNOWN',
-                        lat: pos.Latitude,
-                        lon: pos.Longitude,
-                        course: pos.TrueHeading || pos.Cog || 0,
-                        speed: pos.Sog || 0,
+                        name: meta.ShipName?.trim() || prev[mmsi]?.name || 'UNKNOWN',
+                        lat,
+                        lon,
+                        course: (course === 511) ? (prev[mmsi]?.course || 0) : course, // 511 means not available
+                        speed,
                         type: prev[mmsi]?.type || 0,
                         typeStr: prev[mmsi]?.typeStr || 'UNKNOWN',
                         category: prev[mmsi]?.category || 'OTHER',
                         lastSeen: Date.now(),
-                        country: meta.country || 'N/A',
+                        country: meta.Country || meta.country || 'N/A',
                         destination: meta.Destination || prev[mmsi]?.destination || '---'
                     }
                 }));
-            } else if (data.MessageType === 'ShipStaticData') {
+            } else if (mType === 'ShipStaticData') {
                 const stat = data.Message.ShipStaticData;
                 const mmsi = data.MetaData.MMSI;
                 const type = stat.Type;
                 
                 setVessels(prev => {
-                    if (!prev[mmsi]) return prev;
+                    // Initialize if not exists, but usually PositionReport comes first
+                    const current = prev[mmsi] || {
+                        mmsi,
+                        name: data.MetaData.ShipName?.trim() || 'UNKNOWN',
+                        lat: 0, lon: 0, course: 0, speed: 0,
+                        lastSeen: Date.now(), country: data.MetaData.Country || 'N/A',
+                        destination: '---'
+                    };
+
                     return {
                         ...prev,
                         [mmsi]: {
-                            ...prev[mmsi],
+                            ...current,
                             type,
                             typeStr: getVesselTypeStr(type),
                             category: getVesselCategory(type),
-                            name: data.MetaData.ShipName || prev[mmsi].name
+                            name: data.MetaData.ShipName?.trim() || current.name
                         }
                     };
                 });

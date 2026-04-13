@@ -4,13 +4,14 @@ import { Key, Anchor, ShieldCheck } from 'lucide-react';
 import { COLOR, TYPE, BORDER, SPACE } from '../../ds/tokens';
 
 export const AisStreamConnect: React.FC = () => {
-    const { aisStreamApiKey, setAisStreamApiKey } = useSettingsStore();
+    const { aisStreamApiKey, setAisStreamApiKey, addConnection } = useSettingsStore();
     const [tempKey, setTempKey] = useState(aisStreamApiKey);
     const [isSaving, setIsSaving] = useState(false);
 
     const handleSave = () => {
         setIsSaving(true);
         setAisStreamApiKey(tempKey);
+        addConnection('aisstream-01');
         setTimeout(() => setIsSaving(false), 800);
     };
 

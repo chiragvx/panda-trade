@@ -109,6 +109,7 @@ export const ApiConfigModal: React.FC<ApiConfigModalProps> = ({ provider, onClos
             link: 'https://aisstream.io/authenticate',
             handleSave: () => {
                 settings.setAisStreamApiKey(aisKey);
+                settings.addConnection('aisstream-01');
             }
         },
         NASA: {
@@ -119,6 +120,7 @@ export const ApiConfigModal: React.FC<ApiConfigModalProps> = ({ provider, onClos
             link: 'https://firms.modaps.eosdis.nasa.gov/api/data_availability/',
             handleSave: () => {
                 settings.setNasaApiKey(nasaKey);
+                settings.addConnection('nasa-01');
             }
         },
         OPENSKY: {
@@ -129,6 +131,7 @@ export const ApiConfigModal: React.FC<ApiConfigModalProps> = ({ provider, onClos
             link: 'https://opensky-network.org/',
             handleSave: () => {
                 settings.setOpenSkyCredentials(osUser, osPass);
+                settings.addConnection('opensky-01');
             }
         }
     };
