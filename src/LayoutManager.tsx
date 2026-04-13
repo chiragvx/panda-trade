@@ -126,12 +126,20 @@ export const LayoutManager: React.FC<LayoutManagerProps> = ({ model }) => {
 
 
   useEffect(() => {
+    const toDisplayName = (id: string) => {
+      if (!id) return '';
+      return id.replace(/[_-]/g, ' ')
+        .split(' ')
+        .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+        .join(' ');
+    };
+
     (window as any).addNodeToLayout = (componentId: string, nodeName?: string) => {
       let targetId = (window as any).activeTabsetId || undefined;
       model.doAction(Actions.addNode(
         { 
           type: "tab", 
-          name: nodeName || componentId.toUpperCase().replace(/-/g, ' '), 
+          name: nodeName || toDisplayName(componentId), 
           component: componentId 
         },
         targetId,
@@ -146,11 +154,31 @@ export const LayoutManager: React.FC<LayoutManagerProps> = ({ model }) => {
       if (activeId) {
         model.doAction(Actions.updateNodeAttributes(activeId, { 
           component: componentId, 
-          name: nodeName || componentId.toUpperCase().replace(/-/g, ' ')
+          name: nodeName || toDisplayName(componentId)
         }));
       } else {
         (window as any).addNodeToLayout(componentId, nodeName);
       }
+    };
+
+    // Smart Targeting: Find existing widget or add new
+    (window as any).targetWidget = (componentId: string, nodeName?: string) => {
+        let foundNodeId: string | null = null;
+        
+        // Search through the model for the first occurrence of this component
+        model.visitNodes((node) => {
+            if (node.getType() === 'tab' && (node as TabNode).getComponent() === componentId) {
+                foundNodeId = node.getId();
+            }
+        });
+
+        if (foundNodeId) {
+            // Focus existing
+            model.doAction(Actions.selectTab(foundNodeId));
+        } else {
+            // Add new
+            (window as any).addNodeToLayout(componentId, nodeName);
+        }
     };
   }, [model]);
 
@@ -194,6 +222,19 @@ export const LayoutManager: React.FC<LayoutManagerProps> = ({ model }) => {
       if (toTabset && pinnedTabsets[toTabset.getId()]) return undefined;
     }
     return action;
+  };
+
+  const onRenderTab = (node: TabNode, renderValues: any) => {
+     const rawName = node.getName();
+     // Force clean title case even if model is messy (all caps, hyphens, or underscores)
+     const cleanName = rawName.replace(/[_-]/g, ' ')
+        .split(' ')
+        .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+        .join(' ');
+     
+     if (cleanName !== rawName) {
+         renderValues.content = cleanName;
+     }
   };
 
   const onRenderTabSet = (node: TabSetNode | BorderNode, renderValues: ITabSetRenderValues) => {
@@ -245,6 +286,7 @@ export const LayoutManager: React.FC<LayoutManagerProps> = ({ model }) => {
         model={model} 
         factory={factory}
         onAction={onAction}
+        onRenderTab={onRenderTab}
         onRenderTabSet={onRenderTabSet}
         icons={{
           maximize: <Maximize2 size={14} />,

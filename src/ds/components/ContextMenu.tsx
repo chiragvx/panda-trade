@@ -69,7 +69,7 @@ export const ContextMenu: React.FC = () => {
                 fontFamily: TYPE.family.mono,
                 cursor: 'pointer',
                 textAlign: 'left',
-                textTransform: 'uppercase',
+                
                 transition: 'background 0.1s linear'
               }}
               onMouseEnter={(e) => { e.currentTarget.style.background = '#FFFFFF0A'; }}

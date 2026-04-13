@@ -18,7 +18,7 @@ const LABEL_STYLE: React.CSSProperties = {
   fontFamily:    TYPE.family.mono,
   fontSize:      TYPE.size.xs,
   fontWeight:    TYPE.weight.bold,
-  textTransform: 'uppercase',
+  
   letterSpacing: TYPE.letterSpacing.caps,
   color:         COLOR.text.muted,
   whiteSpace:    'nowrap',

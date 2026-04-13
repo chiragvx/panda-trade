@@ -90,7 +90,7 @@ export const DisclaimerModal: React.FC = () => {
                                 fontWeight: '900',
                                 color: COLOR.text.primary,
                                 letterSpacing: '0.3em',
-                                textTransform: 'uppercase',
+                                
                                 marginBottom: '24px',
                                 fontFamily: TYPE.family.mono,
                             }}>

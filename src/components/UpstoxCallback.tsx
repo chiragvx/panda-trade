@@ -30,7 +30,7 @@ const UpstoxCallback: React.FC = () => {
             // Initial delay for smooth transition
             await new Promise(r => setTimeout(r, 1200));
             
-            const redirectUri = 'https://panda-trade-nine.vercel.app/callback';
+            const redirectUri = window.location.origin + window.location.pathname;
             const data = await upstoxApi.exchangeCodeForToken(code, apiKey, apiSecret, redirectUri);
             
             if (data.access_token) {

@@ -30,7 +30,7 @@ const UpstoxGTT: React.FC = () => {
             )}
 
             <WidgetShell.Toolbar>
-                 <span style={{ fontSize: TYPE.size.xs, fontWeight: TYPE.weight.bold, textTransform: 'uppercase', letterSpacing: TYPE.letterSpacing.caps, display: 'flex', alignItems: 'center', gap: '8px' }}>
+                 <span style={{ fontSize: TYPE.size.xs, fontWeight: TYPE.weight.bold,  letterSpacing: TYPE.letterSpacing.caps, display: 'flex', alignItems: 'center', gap: '8px' }}>
                     GTT_ENGINE [UPSTOX]
                  </span>
                  <div style={{ display: 'flex', gap: '16px', alignItems: 'center' }}>

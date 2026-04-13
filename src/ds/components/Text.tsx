@@ -22,7 +22,6 @@ const VARIANT_BASE: Record<TextVariant, React.CSSProperties> = {
   label: {
     fontSize:      TYPE.size.xs,
     fontWeight:    TYPE.weight.bold,
-    textTransform: 'uppercase',
     letterSpacing: TYPE.letterSpacing.caps,
     color:         COLOR.text.muted,
     lineHeight:    TYPE.lineHeight.tight,
@@ -43,7 +42,7 @@ const VARIANT_BASE: Record<TextVariant, React.CSSProperties> = {
   heading: {
     fontSize:      TYPE.size.xl,
     fontWeight:    TYPE.weight.black,
-    textTransform: 'uppercase',
+    
     letterSpacing: TYPE.letterSpacing.wide,
     color:         COLOR.text.primary,
     lineHeight:    TYPE.lineHeight.tight,
@@ -93,7 +92,7 @@ export const Text: React.FC<TextProps> = ({
         ...(size    && { fontSize:      TYPE.size[size] }),
         ...(color   && { color:         COLOR_MAP[color] }),
         ...(weight  && { fontWeight:    TYPE.weight[weight] }),
-        ...(uppercase && { textTransform: 'uppercase', letterSpacing: TYPE.letterSpacing.caps }),
+        ...(uppercase && { letterSpacing: TYPE.letterSpacing.caps }),
         ...(noWrap  && { whiteSpace:    'nowrap' }),
         ...(block   && { display:       'block' }),
         ...(ellipsis && { 

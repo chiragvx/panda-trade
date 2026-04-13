@@ -245,7 +245,7 @@ const UpstoxPortfolio: React.FC = () => {
                          color: COLOR.text.inverse,
                          fontSize: TYPE.size.xs,
                          fontWeight: TYPE.weight.black,
-                         textTransform: 'uppercase',
+                         
                          letterSpacing: TYPE.letterSpacing.caps,
                          cursor: 'pointer',
                          display: 'flex',

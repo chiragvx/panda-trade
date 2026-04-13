@@ -24,6 +24,7 @@ interface DataTableProps<T> {
   rowHeight?: keyof typeof ROW_HEIGHT;
   stickyHeader?: boolean;
   stickyFirstColumn?: boolean;
+  stickyLastColumn?: boolean;
   className?: string;
   style?: React.CSSProperties;
 }
@@ -41,6 +42,7 @@ export const DataTable = <T extends Record<string, any>>({
   rowHeight = 'compact',
   stickyHeader = true,
   stickyFirstColumn = false,
+  stickyLastColumn = false,
   className,
   style
 }: DataTableProps<T>) => {
@@ -53,7 +55,8 @@ export const DataTable = <T extends Record<string, any>>({
           <tr style={{ height: ROW_HEIGHT.header }}>
             {columns.map((col, idx) => {
               const isActive = sortCol === col.key;
-              const isSticky = idx === 0 && stickyFirstColumn;
+              const isStickyFirst = idx === 0 && stickyFirstColumn;
+              const isStickyLast = idx === columns.length - 1 && stickyLastColumn;
               return (
                 <th
                   key={col.key}
@@ -63,7 +66,7 @@ export const DataTable = <T extends Record<string, any>>({
                     fontSize: TYPE.size.xs,
                     fontWeight: TYPE.weight.bold,
                     color: isActive ? COLOR.text.primary : COLOR.text.muted,
-                    textTransform: 'uppercase',
+                    
                     letterSpacing: TYPE.letterSpacing.caps,
                     fontFamily: TYPE.family.mono,
                     borderRight: BORDER.standard,
@@ -74,10 +77,11 @@ export const DataTable = <T extends Record<string, any>>({
                     minWidth: col.width,
                     transition: 'all 0.1s linear',
                     userSelect: 'none',
-                    position: isSticky ? 'sticky' : 'static',
-                    left: isSticky ? 0 : 'auto',
-                    zIndex: isSticky ? 30 : 20,
-                    background: COLOR.bg.base
+                    position: (isStickyFirst || isStickyLast) ? 'sticky' : 'static',
+                    left: isStickyFirst ? 0 : 'auto',
+                    right: isStickyLast ? 0 : 'auto',
+                    zIndex: (isStickyFirst || isStickyLast) ? 30 : 20,
+                    background: isStickyLast ? 'transparent' : COLOR.bg.surface
                   }}
                   className={col.sortable ? "hover:bg-interactive-hover" : ""}
                 >
@@ -107,10 +111,18 @@ export const DataTable = <T extends Record<string, any>>({
               }}
             >
               {columns.map((col, colIdx) => {
-                const isSticky = colIdx === 0 && stickyFirstColumn;
-                const cellBg = isSticky 
-                    ? (hoveredRow === rowIdx ? 'rgba(40, 40, 40, 1)' : COLOR.bg.base) 
-                    : 'transparent';
+                const isStickyFirst = colIdx === 0 && stickyFirstColumn;
+                const isStickyLast = colIdx === columns.length - 1 && stickyLastColumn;
+                
+                // Only use an opaque background for sticky cells if we're hovering 
+                // OR if it's the first column (which usually needs to hide symbols under it).
+                // For the LAST column (actions), keep it transparent when not hovered to avoid "dead blocks"
+                let cellBg = 'transparent';
+                if (isStickyFirst) {
+                    cellBg = hoveredRow === rowIdx ? 'rgba(40, 40, 40, 1)' : COLOR.bg.base;
+                } else if (isStickyLast) {
+                    cellBg = hoveredRow === rowIdx ? COLOR.bg.base : 'transparent';
+                }
 
                 return (
                   <td 
@@ -122,14 +134,16 @@ export const DataTable = <T extends Record<string, any>>({
                       fontWeight: TYPE.weight.medium,
                       color: COLOR.text.primary,
                       textAlign: col.align || 'left',
-                      borderRight: BORDER.standard,
+                      borderRight: isStickyLast && hoveredRow !== rowIdx ? 'none' : BORDER.standard,
                       borderBottom: BORDER.standard,
                       width: col.width,
                       minWidth: col.width,
-                      position: isSticky ? 'sticky' : 'static',
-                      left: isSticky ? 0 : 'auto',
-                      zIndex: isSticky ? 10 : 1,
-                      backgroundColor: cellBg
+                      position: (isStickyFirst || isStickyLast) ? 'sticky' : 'static',
+                      left: isStickyFirst ? 0 : 'auto',
+                      right: isStickyLast ? 0 : 'auto',
+                      zIndex: (isStickyFirst || isStickyLast) ? 10 : 1,
+                      backgroundColor: cellBg,
+                      pointerEvents: isStickyLast && hoveredRow !== rowIdx ? 'none' : 'auto'
                     }}
                   >
                     {col.render ? col.render(item[col.key], item, rowIdx) : item[col.key]}

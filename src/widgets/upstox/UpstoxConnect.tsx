@@ -49,7 +49,7 @@ const UpstoxConnect: React.FC = () => {
         fontSize: TYPE.size.xs,
         fontWeight: TYPE.weight.bold,
         color: COLOR.text.secondary,
-        textTransform: 'uppercase',
+        
         letterSpacing: TYPE.letterSpacing.caps,
         display: 'flex',
         alignItems: 'center',
@@ -61,7 +61,7 @@ const UpstoxConnect: React.FC = () => {
         <div style={{ height: '100%', display: 'flex', flexDirection: 'column', background: COLOR.bg.base, padding: SPACE[4], fontFamily: TYPE.family.mono }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: SPACE[6] }}>
                 <div style={{ display: 'flex', flexDirection: 'column' }}>
-                    <span style={{ fontSize: TYPE.size.xs, color: COLOR.text.muted, textTransform: 'uppercase', letterSpacing: TYPE.letterSpacing.caps, marginBottom: '2px' }}>Broker Configuration</span>
+                    <span style={{ fontSize: TYPE.size.xs, color: COLOR.text.muted,  letterSpacing: TYPE.letterSpacing.caps, marginBottom: '2px' }}>Broker Configuration</span>
                     <h2 style={{ fontSize: TYPE.size.xl, fontWeight: TYPE.weight.bold, color: COLOR.text.primary, margin: 0 }}>UPSTOX TERMINAL BRIDGE</h2>
                 </div>
                 <div style={{ 
@@ -128,7 +128,7 @@ const UpstoxConnect: React.FC = () => {
                                 color: COLOR.text.primary,
                                 fontSize: TYPE.size.xs,
                                 fontWeight: TYPE.weight.bold,
-                                textTransform: 'uppercase',
+                                
                                 letterSpacing: TYPE.letterSpacing.wide,
                                 cursor: 'pointer',
                                 transition: 'all 0.1s'
@@ -165,7 +165,7 @@ const UpstoxConnect: React.FC = () => {
                     </div>
                     
                     <div style={{ marginBottom: SPACE[6] }}>
-                        <h4 style={{ fontSize: TYPE.size.sm, fontWeight: TYPE.weight.bold, color: COLOR.text.primary, margin: '0 0 8px 0', textTransform: 'uppercase' }}>Session Management</h4>
+                        <h4 style={{ fontSize: TYPE.size.sm, fontWeight: TYPE.weight.bold, color: COLOR.text.primary, margin: '0 0 8px 0',  }}>Session Management</h4>
                         <p style={{ fontSize: TYPE.size.xs, color: COLOR.text.muted, lineHeight: '1.5', margin: 0, maxWidth: '240px' }}>
                             Auth required every 24h as per SEBI regulations. Ensure API Key is saved before connecting.
                         </p>
@@ -205,7 +205,7 @@ const UpstoxConnect: React.FC = () => {
                                 fontSize: TYPE.size.xs,
                                 fontWeight: TYPE.weight.bold,
                                 cursor: 'pointer',
-                                textTransform: 'uppercase'
+                                
                             }}
                         >
                             {isSandbox ? 'SANDBOX ACTIVE' : 'SWITCH TO SANDBOX'}
@@ -220,7 +220,7 @@ const UpstoxConnect: React.FC = () => {
                                     color: COLOR.semantic.down,
                                     fontSize: TYPE.size.xs,
                                     fontWeight: TYPE.weight.bold,
-                                    textTransform: 'uppercase',
+                                    
                                     marginTop: SPACE[4],
                                     cursor: 'pointer',
                                     textDecoration: 'underline'

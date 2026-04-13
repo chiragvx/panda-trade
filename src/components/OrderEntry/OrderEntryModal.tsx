@@ -202,7 +202,7 @@ export const OrderEntryModal: React.FC = () => {
     fontFamily: TYPE.family.mono,
     marginRight: '0',
     transition: 'all 0.1s ease',
-    textTransform: 'uppercase',
+    
     letterSpacing: TYPE.letterSpacing.caps,
     height: '24px',
     display: 'flex',

@@ -75,7 +75,7 @@ const FearIndex: React.FC = () => {
               border: `1px solid ${status.color}40`,
               background: COLOR.bg.surface,
               padding: '2px 8px',
-              textTransform: 'uppercase',
+              
               marginTop: '4px',
               letterSpacing: TYPE.letterSpacing.caps,
               borderRadius: '2px'
@@ -90,7 +90,7 @@ const FearIndex: React.FC = () => {
         {Object.entries(components).map(([key, val]) => (
           <div key={key} style={{ padding: '6px 8px', borderLeft: `2px solid ${getStatus(val).color}`, background: COLOR.bg.surface }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px' }}>
-              <span style={{ fontSize: TYPE.size.xs, fontWeight: TYPE.weight.black, color: COLOR.text.muted, textTransform: 'uppercase', letterSpacing: TYPE.letterSpacing.tight }}>{componentLabels[key] || key}</span>
+              <span style={{ fontSize: TYPE.size.xs, fontWeight: TYPE.weight.black, color: COLOR.text.muted,  letterSpacing: TYPE.letterSpacing.tight }}>{componentLabels[key] || key}</span>
               <span style={{ fontSize: TYPE.size.xs, fontWeight: TYPE.weight.black, color: COLOR.text.primary, fontFamily: TYPE.family.mono }}>{Math.round(val)}%</span>
             </div>
             <div style={{ height: '2px', background: COLOR.bg.elevated, width: '100%' }}>
@@ -108,7 +108,7 @@ const FearIndex: React.FC = () => {
       </div>
 
       <div style={{ marginTop: 'auto', paddingTop: SPACE[4], borderTop: BORDER.standard, height: '48px', minHeight: '48px', position: 'relative', overflow: 'hidden' }}>
-        <div style={{ position: 'absolute', top: '-4px', right: 0, fontSize: TYPE.size.xs, fontWeight: TYPE.weight.black, color: COLOR.text.muted, background: COLOR.bg.base, padding: '0 4px', textTransform: 'uppercase', letterSpacing: TYPE.letterSpacing.caps }}>
+        <div style={{ position: 'absolute', top: '-4px', right: 0, fontSize: TYPE.size.xs, fontWeight: TYPE.weight.black, color: COLOR.text.muted, background: COLOR.bg.base, padding: '0 4px',  letterSpacing: TYPE.letterSpacing.caps }}>
           LAST_7D_TREND
         </div>
         <ResponsiveContainer width="100%" height={48}>

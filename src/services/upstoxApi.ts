@@ -226,32 +226,75 @@ export const upstoxApi = {
 
   getHistoricalData: async (token: string, instrumentKey: string, interval: string, fromDate: string, toDate: string) =>
     guardedRequest(`hist:${token.slice(-8)}:${instrumentKey}:${interval}:${fromDate}:${toDate}`, 750, async () => {
-      // Temporal Normalization: If simulation/system clock is in the future (e.g. 2026), 
-      // map dates back to real-world 2024 to satisfy the API.
-      const normalize = (d: string) => {
-          const year = parseInt(d.split('-')[0]);
-          if (year >= 2026) return `2024${d.slice(4)}`;
-          if (year === 2025) return `2023${d.slice(4)}`;
-          return d;
+      const currentSimYear = new Date().getFullYear();
+      const REAL_YEAR = 2024;
+      const YEAR_SHIFT = currentSimYear >= 2026 ? (currentSimYear - REAL_YEAR) : 0;
+      const SHIFT_DAYS = YEAR_SHIFT * 364; // Preserve day-of-week by shifting exact weeks (104 weeks for 2 years)
+
+      // Robust IST Parser to prevent UTC ambiguity
+      const toISTDate = (s: string) => {
+          if (!s) return new Date();
+          const formatted = (s.includes('+') || s.endsWith('Z')) ? s : `${s}+05:30`;
+          return new Date(formatted);
       };
 
-      const nFrom = normalize(fromDate);
-      const nTo = normalize(toDate);
+      const dateToYMD = (d: Date) => d.toISOString().split('T')[0];
 
-      const today = new Date().toISOString().split('T')[0];
+      const normalizeToReal = (dateStr: string) => {
+          if (SHIFT_DAYS === 0) return dateStr;
+          const d = new Date(dateStr);
+          d.setDate(d.getDate() - SHIFT_DAYS);
+          return dateToYMD(d);
+      };
+
+      const nFrom = normalizeToReal(fromDate);
+      const nTo = normalizeToReal(toDate);
+      const today = dateToYMD(new Date());
       let finalToDate = nTo;
       
-      if ((interval === 'day' || interval === '1day') && finalToDate >= normalize(today)) {
-          const yesterday = new Date(Date.now() - 86400000);
-          finalToDate = normalize(yesterday.toISOString().split('T')[0]);
+      const isUnsupported = interval === '5minute' || interval === '15minute' || interval === '60minute';
+      const actualInterval = isUnsupported ? '1minute' : interval;
+      
+      if ((actualInterval === 'day' || actualInterval === '1day') && finalToDate >= normalizeToReal(today)) {
+          const yesterday = new Date();
+          yesterday.setDate(yesterday.getDate() - 1);
+          finalToDate = normalizeToReal(dateToYMD(yesterday));
       }
 
       const response = await api.get(
-        `${BASE_URL}/historical-candle/${encodeURIComponent(instrumentKey)}/${interval}/${finalToDate}/${nFrom}`,
-        {
-          headers: authHeaders(token),
-        }
+        `${BASE_URL}/historical-candle/${encodeURIComponent(instrumentKey)}/${actualInterval}/${finalToDate}/${nFrom}`,
+        { headers: authHeaders(token) }
       );
+
+      if (response.data?.data?.candles) {
+          let raw = response.data.data.candles;
+          
+          if (isUnsupported) {
+              const factor = interval === '5minute' ? 5 : interval === '15minute' ? 15 : 60;
+              const aggregated: any[] = [];
+              const isDescending = new Date(raw[0][0]) > new Date(raw[raw.length-1][0]);
+              const sorted = isDescending ? [...raw].reverse() : raw;
+
+              for (let i = 0; i < sorted.length; i += factor) {
+                  const chunk = sorted.slice(i, i + factor);
+                  if (chunk.length === 0) continue;
+                  const open = chunk[0][1], high = Math.max(...chunk.map(c => c[2])), low = Math.min(...chunk.map(c => c[3])), close = chunk[chunk.length - 1][4], vol = chunk.reduce((acc, c) => acc + (c[5] || 0), 0);
+                  aggregated.push([chunk[0][0], open, high, low, close, vol]);
+              }
+              raw = isDescending ? aggregated.reverse() : aggregated;
+          }
+
+          // Denormalize and stabilize IST
+          response.data.data.candles = raw.map((c: any) => {
+              const d = toISTDate(c[0]);
+              if (SHIFT_DAYS > 0) {
+                  d.setDate(d.getDate() + SHIFT_DAYS);
+              }
+              // Return Unix timestamp (seconds) for consistent chart parsing
+              return [Math.floor(d.getTime() / 1000), c[1], c[2], c[3], c[4], c[5], c[6]];
+          }).filter((c: any) => c[0] <= Math.floor(Date.now() / 1000));
+      }
+
       return response.data;
     }),
 

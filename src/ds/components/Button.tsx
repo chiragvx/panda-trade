@@ -28,12 +28,12 @@ const BASE: React.CSSProperties = {
   fontFamily: TYPE.family.mono,
   fontWeight: TYPE.weight.medium,
   letterSpacing: TYPE.letterSpacing.wide,
-  textTransform: 'uppercase',
   cursor: 'pointer',
   border: 'none',
   outline: 'none',
   whiteSpace: 'nowrap',
   flexShrink: 0,
+  boxSizing: 'border-box'
 };
 
 export const Button: React.FC<ButtonProps> = ({

@@ -72,7 +72,7 @@ export const StatusBanner: React.FC<StatusBannerProps> = ({
         fontWeight: TYPE.weight.black, 
         color: text, 
         letterSpacing: TYPE.letterSpacing.caps,
-        textTransform: 'uppercase',
+        
         fontFamily: TYPE.family.mono
       }}>
         {message}

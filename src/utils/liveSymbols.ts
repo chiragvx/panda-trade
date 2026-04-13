@@ -13,8 +13,21 @@ export const getTickerFromInstrumentKey = (instrumentKey: string): string => {
 };
 
 export const isIsin = (s: string): boolean => {
-  if (!s || s.length !== 12) return false;
-  return /^[A-Z]{2}[A-Z0-9]{10}$/.test(s);
+  if (!s) return false;
+  const trimmed = s.trim().toUpperCase();
+  if (trimmed.length !== 12) return false;
+  return /^[A-Z]{2}[A-Z0-9]{10}$/.test(trimmed);
+};
+
+export const isNumericId = (s: string): boolean => {
+  if (!s) return false;
+  const trimmed = s.trim();
+  return /^\d+$/.test(trimmed);
+};
+
+export const isUselessTicker = (s: string): boolean => {
+  if (!s) return true;
+  return isIsin(s) || isNumericId(s);
 };
 
 export const buildSymbolFromFeed = (

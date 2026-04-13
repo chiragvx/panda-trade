@@ -3,6 +3,8 @@ import { useSelectionStore, useWatchlistStore } from '../store/useStore';
 import { useUpstoxStore } from '../store/useUpstoxStore';
 import { upstoxApi } from '../services/upstoxApi';
 import { upstoxWebSocket } from '../services/upstoxWebSocket';
+import { upstoxSearch } from '../services/upstoxSearch';
+import { isUselessTicker } from '../utils/liveSymbols';
 
 const ACCOUNT_REFRESH_INTERVAL_MS = 60000;
 const TOKEN_VALIDITY_CHECK_MS = 60000;
@@ -121,4 +123,39 @@ export const useUpstoxBridge = () => {
     upstoxWebSocket.syncSubscriptions(ltpcModeKeys, 'ltpc');
     upstoxWebSocket.syncSubscriptions(fullModeKeys, 'full');
   }, [accessToken, fullModeKeys, ltpcModeKeys, status]);
+
+  // Background Resolver for all scrips in memory (Watchlists, Holdings, etc)
+  useEffect(() => {
+    if (status !== 'connected' || !accessToken) return;
+
+    const resolveAllMissing = async () => {
+      const { instrumentMeta, setInstrumentMeta } = useUpstoxStore.getState();
+      const allKeys = uniqueKeys([...allWatchlistKeys, ...accountInstrumentKeys, ...CORE_INDEX_KEYS]);
+      
+      const missingKeys = allKeys.filter(k => {
+        const meta = instrumentMeta[k];
+        return !meta || (isUselessTicker(meta.ticker) && isUselessTicker(meta.name));
+      });
+
+      if (missingKeys.length === 0) return;
+
+      // Slowly resolve each to avoid hammering the search rate-limit
+      for (const k of missingKeys) {
+        try {
+          const [, raw] = k.split('|');
+          const results = await upstoxSearch.searchSymbols(accessToken, raw || k, 1);
+          if (results.length > 0) {
+            const best = results[0];
+            setInstrumentMeta({ [k]: { ticker: best.ticker, name: best.name, exchange: best.exchange } });
+          }
+        } catch (e) {
+          console.warn('Global resolver failed for', k, e);
+        }
+      }
+    };
+
+    // Delay slightly to prioritize account data load
+    const timeout = setTimeout(resolveAllMissing, 5000);
+    return () => clearTimeout(timeout);
+  }, [accessToken, allWatchlistKeys.length, accountInstrumentKeys.length, status]);
 };

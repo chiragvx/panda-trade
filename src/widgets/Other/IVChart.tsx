@@ -2,7 +2,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { useUpstoxStore } from '../../store/useUpstoxStore';
 import { useSelectionStore } from '../../store/useStore';
 import { upstoxApi } from '../../services/upstoxApi';
-import { WidgetShell } from '../../ds/components/WidgetShell';
+import { WidgetShell, Select } from '../../ds';
 import { COLOR, TYPE, BORDER, SPACE } from '../../ds/tokens';
 import { TrendingUp, Activity, Filter, Info, Search } from 'lucide-react';
 import { NIFTY_50 } from '../../utils/defaultSymbol';
@@ -74,13 +74,13 @@ export const IVChart: React.FC = () => {
                 </div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                     <Filter size={12} color={COLOR.text.muted} />
-                    <select 
+                    <Select 
                         value={selectedExpiry}
                         onChange={(e) => setSelectedExpiry(e.target.value)}
-                        style={{ background: COLOR.bg.elevated, border: BORDER.standard, color: COLOR.text.primary, fontSize: TYPE.size.xs, fontWeight: TYPE.weight.black, padding: '2px 8px', outline: 'none', borderRadius: '2px', cursor: 'pointer' }}
+                        selectSize="sm"
                     >
                         {expiries.map(exp => <option key={exp} value={exp}>{exp}</option>)}
-                    </select>
+                    </Select>
                 </div>
             </WidgetShell.Toolbar>
 

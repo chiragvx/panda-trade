@@ -46,7 +46,7 @@ export const VolSurfaceControls: React.FC<VolSurfaceControlsProps> = ({
       <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
           <MonitorPlay size={14} color={COLOR.semantic.info} />
-          <span style={{ fontSize: TYPE.size.xs, fontWeight: TYPE.weight.black, textTransform: 'uppercase', color: COLOR.text.primary, letterSpacing: TYPE.letterSpacing.caps }}>{symbolName}</span>
+          <span style={{ fontSize: TYPE.size.xs, fontWeight: TYPE.weight.black,  color: COLOR.text.primary, letterSpacing: TYPE.letterSpacing.caps }}>{symbolName}</span>
           <span style={{ fontSize: TYPE.size.xs, color: COLOR.text.muted, fontWeight: TYPE.weight.bold, letterSpacing: TYPE.letterSpacing.tight }}>VOL_SURFACE_3D</span>
         </div>
       </div>

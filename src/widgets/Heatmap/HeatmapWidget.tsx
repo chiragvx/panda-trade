@@ -106,7 +106,7 @@ export const HeatmapWidget: React.FC = () => {
     <div style={{ height: '100%', background: COLOR.bg.base, padding: SPACE[4], overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: SPACE[4], padding: '0 4px', alignItems: 'center' }}>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
-                <span style={{ fontSize: TYPE.size.xs, fontWeight: TYPE.weight.black, color: COLOR.text.primary, letterSpacing: TYPE.letterSpacing.caps, textTransform: 'uppercase' }}>PORTFOLIO_HEATMAP</span>
+                <span style={{ fontSize: TYPE.size.xs, fontWeight: TYPE.weight.black, color: COLOR.text.primary, letterSpacing: TYPE.letterSpacing.caps,  }}>PORTFOLIO_HEATMAP</span>
                 <span style={{ fontSize: TYPE.size.xs, color: COLOR.text.muted, fontFamily: TYPE.family.mono, fontWeight: TYPE.weight.bold }}>SIZE=VALUE | COLOR=PNL%</span>
             </div>
             <div style={{ display: 'flex', gap: '16px' }}>

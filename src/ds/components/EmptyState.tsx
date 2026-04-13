@@ -44,7 +44,7 @@ export const EmptyState: React.FC<EmptyStateProps> = ({
         fontSize: TYPE.size.xs, 
         fontWeight: TYPE.weight.black, 
         color: COLOR.text.muted, 
-        textTransform: 'uppercase', 
+         
         letterSpacing: TYPE.letterSpacing.caps, 
         fontFamily: TYPE.family.mono 
       }}>

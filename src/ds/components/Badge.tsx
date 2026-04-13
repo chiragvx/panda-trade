@@ -42,7 +42,7 @@ export const Badge: React.FC<BadgeProps> = ({ label, variant = 'default' }) => (
     color: VARIANT_STYLES[variant].color,
     background: 'transparent',
     whiteSpace: 'nowrap',
-    textTransform: 'uppercase',
+    
     lineHeight: 1,
   }}>
     {label}

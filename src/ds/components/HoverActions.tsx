@@ -29,6 +29,33 @@ export const HoverActions: React.FC<HoverActionsProps> = ({
   className,
   style
 }) => {
+  const itemStyle = (color: string, isOutline: boolean = false): React.CSSProperties => ({
+    width: '32px',
+    height: '100%',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    cursor: 'pointer',
+    transition: 'background 0.1s ease, color 0.1s ease',
+    boxSizing: 'border-box',
+    boxShadow: isOutline ? `inset 0 0 0 1px ${color}` : 'none',
+    color: color,
+    fontSize: '11px',
+    fontWeight: 900,
+    background: 'transparent',
+    padding: 0,
+    margin: 0,
+    border: 'none',
+    outline: 'none',
+    // Root cause fix: UA stylesheet sets vertical-align: baseline on <button>,
+    // causing sub-pixel glyph differences between adjacent letters (e.g. 'B' vs 'S').
+    // verticalAlign: top + appearance: none strips all browser-native button rendering.
+    verticalAlign: 'top',
+    WebkitAppearance: 'none',
+    MozAppearance: 'none',
+    appearance: 'none' as any,
+  });
+
   return (
     <AnimatePresence>
       {isVisible && (
@@ -43,78 +70,86 @@ export const HoverActions: React.FC<HoverActionsProps> = ({
             right: 0,
             top: 0,
             bottom: 0,
-            height: '100%',
             display: 'flex',
-            alignItems: 'center',
-            gap: '4px',
-            padding: '0 8px',
+            alignItems: 'stretch',
             background: COLOR.bg.base,
             borderLeft: `1px solid ${COLOR.bg.border}`,
             zIndex: Z.overlay,
-            marginLeft: 'auto',
             ...style
           }}
         >
           {onInfo && (
-            <Button 
-              variant="ghost" 
-              size="sm" 
-              onClick={(e) => { e.stopPropagation(); onInfo(); }} 
-              style={{ color: COLOR.text.muted, border: 'none', background: 'transparent' }}
-              title="View Fundamentals"
+            <button 
+                onClick={(e) => { e.stopPropagation(); onInfo(); }} 
+                style={itemStyle(COLOR.text.muted)}
+                title="View Fundamentals"
             >
-              <Info size={16} />
-            </Button>
+                <Info size={14} />
+            </button>
           )}
           
           {onChart && (
-            <Button 
-              variant="ghost" 
-              size="sm" 
-              onClick={(e) => { e.stopPropagation(); onChart(); }} 
-              style={{ color: COLOR.text.muted, border: 'none', background: 'transparent' }}
-              title="Open Chart"
+            <button 
+                onClick={(e) => { e.stopPropagation(); onChart(); }} 
+                style={itemStyle(COLOR.text.muted)}
+                title="Open Chart"
             >
-              <BarChart3 size={16} />
-            </Button>
-          )}
-
-          {(onBuy || onSell) && (
-            <div style={{ width: '1px', height: '12px', background: COLOR.bg.border, margin: '0 4px' }} />
+                <BarChart3 size={14} />
+            </button>
           )}
 
           {onBuy && (
-            <Button 
-              variant="buy" 
-              size="sm" 
-              onClick={(e) => { e.stopPropagation(); onBuy(); }}
+            <button 
+                onClick={(e) => { e.stopPropagation(); onBuy(); }}
+                style={{
+                    ...itemStyle(COLOR.semantic.up, true),
+                }}
+                onMouseEnter={(e) => {
+                    e.currentTarget.style.background = COLOR.semantic.up;
+                    e.currentTarget.style.color = '#000';
+                }}
+                onMouseLeave={(e) => {
+                    e.currentTarget.style.background = 'transparent';
+                    e.currentTarget.style.color = COLOR.semantic.up;
+                }}
             >
-              BUY
-            </Button>
+                B
+            </button>
           )}
 
           {onSell && (
-            <Button 
-              variant="sell" 
-              size="sm" 
-              onClick={(e) => { e.stopPropagation(); onSell(); }}
+            <button 
+                onClick={(e) => { e.stopPropagation(); onSell(); }}
+                style={{
+                    ...itemStyle(COLOR.semantic.down, true),
+                }}
+                onMouseEnter={(e) => {
+                    e.currentTarget.style.background = COLOR.semantic.down;
+                    e.currentTarget.style.color = '#fff';
+                }}
+                onMouseLeave={(e) => {
+                    e.currentTarget.style.background = 'transparent';
+                    e.currentTarget.style.color = COLOR.semantic.down;
+                }}
             >
-              SELL
-            </Button>
+                S
+            </button>
           )}
 
-          {extraActions}
+          {extraActions && (
+             <div style={{ display: 'flex', alignItems: 'center', height: '100%' }}>
+                {extraActions}
+             </div>
+          )}
 
           {onDelete && (
-             <Button 
-              variant="ghost" 
-              size="sm" 
-              onClick={(e) => { e.stopPropagation(); onDelete(); }} 
-              style={{ color: COLOR.semantic.down, border: 'none', background: 'transparent' }}
-              title="Remove"
+             <button 
+                onClick={(e) => { e.stopPropagation(); onDelete(); }} 
+                style={itemStyle(COLOR.semantic.down)}
+                title="Remove"
              >
-                <Trash2 size={16} />
-             </Button>
+                <Trash2 size={14} />
+             </button>
           )}
         </motion.div>
       )}

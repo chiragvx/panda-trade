@@ -33,7 +33,7 @@ const SecureInput: React.FC<{
     fontSize: TYPE.size.xs,
     fontWeight: TYPE.weight.black,
     color: COLOR.text.muted,
-    textTransform: 'uppercase',
+    
     letterSpacing: TYPE.letterSpacing.caps,
     display: 'flex',
     alignItems: 'center',
@@ -175,7 +175,7 @@ export const ApiConfigModal: React.FC<ApiConfigModalProps> = ({ provider, onClos
         fontSize: TYPE.size.xs,
         fontWeight: TYPE.weight.black,
         color: COLOR.text.muted,
-        textTransform: 'uppercase',
+        
         letterSpacing: TYPE.letterSpacing.caps,
         display: 'flex',
         alignItems: 'center',
@@ -223,7 +223,7 @@ export const ApiConfigModal: React.FC<ApiConfigModalProps> = ({ provider, onClos
                     }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: COLOR.text.primary }}>
                             {config.icon}
-                            <span style={{ fontSize: TYPE.size.md, fontWeight: TYPE.weight.black, textTransform: 'uppercase', letterSpacing: TYPE.letterSpacing.caps }}>{config.title}</span>
+                            <span style={{ fontSize: TYPE.size.md, fontWeight: TYPE.weight.black,  letterSpacing: TYPE.letterSpacing.caps }}>{config.title}</span>
                         </div>
                     </div>
                 </div>
@@ -254,7 +254,7 @@ export const ApiConfigModal: React.FC<ApiConfigModalProps> = ({ provider, onClos
             {/* Right Column: Inputs */}
             <div style={{ flex: 1, padding: SPACE[8], display: 'flex', flexDirection: 'column' }}>
                 <div style={{ flex: 1, overflowY: 'auto' }} className="custom-scrollbar">
-                    <h3 style={{ fontSize: TYPE.size.sm, color: COLOR.text.primary, fontWeight: TYPE.weight.black, margin: `0 0 ${SPACE[6]} 0`, textTransform: 'uppercase', letterSpacing: TYPE.letterSpacing.caps }}>Configuration</h3>
+                    <h3 style={{ fontSize: TYPE.size.sm, color: COLOR.text.primary, fontWeight: TYPE.weight.black, margin: `0 0 ${SPACE[6]} 0`,  letterSpacing: TYPE.letterSpacing.caps }}>Configuration</h3>
                     
                     {provider === 'UPSTOX' && (
                         <>

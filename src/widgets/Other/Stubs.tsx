@@ -20,14 +20,14 @@ export const GenericStub: React.FC<{ name: string; category: string }> = ({ name
       <div style={{ textAlign: 'center' }}>
         <div style={{
           fontFamily: TYPE.family.mono, fontSize: TYPE.size.xs, color: COLOR.text.muted,
-          letterSpacing: TYPE.letterSpacing.caps, textTransform: 'uppercase', marginBottom: '8px',
+          letterSpacing: TYPE.letterSpacing.caps,  marginBottom: '8px',
           fontWeight: TYPE.weight.black
         }}>
           {category} / {name}
         </div>
         <div style={{
           fontFamily: TYPE.family.mono, fontSize: '12px', fontWeight: TYPE.weight.black,
-          color: COLOR.text.primary, textTransform: 'uppercase'
+          color: COLOR.text.primary, 
         }}>
           NO_API_DATA_STREAM
         </div>

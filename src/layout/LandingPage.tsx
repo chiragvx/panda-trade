@@ -227,7 +227,7 @@ const LandingPage: React.FC = () => {
                     </div>
                     
                     <div>
-                        <h4 style={{ color: '#fff', fontSize: '12px', fontWeight: 'bold', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: '20px' }}>Platform</h4>
+                        <h4 style={{ color: '#fff', fontSize: '12px', fontWeight: 'bold',  letterSpacing: '0.1em', marginBottom: '20px' }}>Platform</h4>
                         <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: '12px' }}>
                             {['Infrastructure', 'Bento_UI', 'OS_v2.0', 'Latency_Metrics'].map(it => (
                                 <li key={it}><a href="#" style={{ color: '#666', fontSize: '13px', textDecoration: 'none' }} onMouseOver={e => e.currentTarget.style.color='#fff'} onMouseOut={e => e.currentTarget.style.color='#666'}>{it}</a></li>
@@ -236,7 +236,7 @@ const LandingPage: React.FC = () => {
                     </div>
 
                     <div>
-                        <h4 style={{ color: '#fff', fontSize: '12px', fontWeight: 'bold', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: '20px' }}>Connectors</h4>
+                        <h4 style={{ color: '#fff', fontSize: '12px', fontWeight: 'bold',  letterSpacing: '0.1em', marginBottom: '20px' }}>Connectors</h4>
                         <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: '12px' }}>
                             {['Upstox_Bridge', 'AISStream_Global', 'NASA_FIRMS', 'TradingView_Core'].map(it => (
                                 <li key={it}><a href="#" style={{ color: '#666', fontSize: '13px', textDecoration: 'none' }} onMouseOver={e => e.currentTarget.style.color='#fff'} onMouseOut={e => e.currentTarget.style.color='#666'}>{it}</a></li>
@@ -245,7 +245,7 @@ const LandingPage: React.FC = () => {
                     </div>
 
                     <div>
-                        <h4 style={{ color: '#fff', fontSize: '12px', fontWeight: 'bold', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: '20px' }}>System</h4>
+                        <h4 style={{ color: '#fff', fontSize: '12px', fontWeight: 'bold',  letterSpacing: '0.1em', marginBottom: '20px' }}>System</h4>
                         <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: '12px' }}>
                             {['Protocol_Security', 'Privacy_Policy', 'Service_Terms', 'Node_Status'].map(it => (
                                 <li key={it}><a href="#" style={{ color: '#666', fontSize: '13px', textDecoration: 'none' }} onMouseOver={e => e.currentTarget.style.color='#fff'} onMouseOut={e => e.currentTarget.style.color='#666'}>{it}</a></li>

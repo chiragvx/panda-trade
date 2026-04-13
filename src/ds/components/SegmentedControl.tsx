@@ -53,7 +53,7 @@ export const SegmentedControl: React.FC<SegmentedControlProps> = ({
                 alignItems: 'center',
                 gap: '6px',
                 fontFamily: TYPE.family.mono,
-                textTransform: 'uppercase',
+                
                 transition: 'all 0.1s linear',
                 letterSpacing: TYPE.letterSpacing.caps
             }}

@@ -31,7 +31,7 @@ export const AisStreamConnect: React.FC = () => {
         fontSize: TYPE.size.xs,
         fontWeight: TYPE.weight.bold,
         color: COLOR.text.secondary,
-        textTransform: 'uppercase',
+        
         letterSpacing: TYPE.letterSpacing.caps,
         display: 'flex',
         alignItems: 'center',

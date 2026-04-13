@@ -9,7 +9,9 @@ import { buildSymbolFromFeed } from '../../utils/liveSymbols';
 import { useToastStore } from '../../components/ToastContainer';
 import { useContextMenuStore, ContextMenuOption } from '../../store/useContextMenuStore';
 import { upstoxApi } from '../../services/upstoxApi';
-import { Info, X, Edit2, Play, Pause, ChevronUp, ChevronDown, RefreshCcw, Trash2 } from 'lucide-react';
+import { Info, X, Edit2, Play, Pause, ChevronUp, ChevronDown, RefreshCcw, Trash2, BarChart3, Trash } from 'lucide-react';
+import { HoverActions } from '../../ds/components/HoverActions';
+import { Tooltip } from '../../ds/components/Tooltip';
 
 const toNumber = (value: unknown, fallback = 0) => {
   const parsed = Number(value);
@@ -17,13 +19,13 @@ const toNumber = (value: unknown, fallback = 0) => {
 };
 
 const DenseRow: React.FC<{
-  ticker: string;
-  ltp: number;
-  pct: number;
+  symbol: any;
   onBuy: () => void;
   onSell: () => void;
-}> = ({ ticker, ltp, pct, onBuy, onSell }) => {
+}> = ({ symbol, onBuy, onSell }) => {
   const [hovered, setHovered] = useState(false);
+  const { setSelectedSymbol } = useSelectionStore();
+  
   return (
     <div
       onMouseEnter={() => setHovered(true)}
@@ -34,7 +36,6 @@ const DenseRow: React.FC<{
         height: ROW_HEIGHT.compact,
         borderBottom: BORDER.standard,
         position: 'relative',
-        overflow: 'hidden',
         background: hovered ? COLOR.interactive.hover : 'transparent',
         borderLeft: hovered ? `2px solid ${COLOR.semantic.info}` : '2px solid transparent',
         transition: 'background 80ms linear',
@@ -42,20 +43,28 @@ const DenseRow: React.FC<{
         paddingLeft: hovered ? '6px' : '8px',
       }}
     >
-      <span style={{ flex: 1, fontFamily: TYPE.family.mono, fontSize: TYPE.size.sm, fontWeight: TYPE.weight.medium, color: COLOR.text.primary, textTransform: 'uppercase' }}>
-        {ticker || '--'}
+      <span style={{ flex: 1, fontFamily: TYPE.family.mono, fontSize: TYPE.size.sm, fontWeight: TYPE.weight.medium, color: COLOR.text.primary,  }}>
+        {symbol.ticker || '--'}
       </span>
       <span style={{ width: '60px', textAlign: 'right', paddingRight: '6px', fontFamily: TYPE.family.mono, fontSize: TYPE.size.sm, color: COLOR.text.secondary }}>
-        {ltp.toLocaleString('en-IN', { maximumFractionDigits: 2 })}
+        {symbol.ltp.toLocaleString('en-IN', { maximumFractionDigits: 2 })}
       </span>
-      <Change value={pct} format="percent" size="sm" />
+      <Change value={symbol.changePct} format="percent" size="sm" />
       <span style={{ width: '8px' }} />
-      {hovered && (
-        <div style={{ position: 'absolute', right: 0, top: 0, bottom: 0, display: 'flex', alignItems: 'center', gap: '2px', padding: '0 4px', background: COLOR.interactive.hover }}>
-          <Button variant="buy" size="xs" onClick={(e) => { e.stopPropagation(); onBuy(); }}>B</Button>
-          <Button variant="sell" size="xs" onClick={(e) => { e.stopPropagation(); onSell(); }}>S</Button>
-        </div>
-      )}
+      
+      <HoverActions 
+        isVisible={hovered}
+        onBuy={onBuy}
+        onSell={onSell}
+        onInfo={() => { 
+            setSelectedSymbol(symbol); 
+            if ((window as any).replaceTab) (window as any).replaceTab('fundamentals'); 
+        }}
+        onChart={() => {
+            setSelectedSymbol(symbol);
+            if ((window as any).targetWidget) (window as any).targetWidget('chart');
+        }}
+      />
     </div>
   );
 };
@@ -71,7 +80,7 @@ const ColHdr: React.FC<{ label: string; w?: number; flex?: boolean; align?: 'lef
       fontSize: TYPE.size.xs,
       color: COLOR.text.muted,
       letterSpacing: TYPE.letterSpacing.caps,
-      textTransform: 'uppercase',
+      
       paddingLeft: align === 'left' ? '8px' : 0,
       paddingRight: align === 'right' ? '6px' : 0,
     }}
@@ -102,7 +111,20 @@ export const TrendingWidget: React.FC = () => {
         {trending.length === 0 ? (
           <div style={{ padding: '20px', textAlign: 'center', color: COLOR.text.muted, fontSize: TYPE.size.sm, fontFamily: TYPE.family.mono }}>NO LIVE DATA</div>
         ) : (
-          trending.map((s) => <DenseRow key={s.instrument_key || s.ticker} ticker={s.ticker} ltp={s.ltp} pct={s.changePct} onBuy={() => {}} onSell={() => {}} />)
+          trending.map((s) => (
+            <DenseRow 
+              key={s.instrument_key || s.ticker} 
+              symbol={s}
+              onBuy={() => {
+                setSelectedSymbol(s);
+                setTimeout(() => useLayoutStore.getState().openOrderModal('BUY'), 0);
+              }} 
+              onSell={() => {
+                setSelectedSymbol(s);
+                setTimeout(() => useLayoutStore.getState().openOrderModal('SELL'), 0);
+              }} 
+            />
+          ))
         )}
       </div>
     </div>
@@ -154,7 +176,7 @@ export const PositionsWidget: React.FC = () => {
             const pct = p.avgPrice ? ((p.ltp - p.avgPrice) / p.avgPrice) * 100 : 0;
             return (
               <div key={p.id} style={{ display: 'flex', alignItems: 'center', height: ROW_HEIGHT.relaxed, borderBottom: BORDER.standard, paddingLeft: '8px' }}>
-                <span style={{ flex: 1, fontFamily: TYPE.family.mono, fontSize: TYPE.size.sm, fontWeight: TYPE.weight.medium, color: COLOR.text.primary, textTransform: 'uppercase' }}>{p.symbol}</span>
+                <span style={{ flex: 1, fontFamily: TYPE.family.mono, fontSize: TYPE.size.sm, fontWeight: TYPE.weight.medium, color: COLOR.text.primary,  }}>{p.symbol}</span>
                 <span style={{ width: '40px', textAlign: 'right', paddingRight: '6px', fontFamily: TYPE.family.mono, fontSize: TYPE.size.sm, color: COLOR.text.secondary }}>{p.quantity}</span>
                 <span style={{ width: '64px', textAlign: 'right', paddingRight: '6px', fontFamily: TYPE.family.mono, fontSize: TYPE.size.xs, color: COLOR.text.muted }}>{p.avgPrice.toFixed(2)}</span>
                 <span style={{ width: '64px', textAlign: 'right', paddingRight: '6px', fontFamily: TYPE.family.mono, fontSize: TYPE.size.sm, color: COLOR.text.primary }}>{p.ltp.toFixed(2)}</span>
@@ -292,29 +314,28 @@ const OrdersRow: React.FC<{ order: any }> = ({ order }) => {
       {/* Spacer to prevent content being buried under sticky right buttons */}
       <div style={{ width: 100, minWidth: 100 }} />
 
-      {hovered && (
-        <div style={{ 
-            position: 'sticky', 
-            right: 0, 
-            height: '100%',
-            width: 100,
-            zIndex: 30, 
-            background: COLOR.bg.elevated, 
-            display: 'flex', 
-            alignItems: 'center', 
-            justifyContent: 'center',
-            gap: '4px', 
-            borderLeft: BORDER.standard
-        }}>
-          {isPending && (
-            <>
-              <Button size="sm" variant="filled" onClick={(e) => { e.stopPropagation(); openModifyModal(order); }} style={{ height: '22px', border: 'none', background: 'transparent' }} title="Modify"><Edit2 size={14} color="#FFF" /></Button>
-              <Button size="sm" variant="danger" onClick={handleCancel} style={{ height: '22px', border: 'none', background: 'transparent' }} title="Cancel"><X size={14} color={COLOR.semantic.down} /></Button>
-            </>
-          )}
-          <Button size="sm" variant="ghost" onClick={(e) => { e.stopPropagation(); openOrderDetails(order); }} style={{ height: '22px', color: '#888' }}><Info size={14} /></Button>
-        </div>
-      )}
+      <HoverActions 
+        isVisible={hovered}
+        onInfo={() => openOrderDetails(order)}
+        onChart={() => {
+            setSelectedSymbol({ ticker: order.symbol, instrument_key: order.instrument_key } as any);
+            if ((window as any).targetWidget) (window as any).targetWidget('chart');
+        }}
+        onBuy={() => {
+            setSelectedSymbol({ ticker: order.symbol, instrument_key: order.instrument_key } as any);
+            setTimeout(() => openOrderModal('BUY'), 0);
+        }}
+        onSell={() => {
+            setSelectedSymbol({ ticker: order.symbol, instrument_key: order.instrument_key } as any);
+            setTimeout(() => openOrderModal('SELL'), 0);
+        }}
+        extraActions={isPending && (
+            <Button size="sm" variant="ghost" onClick={(e) => { e.stopPropagation(); openModifyModal(order); }} style={{ padding: '0 4px', color: COLOR.text.primary }} title="Modify">
+                <Edit2 size={14} />
+            </Button>
+        )}
+        onDelete={isPending ? handleCancel : undefined}
+      />
     </div>
   );
 };
@@ -391,27 +412,28 @@ export const OrdersWidget: React.FC = () => {
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100%', background: COLOR.bg.surface }}>
-      <div style={{ height: '32px', display: 'flex', alignItems: 'center', justifyContent: 'flex-end', padding: '0 12px', borderBottom: BORDER.standard, flexShrink: 0, background: COLOR.bg.elevated }}>
-        <button 
-            onClick={handleCancelAll}
-            style={{ 
-                background: 'none', 
-                border: `1px solid ${COLOR.semantic.down}`, 
-                color: COLOR.semantic.down, 
-                fontSize: TYPE.size.xs, 
-                fontWeight: TYPE.weight.black, 
-                padding: '3px 10px', 
-                cursor: 'pointer',
-                borderRadius: '2px',
-                textTransform: 'uppercase',
-                transition: 'all 0.1s linear',
-                letterSpacing: TYPE.letterSpacing.caps
-            }}
-            onMouseOver={(e) => { e.currentTarget.style.background = `${COLOR.semantic.down}22`; }}
-            onMouseOut={(e) => { e.currentTarget.style.background = 'none'; }}
-        >
-            CANCEL_ALL_PENDING
-        </button>
+      <div style={{ height: '32px', display: 'flex', alignItems: 'center', justifyContent: 'flex-end', padding: '0', borderBottom: BORDER.standard, flexShrink: 0, background: COLOR.bg.base }}>
+        <Tooltip content="Cancel all orders" position="left">
+            <button 
+                onClick={handleCancelAll}
+                className="hover:bg-zinc-800"
+                style={{ 
+                    background: 'none', 
+                    border: 'none',
+                    color: COLOR.semantic.down, 
+                    height: '32px',
+                    width: '32px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    cursor: 'pointer',
+                    transition: 'all 0.1s linear',
+                    padding: 0
+                }}
+            >
+                <Trash2 size={16} />
+            </button>
+        </Tooltip>
       </div>
 
       <div 
@@ -467,7 +489,7 @@ export const OrdersWidget: React.FC = () => {
 
 export const PortfolioWidget: React.FC = () => (
   <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100%', background: COLOR.bg.surface, gap: '8px' }}>
-    <span style={{ fontFamily: TYPE.family.mono, fontSize: TYPE.size.xs, color: COLOR.text.muted, letterSpacing: TYPE.letterSpacing.caps, textTransform: 'uppercase' }}>
+    <span style={{ fontFamily: TYPE.family.mono, fontSize: TYPE.size.xs, color: COLOR.text.muted, letterSpacing: TYPE.letterSpacing.caps,  }}>
       PORTFOLIO ANALYTICS
     </span>
     <span style={{ fontFamily: TYPE.family.mono, fontSize: TYPE.size.sm, color: COLOR.text.secondary }}>
@@ -478,7 +500,7 @@ export const PortfolioWidget: React.FC = () => (
 
 export const BasketWidget: React.FC = () => (
   <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100%', background: COLOR.bg.surface, gap: '6px' }}>
-    <span style={{ fontFamily: TYPE.family.mono, fontSize: TYPE.size.xs, color: COLOR.text.muted, letterSpacing: TYPE.letterSpacing.caps, textTransform: 'uppercase' }}>
+    <span style={{ fontFamily: TYPE.family.mono, fontSize: TYPE.size.xs, color: COLOR.text.muted, letterSpacing: TYPE.letterSpacing.caps,  }}>
       BASKET ORDERS
     </span>
     <span style={{ fontFamily: TYPE.family.mono, fontSize: TYPE.size.sm, color: COLOR.text.secondary }}>Batch multiple orders for simultaneous execution.</span>

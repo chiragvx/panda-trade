@@ -40,7 +40,7 @@ export const Tag: React.FC<TagProps> = ({ label, variant = 'muted', style }) => 
         fontWeight:    TYPE.weight.bold,
         letterSpacing: TYPE.letterSpacing.caps,
         color:         text,
-        textTransform: 'uppercase',
+        
         whiteSpace:    'nowrap',
         lineHeight:     1,
         flexShrink:     0,

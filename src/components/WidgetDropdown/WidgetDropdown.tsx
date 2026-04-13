@@ -93,7 +93,7 @@ export const WidgetDropdown: React.FC<WidgetDropdownProps> = ({ isOpen, onOpenCh
                             autoFocus
                             value={search}
                             onChange={e => setSearch(e.target.value)}
-                            placeholder="SEARCH MODULES..."
+                            placeholder="Search modules..."
                             style={{
                             flex: 1, background: 'transparent', border: 'none',
                             fontFamily: TYPE.family.mono, fontSize: '11px', color: COLOR.text.primary,
@@ -120,14 +120,14 @@ export const WidgetDropdown: React.FC<WidgetDropdownProps> = ({ isOpen, onOpenCh
                 <div ref={contentRef} style={{ flex: 1, overflowY: 'auto', padding: '10px' }}>
                   {sections.length === 0 ? (
                     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '60px' }}>
-                      <span style={{ fontFamily: TYPE.family.mono, fontSize: TYPE.size.xs, color: COLOR.text.muted, fontWeight: TYPE.weight.black, letterSpacing: TYPE.letterSpacing.caps }}>NO_RESULTS</span>
+                      <span style={{ fontFamily: TYPE.family.mono, fontSize: TYPE.size.xs, color: COLOR.text.muted, fontWeight: TYPE.weight.black }}>No Results</span>
                     </div>
                   ) : (
                     sections.map(([category, widgets]) => (
                       <div key={category} style={{ marginBottom: '12px' }}>
                         <div style={{
                           fontFamily: TYPE.family.mono, fontSize: TYPE.size.xs, color: COLOR.text.muted,
-                          textTransform: 'uppercase', marginBottom: '6px', fontWeight: TYPE.weight.black, letterSpacing: TYPE.letterSpacing.caps
+                          textTransform: 'none', marginBottom: '6px', fontWeight: TYPE.weight.black
                         }}>
                           {category}
                         </div>

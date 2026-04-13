@@ -18,10 +18,11 @@ import {
   HoverActions
 } from '../../ds';
 import { motion, AnimatePresence } from 'framer-motion';
-import { buildSymbolFromFeed } from '../../utils/liveSymbols';
-import { upstoxSearch, UpstoxSearchResult } from '../../services/upstoxSearch';
+import { buildSymbolFromFeed, isUselessTicker } from '../../utils/liveSymbols';
+import { upstoxSearch } from '../../services/upstoxSearch';
 import { useToastStore } from '../../components/ToastContainer';
-import { Trash2, Search, Plus, X, ArrowUpCircle, ArrowDownCircle, Info, BarChart3, MoreVertical } from 'lucide-react';
+import { Trash2, Plus, X, ArrowUpCircle, ArrowDownCircle, Info } from 'lucide-react';
+import { WidgetSymbolSearch } from '../../components/WidgetSearch/WidgetSymbolSearch';
 
 export function usePriceFlash(price: number) {
   const [flash, setFlash] = useState<'up' | 'down' | null>(null);
@@ -63,9 +64,6 @@ export const WatchlistWidget: React.FC = () => {
   const { openContextMenu } = useContextMenuStore();
   const { addToast } = useToastStore();
 
-  const [search, setSearch] = useState('');
-  const [searchResults, setSearchResults] = useState<UpstoxSearchResult[]>([]);
-  const [showSearchDropdown, setShowSearchDropdown] = useState(false);
   const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
   
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -82,12 +80,7 @@ export const WatchlistWidget: React.FC = () => {
   );
 
   const sortedAndFiltered = useMemo(() => {
-    const q = search.trim().toLowerCase();
-    let result = symbols.filter((s: SymbolData) => {
-      if (!q) return true;
-      return s.ticker.toLowerCase().includes(q) || (s.name || '').toLowerCase().includes(q);
-    });
-
+    let result = symbols;
     if (sortCol) {
       result = [...result].sort((a, b) => {
         let valA: any, valB: any;
@@ -100,7 +93,6 @@ export const WatchlistWidget: React.FC = () => {
           case 'DELIVERY%': valA = a.deliveryPct; valB = b.deliveryPct; break;
           default: valA = 0; valB = 0;
         }
-        
         if (typeof valA === 'string') {
           return sortDir === 'asc' ? valA.localeCompare(valB) : valB.localeCompare(valA);
         }
@@ -108,32 +100,40 @@ export const WatchlistWidget: React.FC = () => {
       });
     }
     return result;
-  }, [symbols, search, sortCol, sortDir]);
+  }, [symbols, sortCol, sortDir]);
 
   useEffect(() => {
-    if (!search.trim() || !accessToken) {
-      setSearchResults([]);
-      setShowSearchDropdown(false);
-      return;
-    }
-    const timer = setTimeout(async () => {
-      try {
-        const hits = await upstoxSearch.searchSymbols(accessToken, search);
-        setSearchResults(hits);
-        setShowSearchDropdown(hits.length > 0);
-      } catch (err) {
-          console.error('Search error:', err);
-      }
-    }, 300);
-    return () => clearTimeout(timer);
-  }, [search, accessToken]);
+    if (!accessToken || !activeWatchlist?.keys) return;
 
-  const handleSelectResult = (res: UpstoxSearchResult) => {
+    const resolveMissing = async () => {
+      const keysToResolve = activeWatchlist.keys.filter(k => {
+        const meta = instrumentMeta[k];
+        return !meta || (isUselessTicker(meta.ticker) && isUselessTicker(meta.name));
+      });
+
+      if (keysToResolve.length === 0) return;
+
+      for (const k of keysToResolve) {
+        try {
+          const [, raw] = k.split('|');
+          const results = await upstoxSearch.searchSymbols(accessToken, raw || k, 1);
+          if (results.length > 0) {
+            const best = results[0];
+            setInstrumentMeta({ [k]: { ticker: best.ticker, name: best.name, exchange: best.exchange } });
+          }
+        } catch (e) {
+          console.warn('Failed to resolve name for', k, e);
+        }
+      }
+    };
+
+    resolveMissing();
+  }, [accessToken, activeWatchlist?.keys.length]);
+
+  const handleSelectResult = (res: any) => {
     addKeyToActive(res.instrumentKey);
     setInstrumentMeta({ [res.instrumentKey]: { ticker: res.ticker, name: res.name, exchange: res.exchange } });
-    setSearch('');
-    setShowSearchDropdown(false);
-    addToast(`ADDED ${res.ticker} TO ${activeWatchlist.name}`, 'success');
+    addToast(`Added ${res.ticker} to ${activeWatchlist.name}`, 'success');
   };
 
   const handleRightClick = (e: React.MouseEvent, symbol: SymbolData) => {
@@ -146,19 +146,19 @@ export const WatchlistWidget: React.FC = () => {
 
     const options = [
       { 
-        label: 'BUY ' + displayTicker, 
+        label: 'Buy ' + displayTicker, 
         icon: <ArrowUpCircle size={14} />, 
         variant: 'info' as const,
         onClick: () => { openOrderModal('BUY'); } 
       },
       { 
-        label: 'SELL ' + displayTicker, 
+        label: 'Sell ' + displayTicker, 
         icon: <ArrowDownCircle size={14} />, 
         variant: 'danger' as const,
         onClick: () => { openOrderModal('SELL'); } 
       },
       { 
-        label: 'VIEW FUNDAMENTALS', 
+        label: 'View Fundamentals', 
         icon: <Info size={14} />, 
         variant: 'muted' as const,
         onClick: () => { 
@@ -168,7 +168,7 @@ export const WatchlistWidget: React.FC = () => {
       }
     ];
 
-    const filteredOptions = isIndex ? options.filter(o => o.label.includes('CHART')) : options;
+    const filteredOptions = isIndex ? options.filter(o => !o.label.startsWith('Buy') && !o.label.startsWith('Sell')) : options;
     openContextMenu(e.clientX, e.clientY, filteredOptions);
   };
 
@@ -179,12 +179,12 @@ export const WatchlistWidget: React.FC = () => {
       width: 140,
       sortable: true,
       render: (_: any, symbol: SymbolData, idx: number) => {
-        const tickerIsIsin = isIsin(symbol.ticker);
-        const displayTicker = tickerIsIsin ? (symbol.name || 'INSTRUMENT') : (symbol.ticker || '--');
+        const useless = isUselessTicker(symbol.ticker);
+        const displaySymbol = useless ? (symbol.name || 'Instrument') : (symbol.ticker || '--');
         return (
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px', overflow: 'hidden', position: 'relative', width: '100%', height: '100%' }}>
-            <Text weight="bold" size="sm" color="primary" block ellipsis style={{ maxWidth: '90px' }}>
-                {displayTicker}
+            <Text weight="bold" size="sm" color="primary" block ellipsis style={{ maxWidth: '120px' }}>
+                {displaySymbol}
             </Text>
             <Badge label={symbol.exchange} variant={symbol.exchange === 'NSE' ? 'exchange-nse' : 'exchange-bse'} />
           </div>
@@ -228,16 +228,17 @@ export const WatchlistWidget: React.FC = () => {
         label: '',
         width: 140,
         render: (_: any, symbol: SymbolData, idx: number) => (
-            <div style={{ position: 'relative', width: '100%', height: '100%' }}>
-                <HoverActions 
-                    isVisible={hoveredIndex === idx}
-                    onBuy={() => { setSelectedSymbol(symbol); setTimeout(() => openOrderModal('BUY'), 0); }}
-                    onSell={() => { setSelectedSymbol(symbol); setTimeout(() => openOrderModal('SELL'), 0); }}
-                    onInfo={() => { setSelectedSymbol(symbol); if ((window as any).replaceTab) (window as any).replaceTab('fundamentals'); }}
-                    onDelete={() => removeKeyFromActive(symbol.instrument_key!)}
-                    position="sticky"
-                />
-            </div>
+            <HoverActions 
+                isVisible={hoveredIndex === idx}
+                onBuy={() => { setSelectedSymbol(symbol); setTimeout(() => openOrderModal('BUY'), 0); }}
+                onSell={() => { setSelectedSymbol(symbol); setTimeout(() => openOrderModal('SELL'), 0); }}
+                onInfo={() => { setSelectedSymbol(symbol); if ((window as any).replaceTab) (window as any).replaceTab('fundamentals'); }}
+                onChart={() => { 
+                    setSelectedSymbol(symbol); 
+                    if ((window as any).targetWidget) (window as any).targetWidget('chart'); 
+                }}
+                onDelete={() => removeKeyFromActive(symbol.instrument_key!)}
+            />
         )
     }
   ];
@@ -292,33 +293,9 @@ export const WatchlistWidget: React.FC = () => {
         </button>
       </div>
 
-      {/* Search Bar */}
-      <div style={{ padding: 0, borderBottom: BORDER.standard, position: 'relative' }}>
-        <div style={{ display: 'flex', alignItems: 'center', background: COLOR.bg.base, border: BORDER.standard, height: '32px', padding: '0 8px', gap: '8px' }}>
-          <Search size={14} color={COLOR.text.muted} />
-          <input 
-            value={search}
-            onChange={e => setSearch(e.target.value)}
-            placeholder="SEARCH_SYMBOLS..."
-            style={{ flex: 1, background: 'transparent', border: 'none', color: COLOR.text.primary, fontSize: TYPE.size.sm, outline: 'none', fontFamily: TYPE.family.mono }}
-          />
-        </div>
-        
-        <AnimatePresence>
-            {showSearchDropdown && (
-                <motion.div initial={{ opacity: 0, y: -5 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} style={{ position: 'absolute', top: '100%', left: '0', right: '0', background: COLOR.bg.elevated, border: BORDER.standard, zIndex: 100, maxHeight: '300px', overflowY: 'auto', boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.4), 0 8px 10px -6px rgba(0, 0, 0, 0.4)' }}>
-                    {searchResults.map((res) => (
-                        <div key={res.instrumentKey} onClick={() => handleSelectResult(res)} style={{ padding: '8px 12px', borderBottom: BORDER.standard, cursor: 'pointer', display: 'flex', justifyContent: 'space-between', alignItems: 'center', transition: 'background 0.1s linear' }} className="hover:bg-zinc-800">
-                            <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
-                                <Text weight="black" color="primary" size="sm">{res.ticker}</Text>
-                                <Text size="xs" color="muted" weight="bold" style={{ opacity: 0.7 }}>{res.name}</Text>
-                            </div>
-                            <Badge label={res.exchange} variant="info" />
-                        </div>
-                    ))}
-                </motion.div>
-            )}
-        </AnimatePresence>
+      {/* Search Bar — uses shared WidgetSymbolSearch for consistent dropdown */}
+      <div style={{ borderBottom: BORDER.standard }}>
+        <WidgetSymbolSearch onSelect={handleSelectResult} placeholder="Search symbols..." />
       </div>
 
       {/* Data Table */}
@@ -334,6 +311,7 @@ export const WatchlistWidget: React.FC = () => {
             sortDir={sortDir}
             onSort={setSortCol}
             stickyFirstColumn
+            stickyLastColumn
         />
       </div>
     </div>

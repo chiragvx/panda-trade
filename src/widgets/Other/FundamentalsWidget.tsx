@@ -104,7 +104,7 @@ export const FundamentalsWidget: React.FC = () => {
                         <span style={{ fontSize: '14px', fontWeight: TYPE.weight.black, color: COLOR.text.primary, letterSpacing: TYPE.letterSpacing.tight }}>{displayTicker}</span>
                         <span style={{ fontSize: TYPE.size.xs, padding: '1px 6px', background: COLOR.bg.surface, border: BORDER.standard, color: COLOR.text.muted, fontWeight: TYPE.weight.black, borderRadius: '2px', letterSpacing: TYPE.letterSpacing.caps }}>{activeSymbol.exchange}</span>
                     </div>
-                    <span style={{ fontSize: TYPE.size.xs, color: COLOR.text.muted, fontWeight: TYPE.weight.black, textTransform: 'uppercase', letterSpacing: TYPE.letterSpacing.caps }}>{displayName}</span>
+                    <span style={{ fontSize: TYPE.size.xs, color: COLOR.text.muted, fontWeight: TYPE.weight.black,  letterSpacing: TYPE.letterSpacing.caps }}>{displayName}</span>
                 </div>
                 <div style={{ textAlign: 'right' }}>
                     <Price value={ltp} size="lg" weight="black" />

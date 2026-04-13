@@ -41,18 +41,17 @@ export const WidgetSymbolSearch: React.FC<WidgetSymbolSearchProps> = ({ onSelect
     }, [query, accessToken]);
 
     return (
-        <div style={{ position: 'relative', width: '200px' }}>
+        <div style={{ position: 'relative', width: '100%' }}>
             <div style={{ 
                 display: 'flex', 
                 alignItems: 'center', 
-                background: COLOR.bg.elevated, 
-                border: BORDER.standard, 
-                height: '24px', 
-                padding: '0 8px', 
+                background: 'transparent', 
+                border: BORDER.standard,
+                height: '32px', 
+                padding: '0 12px', 
                 gap: '8px',
-                borderRadius: '2px'
             }}>
-                <Search size={12} color={COLOR.text.muted} />
+                <Search size={14} color={COLOR.text.muted} />
                 <input 
                     value={query}
                     onChange={e => setQuery(e.target.value)}
@@ -63,17 +62,14 @@ export const WidgetSymbolSearch: React.FC<WidgetSymbolSearchProps> = ({ onSelect
                         background: 'transparent', 
                         border: 'none', 
                         color: COLOR.text.primary, 
-                        fontSize: TYPE.size.xs, 
+                        fontSize: TYPE.size.sm, 
                         outline: 'none', 
                         fontFamily: TYPE.family.mono,
                         fontWeight: TYPE.weight.bold,
-                        letterSpacing: TYPE.letterSpacing.caps
                     }}
                 />
                 {query && (
-                    <Tooltip content="CLEAR_SEARCH" position="right">
-                        <X size={10} color={COLOR.text.muted} onClick={() => setQuery('')} style={{ cursor: 'pointer' }} />
-                    </Tooltip>
+                    <X size={12} color={COLOR.text.muted} onClick={() => setQuery('')} style={{ cursor: 'pointer' }} />
                 )}
             </div>
 
@@ -101,7 +97,7 @@ export const WidgetSymbolSearch: React.FC<WidgetSymbolSearchProps> = ({ onSelect
                     >
                         {results.length === 0 ? (
                             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '60px' }}>
-                                <span style={{ fontFamily: TYPE.family.mono, fontSize: TYPE.size.xs, color: COLOR.text.muted, fontWeight: TYPE.weight.black, letterSpacing: TYPE.letterSpacing.caps }}>NO_RESULTS</span>
+                                <span style={{ fontFamily: TYPE.family.mono, fontSize: TYPE.size.xs, color: COLOR.text.muted, fontWeight: TYPE.weight.bold }}>No results found...</span>
                             </div>
                         ) : (
                             results.map((res) => (
@@ -123,8 +119,8 @@ export const WidgetSymbolSearch: React.FC<WidgetSymbolSearchProps> = ({ onSelect
                                     className="hover:bg-zinc-900"
                                 >
                                     <div style={{ display: 'flex', flexDirection: 'column' }}>
-                                        <span style={{ fontSize: TYPE.size.xs, fontWeight: TYPE.weight.black, color: COLOR.text.primary, fontFamily: TYPE.family.mono, letterSpacing: TYPE.letterSpacing.caps }}>{res.ticker}</span>
-                                        <span style={{ fontSize: TYPE.size.xs, color: COLOR.text.muted, fontWeight: TYPE.weight.bold, opacity: 0.8, letterSpacing: TYPE.letterSpacing.caps }}>{res.exchange}</span>
+                                        <span style={{ fontSize: TYPE.size.xs, fontWeight: TYPE.weight.bold, color: COLOR.text.primary, fontFamily: TYPE.family.mono }}>{res.ticker}</span>
+                                        <span style={{ fontSize: TYPE.size.xs, color: COLOR.text.muted, fontWeight: TYPE.weight.bold, opacity: 0.8 }}>{res.exchange}</span>
                                     </div>
                                 </div>
                             ))

@@ -9,7 +9,8 @@ import {
   Text, 
   Badge, 
   WidgetShell, 
-  Price 
+  Price,
+  Select 
 } from '../../ds';
 import { Split, Info, RefreshCw, Filter } from 'lucide-react';
 import { WidgetSymbolSearch } from '../../components/WidgetSearch/WidgetSymbolSearch';
@@ -54,22 +55,13 @@ export const StraddleChainWidget: React.FC = () => {
                         
                         <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                             <Filter size={12} color={COLOR.text.muted} />
-                            <select 
+                            <Select 
                                 value={selectedExpiry}
                                 onChange={(e) => setSelectedExpiry(e.target.value)}
-                                style={{
-                                    background: COLOR.bg.elevated,
-                                    border: BORDER.standard,
-                                    color: COLOR.text.primary,
-                                    fontSize: TYPE.size.xs,
-                                    fontWeight: TYPE.weight.bold,
-                                    padding: '2px 8px',
-                                    outline: 'none',
-                                    cursor: 'pointer'
-                                }}
+                                selectSize="sm"
                             >
                                 {expiries.map(exp => <option key={exp} value={exp}>{exp}</option>)}
-                            </select>
+                            </Select>
                         </div>
                     </div>
                 </WidgetShell.Toolbar.Right>

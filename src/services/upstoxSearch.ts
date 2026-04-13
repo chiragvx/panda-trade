@@ -1,5 +1,6 @@
 import { upstoxApi } from './upstoxApi';
 import { InstrumentMeta } from '../store/useUpstoxStore';
+import { isUselessTicker } from '../utils/liveSymbols';
 
 export type UpstoxSearchResult = {
   instrumentKey: string;
@@ -32,30 +33,29 @@ const normalizeRows = (rows: any[]): UpstoxSearchResult[] => {
     const instrumentKey = String(row?.instrument_key || row?.instrument_token || '').trim();
     if (!instrumentKey || seen.has(instrumentKey)) return;
 
-    const ticker = String(
-      row?.trading_symbol ||
-      row?.symbol ||
-      row?.short_name ||
-      ''
-    )
-      .trim()
-      .toUpperCase();
+    const candidates = [
+        row?.trading_symbol,
+        row?.symbol,
+        row?.short_name,
+        row?.name,
+        row?.description,
+        row?.company_name
+    ].map(v => String(v || '').trim().toUpperCase()).filter(v => v && v.length > 0);
 
+    // Filter out useless ones to find a good ticker/label
+    const usefulCandidates = candidates.filter(c => !isUselessTicker(c));
+    
+    // Fallback logic
+    const ticker = usefulCandidates[0] || candidates[0] || '';
     if (!ticker) return;
 
-    const name = String(
-      row?.name ||
-      row?.description ||
-      row?.company_name ||
-      ticker
-    )
-      .trim()
-      .toUpperCase();
+    // Use a different candidate for name if possible
+    const name = usefulCandidates.find(c => c !== ticker) || usefulCandidates[0] || candidates.find(c => c !== ticker) || candidates[0] || ticker;
 
     out.push({
       instrumentKey,
       ticker,
-      name: name || ticker,
+      name: (name === ticker && name !== rawTicker) ? rawTicker : name,
       exchange: inferExchange(row?.exchange || row?.segment || instrumentKey, instrumentKey),
     });
 

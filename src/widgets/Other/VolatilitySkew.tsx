@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useVolatilitySkew } from '../../hooks/useVolatilitySkew';
 import { useSelectionStore } from '../../store/useStore';
 import { useUpstoxStore } from '../../store/useUpstoxStore';
-import { COLOR, TYPE, BORDER, SPACE, Text, Badge, WidgetShell } from '../../ds';
+import { COLOR, TYPE, BORDER, SPACE, Text, Badge, WidgetShell, Select } from '../../ds';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts';
 import { Activity, Filter, Info, RefreshCw } from 'lucide-react';
 import { NIFTY_50 } from '../../utils/defaultSymbol';
@@ -50,22 +50,13 @@ export const VolatilitySkew: React.FC = () => {
                         
                         <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                             <Filter size={12} color={COLOR.text.muted} />
-                            <select 
+                            <Select 
                                 value={selectedExpiry}
                                 onChange={(e) => setSelectedExpiry(e.target.value)}
-                                style={{
-                                    background: COLOR.bg.elevated,
-                                    border: BORDER.standard,
-                                    color: COLOR.text.primary,
-                                    fontSize: TYPE.size.xs,
-                                    fontWeight: TYPE.weight.bold,
-                                    padding: '2px 8px',
-                                    outline: 'none',
-                                    cursor: 'pointer'
-                                }}
+                                selectSize="sm"
                             >
                                 {expiries.map(exp => <option key={exp} value={exp}>{exp}</option>)}
-                            </select>
+                            </Select>
                         </div>
                     </div>
                 </WidgetShell.Toolbar.Right>

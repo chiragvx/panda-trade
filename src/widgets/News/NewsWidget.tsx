@@ -150,7 +150,7 @@ export const NewsWidget: React.FC = () => {
                         fontWeight: isExp ? 'bold' : 'normal',
                         color: isExp ? COLOR.text.primary : COLOR.text.secondary,
                         lineHeight: 1.3,
-                        textTransform: 'uppercase',
+                        
                       }}
                     >
                       {item.headline}

@@ -79,8 +79,8 @@ export const OrderEntryWidget: React.FC<OrderEntryWidgetProps> = ({ node }) => {
                         {mode === 'BUY' ? 'B' : 'S'}
                     </div>
                     <div>
-                        <div style={{ fontSize: '14px', fontWeight: TYPE.weight.black, textTransform: 'uppercase', letterSpacing: TYPE.letterSpacing.tight, color: COLOR.text.primary }}>{displaySymbol || 'WAITING_FOR_CTX'}</div>
-                        <div style={{ fontSize: TYPE.size.xs, color: COLOR.text.muted, textTransform: 'uppercase', fontWeight: TYPE.weight.black, letterSpacing: TYPE.letterSpacing.caps }}>LIMIT_ORDER_ENTRY</div>
+                        <div style={{ fontSize: '14px', fontWeight: TYPE.weight.black,  letterSpacing: TYPE.letterSpacing.tight, color: COLOR.text.primary }}>{displaySymbol || 'WAITING_FOR_CTX'}</div>
+                        <div style={{ fontSize: TYPE.size.xs, color: COLOR.text.muted,  fontWeight: TYPE.weight.black, letterSpacing: TYPE.letterSpacing.caps }}>LIMIT_ORDER_ENTRY</div>
                     </div>
                 </div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
@@ -201,7 +201,7 @@ export const OrderEntryWidget: React.FC<OrderEntryWidgetProps> = ({ node }) => {
                     color: COLOR.text.inverse, 
                     fontSize: TYPE.size.sm, 
                     fontWeight: TYPE.weight.black, 
-                    textTransform: 'uppercase', 
+                     
                     letterSpacing: TYPE.letterSpacing.caps,
                     cursor: 'pointer',
                     borderRadius: '2px',

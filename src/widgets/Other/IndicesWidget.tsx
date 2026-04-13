@@ -12,8 +12,8 @@ export const IndicesWidget: React.FC = () => {
                 <WidgetShell.Toolbar.Left>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                         <Activity size={14} style={{ color: COLOR.semantic.info }} />
-                        <Text size="xs" weight="black" style={{ letterSpacing: TYPE.letterSpacing.caps }}>
-                            MARKET_INDICES
+                        <Text size="xs" weight="black">
+                            Market Indices
                         </Text>
                     </div>
                 </WidgetShell.Toolbar.Left>
@@ -33,9 +33,9 @@ export const IndicesWidget: React.FC = () => {
                         top: 0,
                         zIndex: 10
                     }}>
-                        <div style={{ flex: 1 }}><Text size="xs" weight="black" color="muted">INDEX</Text></div>
-                        <div style={{ width: '90px', textAlign: 'right' }}><Text size="xs" weight="black" color="muted">LTP</Text></div>
-                        <div style={{ width: '90px', textAlign: 'right' }}><Text size="xs" weight="black" color="muted">%CHG</Text></div>
+                        <div style={{ flex: 1 }}><Text size="xs" weight="black" color="muted">Index</Text></div>
+                        <div style={{ width: '90px', textAlign: 'right' }}><Text size="xs" weight="black" color="muted">Ltp</Text></div>
+                        <div style={{ width: '90px', textAlign: 'right' }}><Text size="xs" weight="black" color="muted">%Chg</Text></div>
                     </div>
 
                     {indices.map((idx) => (
@@ -77,9 +77,9 @@ export const IndicesWidget: React.FC = () => {
             <div style={{ height: '32px', padding: '0 12px', borderTop: BORDER.strong, display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: COLOR.bg.surface }}>
                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                    <Clock size={12} color={COLOR.semantic.up} />
-                   <Text size="xs" color="muted" weight="bold">LIVE_FEED: REALTIME_SNAPSHOT</Text>
-               </div>
-               <Badge label="NSE_EXCHANGE" variant="muted" />
+                <Text size="xs" color="muted" weight="bold">Live feed: Realtime snapshot</Text>
+            </div>
+            <Badge label="Nse exchange" variant="muted" />
             </div>
         </WidgetShell>
     );

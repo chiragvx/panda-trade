@@ -279,12 +279,14 @@ export const OptionChainWidget: React.FC = () => {
                         </>
                     )}</AnimatePresence>
                 </div>
-                <div style={{ position: 'relative' }}>
-                    <select value={selectedExpiry} onChange={e => handleExpiryChange(e.target.value)} disabled={expiryLoading || expiries.length === 0} style={{ background: COLOR.bg.base, border: BORDER.standard, color: COLOR.text.primary, padding: '2px 8px', fontSize: '11px', appearance: 'none', paddingRight: '24px' }}>
-                        {expiryLoading ? <option>LOADING...</option> : expiries.length === 0 ? <option>NO_EXPIRY</option> : expiries.map(ex => <option key={ex} value={ex}>{ex}</option>)}
-                    </select>
-                    <ChevronDown size={12} style={{ position: 'absolute', right: '6px', top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none' }} />
-                </div>
+                <Select 
+                    value={selectedExpiry} 
+                    onChange={e => handleExpiryChange(e.target.value)} 
+                    disabled={expiryLoading || expiries.length === 0}
+                    selectSize="sm"
+                >
+                    {expiryLoading ? <option>LOADING...</option> : expiries.length === 0 ? <option>NO_EXPIRY</option> : expiries.map(ex => <option key={ex} value={ex}>{ex}</option>)}
+                </Select>
             </div>
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                 <button onClick={() => setBasketMode(!basketMode)} style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '2px 10px', background: basketMode ? `${COLOR.semantic.info}22` : 'transparent', border: basketMode ? `1px solid ${COLOR.semantic.info}` : BORDER.standard, color: basketMode ? COLOR.semantic.info : COLOR.text.primary, fontSize: TYPE.size.xs, fontWeight: TYPE.weight.black, cursor: 'pointer', borderRadius: '2px' }}><ShoppingBag size={12} /> BASKET ({basket.length})</button>
