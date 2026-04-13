@@ -9,6 +9,7 @@ import { Price } from '../../ds/components/Price';
 import { Change } from '../../ds/components/Change';
 import { Button } from '../../ds/components/Button';
 import { Badge } from '../../ds/components/Badge';
+import { Select } from '../../ds';
 import { WidgetShell } from '../../ds/components/WidgetShell';
 import { EmptyState } from '../../ds/components/EmptyState';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -281,7 +282,7 @@ export const OptionChainWidget: React.FC = () => {
                 </div>
                 <Select 
                     value={selectedExpiry} 
-                    onChange={e => handleExpiryChange(e.target.value)} 
+                    onChange={(e: React.ChangeEvent<HTMLSelectElement>) => handleExpiryChange(e.target.value)} 
                     disabled={expiryLoading || expiries.length === 0}
                     selectSize="sm"
                 >

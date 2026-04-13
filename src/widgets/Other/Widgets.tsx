@@ -5,6 +5,7 @@ import { COLOR, TYPE, ROW_HEIGHT, BORDER } from '../../ds/tokens';
 import { Change } from '../../ds/components/Change';
 import { Button } from '../../ds/components/Button';
 import { Badge } from '../../ds/components/Badge';
+import { Select } from '../../ds';
 import { buildSymbolFromFeed } from '../../utils/liveSymbols';
 import { useToastStore } from '../../components/ToastContainer';
 import { useContextMenuStore, ContextMenuOption } from '../../store/useContextMenuStore';
@@ -91,6 +92,8 @@ const ColHdr: React.FC<{ label: string; w?: number; flex?: boolean; align?: 'lef
 
 export const TrendingWidget: React.FC = () => {
   const { prices, instrumentMeta } = useUpstoxStore();
+  const { setSelectedSymbol } = useSelectionStore();
+  
   const trending = useMemo(
     () =>
       Object.keys(prices)

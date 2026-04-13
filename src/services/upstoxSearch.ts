@@ -55,7 +55,7 @@ const normalizeRows = (rows: any[]): UpstoxSearchResult[] => {
     out.push({
       instrumentKey,
       ticker,
-      name: (name === ticker && name !== rawTicker) ? rawTicker : name,
+      name: name || ticker,
       exchange: inferExchange(row?.exchange || row?.segment || instrumentKey, instrumentKey),
     });
 

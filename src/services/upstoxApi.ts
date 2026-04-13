@@ -126,11 +126,23 @@ export const upstoxApi = {
   },
 
   getFunds: async (token: string) =>
-    guardedRequest(`funds:${token.slice(-8)}`, 10000, async () => {
-      const response = await api.get(`${BASE_URL}/user/get-funds-and-margin`, {
-        headers: authHeaders(token),
-      });
-      return response.data;
+    guardedRequest(`funds:${token.slice(-8)}`, 5000, async () => {
+      try {
+        const response = await api.get(`${BASE_URL}/user/get-funds-and-margin`, {
+          headers: authHeaders(token),
+        });
+        return response.data;
+      } catch (err: any) {
+        if (err.response?.status === 423) {
+            // Wait 2s and retry once
+            await new Promise(r => setTimeout(r, 2000));
+            const retry = await api.get(`${BASE_URL}/user/get-funds-and-margin`, {
+                 headers: authHeaders(token),
+            });
+            return retry.data;
+        }
+        throw err;
+      }
     }),
 
   getOrders: async (token: string) =>
@@ -278,7 +290,7 @@ export const upstoxApi = {
               for (let i = 0; i < sorted.length; i += factor) {
                   const chunk = sorted.slice(i, i + factor);
                   if (chunk.length === 0) continue;
-                  const open = chunk[0][1], high = Math.max(...chunk.map(c => c[2])), low = Math.min(...chunk.map(c => c[3])), close = chunk[chunk.length - 1][4], vol = chunk.reduce((acc, c) => acc + (c[5] || 0), 0);
+                  const open = chunk[0][1], high = Math.max(...chunk.map((c: any) => c[2])), low = Math.min(...chunk.map((c: any) => c[3])), close = chunk[chunk.length - 1][4], vol = chunk.reduce((acc: number, c: any) => acc + (c[5] || 0), 0);
                   aggregated.push([chunk[0][0], open, high, low, close, vol]);
               }
               raw = isDescending ? aggregated.reverse() : aggregated;
@@ -391,7 +403,7 @@ export const upstoxApi = {
       const fromDate = past.toISOString().split('T')[0];
       
       const response = await api.get(
-        `${BASE_URL}/historical-candle/${encodeURIComponent(instrumentKey)}/day/${fromDate}/${toDate}`,
+        `${BASE_URL}/historical-candle/${encodeURIComponent(instrumentKey)}/day/${toDate}/${fromDate}`,
         {
           headers: authHeaders(token),
         }

@@ -274,7 +274,7 @@ export const ChartWidget: React.FC = () => {
           
           <Select 
             value={range === 'MAX' ? 'MAX' : range === '5Y' ? '5Y' : range === '1Y' ? '1Y' : interval} 
-            onChange={(e) => {
+            onChange={(e: React.ChangeEvent<HTMLSelectElement>) => {
               const val = e.target.value;
               if (val === 'MAX') { setInterval('month'); setRange('MAX'); }
               else if (val === '5Y') { setInterval('day'); setRange('5Y'); }

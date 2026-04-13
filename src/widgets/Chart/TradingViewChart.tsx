@@ -1,8 +1,8 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState, useLayoutEffect } from 'react';
 import { createChart, IChartApi, ColorType, ISeriesApi, PriceScaleMode } from 'lightweight-charts';
 import { COLOR, TYPE } from '../../ds/tokens';
 import { useContextMenuStore } from '../../store/useContextMenuStore';
-import { Copy, Pencil, Minus, Square, Type, Circle } from 'lucide-react';
+import { Copy, Pencil, Minus, Square, Type, Circle, Trash2 } from 'lucide-react';
 
 interface ComparisonSeriesData {
   id: string;
@@ -21,6 +21,12 @@ interface IndicatorSeriesData {
     lineStyle?: number;
   }[];
   pane?: 'main' | 'own';
+}
+interface Drawing {
+  id: string;
+  type: 'line' | 'rect' | 'circle' | 'text';
+  points: { time: number; price: number }[];
+  color: string;
 }
 
 interface TradingViewChartProps {
@@ -234,11 +240,11 @@ export const TradingViewChart: React.FC<TradingViewChartProps> = ({
                  series.setData(line.data);
                  indicatorSeriesRefs.current.set(`${ind.id}_${line.id}`, series as any);
              } else {
-                 const series = chart.addLineSeries({
-                     color: line.color,
-                     lineWidth: 1.5,
-                     priceScaleId: priceScaleId,
-                 });
+                  const series = chart.addLineSeries({
+                      color: line.color,
+                      lineWidth: 2,
+                      priceScaleId: priceScaleId,
+                  });
                  series.setData(line.data);
                  indicatorSeriesRefs.current.set(`${ind.id}_${line.id}`, series as any);
              }
@@ -288,21 +294,6 @@ export const TradingViewChart: React.FC<TradingViewChartProps> = ({
         style={{ position: 'relative', width: '100%', height: '100%', display: 'flex' }}
         onContextMenuCapture={handleContextMenu}
     >
-      {/* Toolbar */}
-      <div style={{ width: '36px', borderRight: '1px solid rgba(255,255,255,0.05)', display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '8px 0', gap: '8px', background: COLOR.bg.surface }}>
-          {[
-              { icon: <Pencil size={14} /> },
-              { icon: <Minus size={14} /> },
-              { icon: <Square size={14} /> },
-              { icon: <Circle size={14} /> },
-              { icon: <Type size={14} /> }
-          ].map((tool, i) => (
-              <div key={i} style={{ width: '28px', height: '28px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: COLOR.text.muted, cursor: 'pointer', borderRadius: '4px' }} className="hover:bg-zinc-800 hover:text-white transition-colors duration-100">
-                  {tool.icon}
-              </div>
-          ))}
-      </div>
-
       <div style={{ flex: 1, position: 'relative' }}>
           <div ref={chartContainerRef} style={{ width: '100%', height: '100%' }} />
           {isLoading && (

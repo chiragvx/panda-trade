@@ -10,6 +10,7 @@ interface ChangeProps {
   size?: keyof typeof TYPE.size;
   weight?: keyof typeof TYPE.weight;
   className?: string;
+  style?: React.CSSProperties;
 }
 
 export const Change: React.FC<ChangeProps> = ({
@@ -21,6 +22,7 @@ export const Change: React.FC<ChangeProps> = ({
   size = 'md',
   weight = 'medium',
   className = '',
+  style = {},
 }) => {
   const isUp = value > 0;
   const isDown = value < 0;
@@ -38,6 +40,7 @@ export const Change: React.FC<ChangeProps> = ({
     <span
       className={className}
       style={{
+        ...style,
         color,
         fontFamily: TYPE.family.mono,
         fontSize: TYPE.size[size],
