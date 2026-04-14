@@ -270,8 +270,5 @@ const UpstoxPortfolio: React.FC = () => {
         </WidgetShell>
     );
 };
-        </WidgetShell>
-    );
-};
 
 export default UpstoxPortfolio;
