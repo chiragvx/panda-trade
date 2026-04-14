@@ -8,6 +8,11 @@ import { isUselessTicker } from '../utils/liveSymbols';
 
 const ACCOUNT_REFRESH_INTERVAL_MS = 60000;
 const TOKEN_VALIDITY_CHECK_MS = 60000;
+const INITIAL_REFRESH_DELAY_MS = 600;   // lets StrictMode unmount/remount settle
+const MIN_REFRESH_GAP_MS = 10000;        // hard floor between consecutive fetches
+
+// Module-level timestamp — survives StrictMode's remount cycle
+let lastRefreshAt = 0;
 
 const CORE_INDEX_KEYS = [
   'NSE_INDEX|Nifty 50',
@@ -41,8 +46,13 @@ export const useUpstoxBridge = () => {
   const refreshLockRef = useRef(false);
 
   const refreshAccountData = useCallback(async () => {
-    if (!accessToken || status !== 'connected' || refreshLockRef.current) return;
+    const now = Date.now();
+    if (!accessToken || status !== 'connected') return;
+    if (refreshLockRef.current) return;             // in-flight guard
+    if (now - lastRefreshAt < MIN_REFRESH_GAP_MS) return;  // rate-limit guard
+
     refreshLockRef.current = true;
+    lastRefreshAt = now;
 
     try {
       const [fundsRes, ordersRes, positionsRes, holdingsRes] = await Promise.allSettled([
@@ -65,8 +75,11 @@ export const useUpstoxBridge = () => {
         positions: nextPositions,
         holdings: nextHoldings,
       });
-    } catch (error) {
-      console.error('Failed to sync Upstox account data:', error);
+    } catch (error: any) {
+      // 423 = Upstox rate limit; silent retry on next interval
+      if (error?.response?.status !== 423) {
+        console.error('Failed to sync Upstox account data:', error);
+      }
     } finally {
       refreshLockRef.current = false;
     }
@@ -111,10 +124,14 @@ export const useUpstoxBridge = () => {
     }
 
     upstoxWebSocket.connect();
-    refreshAccountData();
 
+    // Delay initial fetch so React StrictMode's unmount/remount settles first
+    const initialTimer = setTimeout(refreshAccountData, INITIAL_REFRESH_DELAY_MS);
     const timer = setInterval(refreshAccountData, ACCOUNT_REFRESH_INTERVAL_MS);
-    return () => clearInterval(timer);
+    return () => {
+      clearTimeout(initialTimer);
+      clearInterval(timer);
+    };
   }, [accessToken, refreshAccountData, status]);
 
   useEffect(() => {

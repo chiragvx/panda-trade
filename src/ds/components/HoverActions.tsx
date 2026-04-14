@@ -29,40 +29,35 @@ export const HoverActions: React.FC<HoverActionsProps> = ({
   className,
   style
 }) => {
-  const itemStyle = (color: string, isOutline: boolean = false): React.CSSProperties => ({
-    width: '32px',
-    height: '100%',
+  const itemStyle = (color: string, isExecution: boolean = false): React.CSSProperties => ({
+    width: isExecution ? '32px' : '32px',
+    height: isExecution ? '30px' : '100%',
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
     cursor: 'pointer',
-    transition: 'background 0.1s ease, color 0.1s ease',
+    transition: 'all 0.1s ease',
     boxSizing: 'border-box',
-    boxShadow: isOutline ? `inset 0 0 0 1px ${color}` : 'none',
+    border: isExecution ? `1px solid ${color}` : 'none',
+    borderRadius: '0', 
+    margin: isExecution ? '0 2px' : '0',
     color: color,
-    fontSize: '11px',
+    fontSize: '12px',
     fontWeight: 900,
     background: 'transparent',
     padding: 0,
-    margin: 0,
-    border: 'none',
     outline: 'none',
-    // Root cause fix: UA stylesheet sets vertical-align: baseline on <button>,
-    // causing sub-pixel glyph differences between adjacent letters (e.g. 'B' vs 'S').
-    // verticalAlign: top + appearance: none strips all browser-native button rendering.
     verticalAlign: 'top',
-    WebkitAppearance: 'none',
-    MozAppearance: 'none',
-    appearance: 'none' as any,
+    appearance: 'none',
   });
 
   return (
     <AnimatePresence>
       {isVisible && (
         <motion.div
-          initial={{ opacity: 0, x: 10 }}
+          initial={{ opacity: 0, x: 5 }}
           animate={{ opacity: 1, x: 0 }}
-          exit={{ opacity: 0, x: 10 }}
+          exit={{ opacity: 0, x: 5 }}
           transition={{ duration: 0.1 }}
           className={className}
           style={{
@@ -71,9 +66,10 @@ export const HoverActions: React.FC<HoverActionsProps> = ({
             top: 0,
             bottom: 0,
             display: 'flex',
-            alignItems: 'stretch',
-            background: COLOR.bg.base,
+            alignItems: 'center',
+            background: COLOR.bg.surface,
             borderLeft: `1px solid ${COLOR.bg.border}`,
+            padding: '0 4px',
             zIndex: Z.overlay,
             ...style
           }}
@@ -98,12 +94,18 @@ export const HoverActions: React.FC<HoverActionsProps> = ({
             </button>
           )}
 
+          {extraActions && (
+             <div style={{ display: 'flex', alignItems: 'center', height: '100%' }}>
+                {extraActions}
+             </div>
+          )}
+
+          <div style={{ width: '1px', height: '14px', background: COLOR.bg.border, margin: '0 4px' }} />
+
           {onBuy && (
             <button 
                 onClick={(e) => { e.stopPropagation(); onBuy(); }}
-                style={{
-                    ...itemStyle(COLOR.semantic.up, true),
-                }}
+                style={itemStyle(COLOR.semantic.up, true)}
                 onMouseEnter={(e) => {
                     e.currentTarget.style.background = COLOR.semantic.up;
                     e.currentTarget.style.color = '#000';
@@ -120,9 +122,7 @@ export const HoverActions: React.FC<HoverActionsProps> = ({
           {onSell && (
             <button 
                 onClick={(e) => { e.stopPropagation(); onSell(); }}
-                style={{
-                    ...itemStyle(COLOR.semantic.down, true),
-                }}
+                style={itemStyle(COLOR.semantic.down, true)}
                 onMouseEnter={(e) => {
                     e.currentTarget.style.background = COLOR.semantic.down;
                     e.currentTarget.style.color = '#fff';
@@ -134,12 +134,6 @@ export const HoverActions: React.FC<HoverActionsProps> = ({
             >
                 S
             </button>
-          )}
-
-          {extraActions && (
-             <div style={{ display: 'flex', alignItems: 'center', height: '100%' }}>
-                {extraActions}
-             </div>
           )}
 
           {onDelete && (

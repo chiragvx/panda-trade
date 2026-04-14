@@ -3,12 +3,12 @@ import axios from 'axios';
 import { useSelectionStore } from '../../store/useStore';
 import { useUpstoxStore } from '../../store/useUpstoxStore';
 import { COLOR, TYPE, BORDER, SPACE } from '../../ds/tokens';
-import { BarChart3, TrendingUp, Info, DollarSign, Activity, PieChart, Shield, AlertCircle, Search } from 'lucide-react';
+import { BarChart3, TrendingUp, Info, DollarSign, Activity, PieChart, Shield, AlertCircle, Search, Percent, TrendingDown, Target } from 'lucide-react';
 import { isIsin } from '../../utils/liveSymbols';
 import { WidgetSymbolSearch } from '../../components/WidgetSearch/WidgetSymbolSearch';
 import { WidgetShell } from '../../ds/components/WidgetShell';
-import { EmptyState } from '../../ds/components/EmptyState';
 import { Price } from '../../ds/components/Price';
+import { NIFTY_50 } from '../../utils/defaultSymbol';
 
 const MetricCard: React.FC<{ label: string; value: string; subValue?: string; icon?: React.ReactNode; color?: string }> = ({ label, value, subValue, icon, color }) => (
   <div style={{ 
@@ -24,13 +24,12 @@ const MetricCard: React.FC<{ label: string; value: string; subValue?: string; ic
   }} className="hover:border-interactive-focus">
     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
       <span style={{ fontSize: TYPE.size.xs, fontWeight: TYPE.weight.black, color: COLOR.text.muted, letterSpacing: TYPE.letterSpacing.caps }}>{label}</span>
-      {icon}
+      <div style={{ color: color || COLOR.text.muted }}>{icon}</div>
     </div>
     <span style={{ fontSize: '14px', fontWeight: TYPE.weight.black, color: color || COLOR.text.primary, fontFamily: TYPE.family.mono }}>{value}</span>
     {subValue && <span style={{ fontSize: TYPE.size.xs, color: COLOR.text.muted, fontWeight: TYPE.weight.bold }}>{subValue}</span>}
   </div>
 );
-import { NIFTY_50 } from '../../utils/defaultSymbol';
 
 export const FundamentalsWidget: React.FC = () => {
   const { selectedSymbol: globalSymbol } = useSelectionStore();
@@ -51,28 +50,32 @@ export const FundamentalsWidget: React.FC = () => {
 
   const displayName = useMemo(() => {
     if (!activeSymbol) return '';
-    if (isIsin(activeSymbol.ticker)) return 'UPSTOX_EQUITY_DATA';
+    if (isIsin(activeSymbol.ticker)) return 'EQUITY_INTELLIGENCE';
     return activeSymbol.name || 'INSTRUMENT OVERVIEW';
   }, [activeSymbol]);
 
   const [data, setData] = React.useState<any>(null);
   const [isLoading, setIsLoading] = React.useState(false);
 
-  React.useEffect(() => {
+    React.useEffect(() => {
     if (!activeSymbol?.ticker) return;
     
     const fetchTradient = async () => {
       setIsLoading(true);
+      setData(null); 
       try {
-        // Tradient direct API (guessing symbol param or check documentation)
-        // Most Indian market APIs at Tradient take the ticker without prefix
-        const cleanTicker = activeSymbol.ticker.split('|').pop() || activeSymbol.ticker;
+        let ticker = activeSymbol.ticker.split('|').pop() || activeSymbol.ticker;
+        ticker = ticker.toUpperCase().replace(/\s+/g, '');
+        if (ticker === 'NIFTY50') ticker = 'NIFTY';
+        if (ticker === 'NIFTYBANK') ticker = 'BANKNIFTY';
+        if (ticker === 'NIFTYFINSERVICE') ticker = 'FINNIFTY';
+        
         const resp = await axios.get(`https://api.tradient.org/v1/api/market/fundamentals`, {
-            params: { symbol: cleanTicker }
+            params: { symbol: ticker }
         });
         if (resp.data?.data) setData(resp.data.data);
-      } catch (err) {
-        console.error('Tradient fetch failed:', err);
+      } catch (err: any) {
+        console.error('Tradient fetch failed:', err.message);
       } finally {
         setIsLoading(false);
       }
@@ -91,9 +94,10 @@ export const FundamentalsWidget: React.FC = () => {
         eps: data.eps || '---',
         high52: data.high_52week || '---',
         low52: data.low_52week || '---',
+        roe: data.roe || '---',
+        sector: data.sector || 'GENERAL'
     };
   }, [data]);
-
 
   return (
     <WidgetShell>
@@ -102,13 +106,13 @@ export const FundamentalsWidget: React.FC = () => {
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                         <span style={{ fontSize: '14px', fontWeight: TYPE.weight.black, color: COLOR.text.primary, letterSpacing: TYPE.letterSpacing.tight }}>{displayTicker}</span>
-                        <span style={{ fontSize: TYPE.size.xs, padding: '1px 6px', background: COLOR.bg.surface, border: BORDER.standard, color: COLOR.text.muted, fontWeight: TYPE.weight.black, borderRadius: '2px', letterSpacing: TYPE.letterSpacing.caps }}>{activeSymbol.exchange}</span>
+                        <span style={{ fontSize: '10px', padding: '1px 6px', background: COLOR.bg.surface, border: BORDER.standard, color: COLOR.text.muted, fontWeight: TYPE.weight.black, borderRadius: '2px', letterSpacing: TYPE.letterSpacing.caps }}>{activeSymbol.exchange}</span>
                     </div>
-                    <span style={{ fontSize: TYPE.size.xs, color: COLOR.text.muted, fontWeight: TYPE.weight.black,  letterSpacing: TYPE.letterSpacing.caps }}>{displayName}</span>
+                    <span style={{ fontSize: TYPE.size.xs, color: COLOR.text.muted, fontWeight: TYPE.weight.black, letterSpacing: TYPE.letterSpacing.caps }}>{displayName}</span>
                 </div>
                 <div style={{ textAlign: 'right' }}>
                     <Price value={ltp} size="lg" weight="black" />
-                    <div style={{ fontSize: TYPE.size.xs, color: COLOR.text.muted, fontWeight: TYPE.weight.black, letterSpacing: TYPE.letterSpacing.caps }}>LAST_SIGNAL (UPSTOX)</div>
+                    <div style={{ fontSize: '10px', color: COLOR.text.muted, fontWeight: TYPE.weight.black, letterSpacing: TYPE.letterSpacing.caps }}>LIVE_EQUITY_FEED</div>
                 </div>
             </div>
 
@@ -118,7 +122,7 @@ export const FundamentalsWidget: React.FC = () => {
                         setLocalSymbol({ instrument_key: res.instrumentKey, ticker: res.ticker, name: res.name, exchange: res.exchange });
                         setInstrumentMeta({ [res.instrumentKey]: { ticker: res.ticker, name: res.name, exchange: res.exchange } });
                     }} 
-                    placeholder="SEARCH..." 
+                    placeholder="SEARCH_EQUITY..." 
                 />
                 {localSymbol && (
                     <button 
@@ -131,59 +135,58 @@ export const FundamentalsWidget: React.FC = () => {
             </div>
         </WidgetShell.Toolbar>
 
-        <div style={{ flex: 1, overflowY: 'auto', padding: SPACE[4] }} className="custom-scrollbar">
+        <div style={{ flex: 1, padding: SPACE[4], overflowY: 'auto', background: COLOR.bg.base }} className="custom-scrollbar">
             {isLoading ? (
-                <div style={{ height: '100px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                    <span style={{ fontSize: TYPE.size.xs, color: COLOR.text.muted, fontFamily: TYPE.family.mono, fontWeight: TYPE.weight.black }}>FETCHING_TRADIENT_DATA...</span>
+                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100%', gap: '16px', opacity: 0.5 }}>
+                    <div style={{ width: '24px', height: '24px', border: '2px solid rgba(255,255,255,0.1)', borderTopColor: COLOR.semantic.info, borderRadius: '50%', animation: 'spin 1s linear infinite' }} />
+                    <Text size="xs" weight="black">QUERYING_INSTITUTIONAL_DATA...</Text>
                 </div>
-            ) : !data ? (
-                <div style={{ padding: '24px', textAlign: 'center', background: COLOR.bg.elevated, border: BORDER.standard, borderRadius: '2px' }}>
-                    <AlertCircle size={24} color={COLOR.text.muted} style={{ margin: '0 auto 12px' }} />
-                    <div style={{ fontSize: TYPE.size.xs, color: COLOR.text.primary, fontWeight: TYPE.weight.black, letterSpacing: TYPE.letterSpacing.caps }}>FUNDAMENTALS_NOT_FOUND</div>
-                    <div style={{ fontSize: TYPE.size.xs, color: COLOR.text.muted, marginTop: '4px', fontWeight: TYPE.weight.bold }}>Symbol "{activeSymbol.ticker}" not indexed in Tradient API.</div>
+            ) : fundamentals ? (
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: SPACE[3] }}>
+                    <MetricCard label="Mkt Cap" value={fundamentals.marketCap} icon={<DollarSign size={13} />} />
+                    <MetricCard label="P/E Ratio" value={fundamentals.pe} icon={<TrendingUp size={13} />} color={COLOR.semantic.info} />
+                    <MetricCard label="P/B Ratio" value={fundamentals.pb} icon={<BarChart3 size={13} />} />
+                    <MetricCard label="Div Yield" value={fundamentals.divYield} icon={<Percent size={13} />} />
+                    <MetricCard label="EPS" value={fundamentals.eps} icon={<Target size={13} />} color={COLOR.semantic.up} />
+                    <MetricCard label="Beta (5Y)" value={fundamentals.beta} icon={<Activity size={13} />} />
+                    <MetricCard label="52W High" value={fundamentals.high52} icon={<TrendingUp size={13} />} color={COLOR.semantic.up} />
+                    <MetricCard label="52W Low" value={fundamentals.low52} icon={<TrendingDown size={13} />} color={COLOR.semantic.down} />
+                    <MetricCard label="ROE%" value={fundamentals.roe} icon={<PieChart size={13} />} />
+                    <MetricCard label="Sector" value={fundamentals.sector} icon={<Shield size={13} />} />
+                    
+                    <div style={{ gridColumn: 'span 2', padding: SPACE[4], background: `${COLOR.semantic.info}11`, border: BORDER.standard, borderRadius: '2px', borderLeft: `2px solid ${COLOR.semantic.info}` }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
+                            <Info size={14} color={COLOR.semantic.info} />
+                            <Text size="xs" weight="black" color="info">MARKET_INTELLIGENCE</Text>
+                        </div>
+                        <Text size="xs" color="secondary" weight="bold">The above data is sourced from global institutional providers. Coverage is focused on major indices and primary equity tickers.</Text>
+                    </div>
                 </div>
             ) : (
-                <>
-                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '8px', marginBottom: SPACE[4] }}>
-                        <MetricCard label="MARKET CAP" value={fundamentals?.marketCap || ''} icon={<PieChart size={12} style={{ color: COLOR.text.muted }} />} />
-                        <MetricCard label="P/E RATIO" value={fundamentals?.pe || ''} icon={<Activity size={12} style={{ color: COLOR.text.muted }} />} />
-                        <MetricCard label="P/B RATIO" value={fundamentals?.pb || ''} icon={<BarChart3 size={12} style={{ color: COLOR.text.muted }} />} />
-                        <MetricCard label="DIV YIELD" value={fundamentals?.divYield || ''} icon={<DollarSign size={12} style={{ color: COLOR.text.muted }} />} />
+                <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '48px', textAlign: 'center' }}>
+                    <div style={{ 
+                        width: '48px', height: '48px', borderRadius: '50%', background: COLOR.bg.elevated, 
+                        border: BORDER.standard, display: 'flex', alignItems: 'center', justifyContent: 'center',
+                        marginBottom: '16px', color: COLOR.text.muted
+                    }}>
+                        <Search size={24} />
                     </div>
-
-                    <div style={{ marginBottom: SPACE[4] }}>
-                        <span style={{ fontSize: TYPE.size.xs, fontWeight: TYPE.weight.black, color: COLOR.text.muted, letterSpacing: TYPE.letterSpacing.caps, display: 'block', marginBottom: '8px' }}>52_WEEK_RANGE</span>
-                        <div style={{ background: COLOR.bg.elevated, padding: '16px', border: BORDER.standard, display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderRadius: '2px' }}>
-                            <div>
-                                <div style={{ fontSize: TYPE.size.xs, color: COLOR.text.muted, fontWeight: TYPE.weight.black, letterSpacing: TYPE.letterSpacing.caps }}>LOW</div>
-                                <div style={{ fontSize: '12px', fontWeight: TYPE.weight.black, color: COLOR.semantic.down, fontFamily: TYPE.family.mono }}>{fundamentals?.low52}</div>
-                            </div>
-                            <div style={{ flex: 1, height: '4px', background: COLOR.bg.surface, margin: '0 16px', borderRadius: '4px', position: 'relative', overflow: 'hidden' }}>
-                                 <div style={{ position: 'absolute', inset: 0, background: COLOR.bg.border }} />
-                            </div>
-                            <div>
-                                <div style={{ fontSize: TYPE.size.xs, color: COLOR.text.muted, fontWeight: TYPE.weight.black, letterSpacing: TYPE.letterSpacing.caps }}>HIGH</div>
-                                <div style={{ fontSize: '12px', fontWeight: TYPE.weight.black, color: COLOR.semantic.up, fontFamily: TYPE.family.mono }}>{fundamentals?.high52}</div>
-                            </div>
-                        </div>
+                    <div style={{ fontSize: '18px', fontWeight: TYPE.weight.black, color: COLOR.text.primary, letterSpacing: TYPE.letterSpacing.caps, marginBottom: '8px' }}>DATA_UNAVAILABLE</div>
+                    <div style={{ fontSize: TYPE.size.xs, color: COLOR.text.muted, fontWeight: TYPE.weight.bold, textAlign: 'center', maxWidth: '240px' }}>
+                        NO FUNDAMENTAL DATA FOR {displayTicker}. ASSET MAY BE A NON-EQUITY INSTRUMENT OR OUTSIDE ANALYTICS COVERAGE.
                     </div>
-
-                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '8px', marginBottom: SPACE[4] }}>
-                        <MetricCard label="BETA (1Y)" value={fundamentals?.beta || ''} icon={<Shield size={12} style={{ color: COLOR.text.muted }} />} />
-                        <MetricCard label="EPS (TTM)" value={fundamentals?.eps || ''} icon={<TrendingUp size={12} style={{ color: COLOR.text.muted }} />} />
-                    </div>
-                </>
+                </div>
             )}
         </div>
 
         <div style={{ padding: '8px 12px', borderTop: BORDER.standard, display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: COLOR.bg.elevated }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                <Info size={12} color={COLOR.text.muted} />
-                <span style={{ fontSize: TYPE.size.xs, color: COLOR.text.muted, fontWeight: TYPE.weight.black, letterSpacing: TYPE.letterSpacing.caps }}>DATA_REALTIME</span>
+                <Activity size={12} color={fundamentals ? COLOR.semantic.up : COLOR.text.muted} />
+                <span style={{ fontSize: '10px', color: COLOR.text.muted, fontWeight: TYPE.weight.black, letterSpacing: TYPE.letterSpacing.caps }}>{fundamentals ? 'DATA_SYNC_ACTIVE' : 'SYSTEM_IDLE'}</span>
             </div>
-            <span style={{ fontSize: TYPE.size.xs, fontWeight: TYPE.weight.black, color: COLOR.semantic.info, letterSpacing: TYPE.letterSpacing.caps }}>ANALYTICS: V2.1</span>
+            <span style={{ fontSize: '10px', fontWeight: TYPE.weight.black, color: COLOR.text.muted, opacity: 0.5, letterSpacing: TYPE.letterSpacing.caps }}>MOD_FUND: V3.2_PRODUCTION</span>
         </div>
+        <style>{`@keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }`}</style>
     </WidgetShell>
   );
 };
-

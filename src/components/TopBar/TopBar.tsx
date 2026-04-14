@@ -6,9 +6,10 @@ import { useUpstoxStore } from '../../store/useUpstoxStore';
 import { WidgetDropdown } from '../WidgetDropdown/WidgetDropdown';
 import { COLOR, TYPE, BORDER, Text, Tooltip } from '../../ds';
 import { Change } from '../../ds/components/Change';
-import { Layout as LayoutIcon, Zap, Activity, Clock, ShieldAlert, Settings, Save, RotateCcw, Wallet, Plus, PlusSquare } from 'lucide-react';
+import { Layout as LayoutIcon, Zap, Activity, Clock, ShieldAlert, Settings, Save, RotateCcw, Wallet, Plus, PlusSquare, MoreHorizontal } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import logoSvg from '../../../svg/Pandatrade.svg';
+import { useContextMenuStore } from '../../store/useContextMenuStore';
 
 interface TopBarProps {
   model: Model;
@@ -22,7 +23,7 @@ const INDEX_ITEMS = [
   { sym: 'GOLD', key: 'MCX_FO|GOLD24JUNFUT' },
   { sym: 'SILVER', key: 'MCX_FO|SILVER24JULBIT' },
   { sym: 'CRUDE OIL', key: 'MCX_FO|CRUDEOIL24MAYFUT' },
-  { sym: 'DOW JONES', key: 'NYSE|DJI' }, // Illustrative if available
+  { sym: 'DOW JONES', key: 'NYSE|DJI' }, 
 ];
 
 export const TopBar: React.FC<TopBarProps> = ({ model }) => {
@@ -30,7 +31,6 @@ export const TopBar: React.FC<TopBarProps> = ({ model }) => {
   const [isWidgetDropdownOpen, setIsWidgetDropdownOpen] = useState(false);
   const widgetBtnRef = useRef<HTMLButtonElement>(null);
 
-  const { openOrderModal } = useLayoutStore();
   const { status, checkTokenValidity, prices, funds, instrumentMeta } = useUpstoxStore();
   const { setSelectedSymbol } = useSelectionStore();
   const controls = useAnimation();
@@ -79,27 +79,15 @@ export const TopBar: React.FC<TopBarProps> = ({ model }) => {
     [prices]
   );
 
-  const advDec = useMemo(() => {
-    const values = Object.values(prices) as Array<{ pChange?: number }>;
-    let adv = 0;
-    let dec = 0;
-    values.forEach((entry) => {
-      const pct = Number(entry?.pChange ?? 0);
-      if (pct > 0) adv += 1;
-      if (pct < 0) dec += 1;
-    });
-    return { adv, dec };
-  }, [prices]);
-
   const margin = Number(funds?.available_margin ?? 0);
 
   return (
     <header
       style={{
-        height: '80px',
+        height: '40px',
         display: 'flex',
-        flexDirection: 'column',
-        background: COLOR.bg.elevated,
+        alignItems: 'stretch',
+        background: COLOR.bg.base,
         borderBottom: BORDER.standard,
         userSelect: 'none',
         position: 'relative',
@@ -107,7 +95,9 @@ export const TopBar: React.FC<TopBarProps> = ({ model }) => {
         flexShrink: 0,
       }}
     >
-      <div style={{ height: '40px', display: 'flex', alignItems: 'stretch', background: COLOR.bg.base, borderBottom: BORDER.standard, overflow: 'hidden' }}>
+        <div style={{ ...cell, background: 'transparent', gap: '6px', borderRight: BORDER.standard, padding: '0 16px' }}>
+          <img src={logoSvg} alt="PandaTrade" style={{ height: '17px', objectFit: 'contain', opacity: 1 }} />
+        </div>
 
         <div style={{ flex: 1, position: 'relative', display: 'flex', alignItems: 'center', overflow: 'hidden' }}>
           <motion.div 
@@ -117,11 +107,11 @@ export const TopBar: React.FC<TopBarProps> = ({ model }) => {
             onDragStart={() => controls.stop()}
             onDragEnd={() => {
               controls.start({
-                x: ["-33.33%"], // Resume loop
+                x: ["-33.33%"], 
                 transition: { repeat: Infinity, repeatType: "loop", duration: 35, ease: "linear" }
               });
             }}
-            style={{ display: 'flex', gap: '40px', padding: '0 20px', whiteSpace: 'nowrap', cursor: 'grab' }}
+            style={{ display: 'flex', gap: '32px', padding: '0 20px', whiteSpace: 'nowrap', cursor: 'grab' }}
           >
             {[...liveIndices, ...liveIndices, ...liveIndices].map((item, i) => (
               <div 
@@ -140,104 +130,24 @@ export const TopBar: React.FC<TopBarProps> = ({ model }) => {
                     open: 0, high: 0, low: 0, close: 0
                   });
                 }}
-                style={{ display: 'flex', alignItems: 'center', gap: '8px', fontFamily: TYPE.family.mono, cursor: 'pointer', padding: '0 4px' }}
+                style={{ display: 'flex', alignItems: 'center', gap: '6px', fontFamily: TYPE.family.mono, cursor: 'pointer' }}
               >
                 <Text size="xs" color="muted" weight="black">{item.sym}</Text>
-                <Text size="md" weight="black" color="primary">{item.price.toFixed(2)}</Text>
+                <Text size="xs" weight="black" color="primary">{item.price.toFixed(2)}</Text>
                 <Change value={item.pct} format="percent" size="xs" weight="black" />
               </div>
             ))}
           </motion.div>
         </div>
 
-        <div style={{ display: 'flex', alignItems: 'center', padding: '0 20px', gap: '16px', borderLeft: BORDER.standard, background: COLOR.bg.base }}>
-          <div style={{ display: 'flex', gap: '8px', alignItems: 'baseline' }}>
-          <div style={{ display: 'flex', gap: '8px', alignItems: 'baseline' }}>
-            <Text size="xs" color="muted" weight="black">ADV/DEC</Text>
-            <Text size="md" color="up" weight="black">{advDec.adv}</Text>
-            <Text size="xs" color="muted">/</Text>
-            <Text size="md" color="down" weight="black">{advDec.dec}</Text>
-          </div>
-          </div>
-        </div>
-      </div>
-
-      <div style={{ height: '40px', display: 'flex', alignItems: 'stretch' }}>
-        <div style={{ ...cell, background: 'transparent', gap: '6px', borderRight: 'none', padding: '0 16px' }}>
-          <img src={logoSvg} alt="PandaTrade" style={{ height: '17px', objectFit: 'contain', opacity: 1 }} />
-        </div>
-
-        <div style={{ display: 'flex', alignItems: 'center', padding: '0 12px' }}>
-          <Tooltip content="API_CONFIG_MANAGER" position="bottom">
-            <button
-              onClick={() => navigate('/api')}
-              style={{
-                ...cell,
-                background: 'transparent',
-                border: `1px solid ${COLOR.bg.border}`,
-                color: COLOR.text.secondary,
-                cursor: 'pointer',
-                padding: '0 10px',
-                borderRadius: '2px',
-                height: '28px',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-              }}
-            >
-              <Settings size={14} />
-            </button>
-          </Tooltip>
-        </div>
-
-        <div style={{ flex: 1 }} />
-
-        <div style={{ display: 'flex', alignItems: 'stretch' }}>
-          <Tooltip content="SAVE_LAYOUT_LOCALLY" position="bottom">
-            <button
-              onClick={() => {
-                localStorage.setItem('opentrader_layout', JSON.stringify(model.toJson()));
-              }}
-              style={{
-                ...cell,
-                background: 'transparent',
-                borderLeft: BORDER.standard,
-                color: COLOR.semantic.info,
-                cursor: 'pointer',
-                padding: '0 16px',
-              }}
-            >
-              <Save size={16} />
-            </button>
-          </Tooltip>
-          <Tooltip content="RESET_SYSTEM_STATE" position="bottom">
-            <button
-              onClick={() => {
-                localStorage.removeItem('opentrader_layout');
-                window.location.reload();
-              }}
-              style={{
-                ...cell,
-                background: 'transparent',
-                borderLeft: BORDER.standard,
-                color: COLOR.text.muted,
-                cursor: 'pointer',
-                padding: '0 16px',
-              }}
-            >
-              <RotateCcw size={16} />
-            </button>
-          </Tooltip>
-        </div>
-
         {status === 'expired' && (
-          <div style={{ ...cell, background: `${COLOR.semantic.down}22`, borderRight: 'none', cursor: 'pointer' }} onClick={() => navigate('/api')}>
+          <div style={{ ...cell, background: `${COLOR.semantic.down}22`, borderRight: 'none', borderLeft: BORDER.standard, cursor: 'pointer' }} onClick={() => navigate('/api')}>
             <ShieldAlert size={14} color={COLOR.semantic.down} />
             <Text size="xs" color="down" weight="black">TOKEN_EXPIRED</Text>
           </div>
         )}
 
-        <div style={cell}>
+        <div style={{ ...cell, borderLeft: BORDER.standard }}>
           <div style={{ width: '4px', height: '4px', background: status === 'connected' ? COLOR.semantic.up : COLOR.text.muted }} />
           <Text size="xs" color={status === 'connected' ? 'up' : 'muted'} weight="black" family="mono">
             {status === 'connected' ? 'LIVE' : 'OFFLINE'}
@@ -277,7 +187,7 @@ export const TopBar: React.FC<TopBarProps> = ({ model }) => {
           </Tooltip>
         </div>
 
-        <div style={{ ...cell, borderRight: 'none', padding: '0 8px' }}>
+        <div style={{ ...cell, borderRight: BORDER.standard, padding: '0 8px' }}>
           <Tooltip content="ADD_NEW_WIDGET" position="bottom">
             <button
               ref={widgetBtnRef}
@@ -300,7 +210,52 @@ export const TopBar: React.FC<TopBarProps> = ({ model }) => {
           </Tooltip>
           <WidgetDropdown isOpen={isWidgetDropdownOpen} onOpenChange={setIsWidgetDropdownOpen} anchorEl={widgetBtnRef.current} />
         </div>
-      </div>
+
+        <div style={{ ...cell, borderRight: 'none', padding: '0 12px' }}>
+           <Tooltip content="SYSTEM_CONTROLS" position="bottom">
+                <button
+                    onClick={(e) => {
+                        const rect = e.currentTarget.getBoundingClientRect();
+                        useContextMenuStore.getState().openContextMenu(rect.left - 120, rect.bottom + 4, [
+                            { 
+                                label: 'API_SETTINGS', 
+                                icon: <Settings size={14} />, 
+                                onClick: () => navigate('/api') 
+                            },
+                            { 
+                                label: 'RESET_VIEWPORT', 
+                                icon: <RotateCcw size={14} />, 
+                                onClick: () => {
+                                    localStorage.removeItem('opentrader_layout');
+                                    window.location.reload();
+                                } 
+                            },
+                            {
+                                label: 'SAVE_LAYOUT',
+                                icon: <Save size={14} />,
+                                onClick: () => {
+                                    localStorage.setItem('opentrader_layout', JSON.stringify(model.toJson()));
+                                }
+                            }
+                        ]);
+                    }}
+                    style={{
+                        background: 'transparent',
+                        border: `1px solid ${COLOR.bg.border}`,
+                        color: COLOR.text.secondary,
+                        cursor: 'pointer',
+                        padding: '0 8px',
+                        borderRadius: '2px',
+                        height: '28px',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                    }}
+                >
+                    <MoreHorizontal size={16} />
+                </button>
+           </Tooltip>
+        </div>
     </header>
   );
 };

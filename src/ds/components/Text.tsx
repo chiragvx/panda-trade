@@ -101,7 +101,7 @@ export const Text: React.FC<TextProps> = ({
           textOverflow: 'ellipsis', 
           whiteSpace: 'nowrap' 
         }),
-        ...(family  && { fontFamily:    family }),
+        ...(family  && { fontFamily: (TYPE.family as any)[family] || family }),
         ...style,
       }}
     >

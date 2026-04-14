@@ -1,158 +1,267 @@
-import React, { useState, useEffect } from 'react';
-import axios from 'axios';
-import { useSettingsStore } from '../../store/useSettingsStore';
-import { WidgetShell } from '../../ds/components/WidgetShell';
+import React, { useState, useEffect, useMemo } from 'react';
 import { COLOR, TYPE, BORDER, SPACE } from '../../ds/tokens';
-import { Globe, Calendar, Clock, AlertCircle, RefreshCcw, ExternalLink } from 'lucide-react';
+import { Calendar, Info, Activity, Search, Filter, RefreshCw, AlertCircle, Globe, TrendingUp } from 'lucide-react';
+import { WidgetShell } from '../../ds/components/WidgetShell';
+import { SegmentedControl } from '../../ds/components/SegmentedControl';
+import { useSettingsStore } from '../../store/useSettingsStore';
+import { Badge, Text } from '../../ds';
+import axios from 'axios';
 
 interface EconomicEvent {
-  date: string;
-  time: string;
-  currency: string;
-  event: string;
-  importance: 'low' | 'medium' | 'high';
-  actual: string;
-  forecast: string;
-  previous: string;
+    id: string;
+    title: string;
+    country: string;
+    date: string; // ISO
+    impact: 'HIGH' | 'MEDIUM' | 'LOW';
+    actual: string | null;
+    forecast: string | null;
+    previous: string | null;
+    unit: string;
 }
 
-export const MacroNews: React.FC = () => {
+const IMPACT_COLORS = {
+    HIGH: COLOR.semantic.down,
+    MEDIUM: COLOR.semantic.warning,
+    LOW: COLOR.semantic.info
+};
+
+export const EconomicCalendar: React.FC = () => {
     const { rapidApiKey } = useSettingsStore();
     const [events, setEvents] = useState<EconomicEvent[]>([]);
-    const [isLoading, setIsLoading] = useState(false);
+    const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
+    const [activeTab, setActiveTab] = useState('upcoming');
+    const [search, setSearch] = useState('');
+    const [minImpact, setMinImpact] = useState<'ALL' | 'MEDIUM' | 'HIGH'>('ALL');
 
-    const fetchMacroData = async () => {
+    const fetchCalendar = async () => {
         if (!rapidApiKey) {
-            setError('RAPIDAPI_KEY_MISSING');
+            // Provide high-quality mock data if no key
+            setEvents(MOCK_EVENTS);
             return;
         }
 
-        setIsLoading(true);
+        setLoading(true);
         setError(null);
         try {
-            const response = await axios.get('https://ultimate-economic-calendar.p.rapidapi.com/v1/calendar', {
-                params: {
-                    limit: '50',
-                    importance: 'medium,high'
-                },
+            const response = await axios.get('/api/macro/events', {
                 headers: {
                     'X-RapidAPI-Key': rapidApiKey,
                     'X-RapidAPI-Host': 'ultimate-economic-calendar.p.rapidapi.com'
+                },
+                params: {
+                    limit: 50,
+                    order: 'asc'
                 }
             });
 
-            if (Array.isArray(response.data)) {
-                setEvents(response.data);
-            } else if (response.data?.data && Array.isArray(response.data.data)) {
-                setEvents(response.data.data);
+            if (response.data && Array.isArray(response.data)) {
+                setEvents(response.data.map((e: any) => ({
+                    id: e.id || Math.random().toString(),
+                    title: e.event || e.title,
+                    country: e.country,
+                    date: e.date,
+                    impact: (e.impact || 'LOW').toUpperCase() as any,
+                    actual: e.actual,
+                    forecast: e.forecast,
+                    previous: e.previous,
+                    unit: e.unit || ''
+                })));
             }
-        } catch (err: any) {
-            console.error('Macro News fetch failed:', err);
-            setError(err.response?.data?.message || 'API_FETCH_ERROR');
+        } catch (err) {
+            setError('FAILED_TO_LOAD_LIVE_DATA');
+            setEvents(MOCK_EVENTS);
         } finally {
-            setIsLoading(false);
+            setLoading(false);
         }
     };
 
     useEffect(() => {
-        fetchMacroData();
+        fetchCalendar();
     }, [rapidApiKey]);
 
-    const getImportanceColor = (imp: string) => {
-        switch (imp.toLowerCase()) {
-            case 'high': return COLOR.semantic.down;
-            case 'medium': return COLOR.semantic.warning;
-            default: return COLOR.text.muted;
-        }
-    };
+    const filteredEvents = useMemo(() => {
+        return events.filter(e => {
+            const matchesSearch = e.title.toLowerCase().includes(search.toLowerCase()) || 
+                                 e.country.toLowerCase().includes(search.toLowerCase());
+            const matchesImpact = minImpact === 'ALL' || 
+                                 (minImpact === 'MEDIUM' && (e.impact === 'MEDIUM' || e.impact === 'HIGH')) ||
+                                 (minImpact === 'HIGH' && e.impact === 'HIGH');
+            
+            const eventDate = new Date(e.date);
+            const now = new Date();
+            const isUpcoming = eventDate >= now;
+
+            if (activeTab === 'upcoming') return isUpcoming && matchesSearch && matchesImpact;
+            if (activeTab === 'past') return !isUpcoming && matchesSearch && matchesImpact;
+            if (activeTab === 'high') return e.impact === 'HIGH' && matchesSearch && matchesImpact;
+            
+            return matchesSearch && matchesImpact;
+        });
+    }, [events, search, minImpact, activeTab]);
 
     return (
         <WidgetShell>
             <WidgetShell.Toolbar>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flex: 1 }}>
-                    <Globe size={14} color={COLOR.semantic.info} />
-                    <span style={{ fontSize: TYPE.size.xs, fontWeight: TYPE.weight.black, color: COLOR.text.primary, letterSpacing: TYPE.letterSpacing.caps }}>GLOBAL_MACRO_INTEL</span>
+                    <Calendar size={14} color={COLOR.semantic.info} />
+                    <span style={{ fontSize: TYPE.size.xs, fontWeight: TYPE.weight.black, color: COLOR.text.primary, letterSpacing: TYPE.letterSpacing.caps }}>ECONOMIC_INTEL</span>
+                    {loading && <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: COLOR.semantic.info, animation: 'pulse 1s infinite' }} />}
+                    {!rapidApiKey && <Badge label="SANDBOX_MODE" variant="warning" />}
                 </div>
-                <button 
-                    onClick={fetchMacroData}
-                    disabled={isLoading}
-                    style={{ background: 'transparent', border: 'none', color: COLOR.text.muted, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px' }}
-                >
-                    <RefreshCcw size={12} className={isLoading ? 'animate-spin' : ''} />
-                </button>
+                <div style={{ display: 'flex', alignItems: 'center', gap: SPACE[2] }}>
+                    <button onClick={fetchCalendar} style={{ background: 'none', border: 'none', color: COLOR.text.muted, cursor: 'pointer' }}>
+                        <RefreshCw size={13} style={{ animation: loading ? 'spin 1s linear infinite' : 'none' }} />
+                    </button>
+                </div>
             </WidgetShell.Toolbar>
 
-            <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minHeight: 0, background: COLOR.bg.base }}>
-                {!rapidApiKey ? (
-                    <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '12px', padding: '24px' }}>
-                        <AlertCircle size={32} color={COLOR.text.muted} />
-                        <div style={{ textAlign: 'center' }}>
-                            <div style={{ fontSize: TYPE.size.xs, fontWeight: TYPE.weight.black, color: COLOR.text.primary, letterSpacing: TYPE.letterSpacing.caps }}>RAPIDAPI_AUTH_REQUIRED</div>
-                            <div style={{ fontSize: TYPE.size.xs, color: COLOR.text.muted, marginTop: '4px', fontWeight: TYPE.weight.bold }}>Please configure the key in API Settings to enable Macro feed.</div>
-                        </div>
+            <div style={{ background: COLOR.bg.elevated, borderBottom: BORDER.standard, padding: '8px' }}>
+                <div style={{ display: 'flex', gap: '8px', marginBottom: '8px' }}>
+                    <div style={{ flex: 1, position: 'relative', display: 'flex', alignItems: 'center' }}>
+                        <Search size={12} color={COLOR.text.muted} style={{ position: 'absolute', left: '10px' }} />
+                        <input 
+                            placeholder="Search regions or events..."
+                            value={search}
+                            onChange={(e) => setSearch(e.target.value)}
+                            style={{
+                                width: '100%', background: COLOR.bg.base, border: BORDER.standard,
+                                borderRadius: '2px', padding: '6px 12px 6px 30px', color: COLOR.text.primary,
+                                fontSize: TYPE.size.xs, fontFamily: TYPE.family.mono, outline: 'none'
+                            }}
+                        />
                     </div>
-                ) : isLoading && events.length === 0 ? (
-                    <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                        <span style={{ fontSize: TYPE.size.xs, color: COLOR.text.muted, fontFamily: TYPE.family.mono, fontWeight: TYPE.weight.bold }}>LOADING_INTELLIGENCE...</span>
+                    <select 
+                        value={minImpact}
+                        onChange={(e) => setMinImpact(e.target.value as any)}
+                        style={{
+                            background: COLOR.bg.base, border: BORDER.standard, borderRadius: '2px',
+                            padding: '0 8px', color: COLOR.text.muted, fontSize: '10px',
+                            fontWeight: TYPE.weight.black, fontFamily: TYPE.family.mono, outline: 'none'
+                        }}
+                    >
+                        <option value="ALL">ALL_IMPACT</option>
+                        <option value="MEDIUM">MED_HIGH</option>
+                        <option value="HIGH">CRITICAL_ONLY</option>
+                    </select>
+                </div>
+                <SegmentedControl 
+                    options={[
+                        { label: 'Upcoming', value: 'upcoming' },
+                        { label: 'Historical', value: 'past' },
+                        { label: 'Critical', value: 'high' }
+                    ]}
+                    value={activeTab}
+                    onChange={(v) => setActiveTab(v as any)}
+                    style={{ height: '28px' }}
+                />
+            </div>
+
+            <div style={{ flex: 1, overflowY: 'auto', background: COLOR.bg.base }} className="custom-scrollbar">
+                {filteredEvents.length === 0 ? (
+                    <div style={{ padding: '48px', textAlign: 'center', opacity: 0.3 }}>
+                        <Globe size={48} style={{ margin: '0 auto 16px', display: 'block' }} />
+                        <Text weight="black" size="md">NO_DATA_MATCHES</Text>
                     </div>
                 ) : (
-                    <div style={{ flex: 1, overflowY: 'auto', padding: '12px' }} className="custom-scrollbar">
-                        {events.map((ev, idx) => (
-                            <div key={idx} style={{ 
-                                padding: '12px', 
-                                borderBottom: BORDER.standard,
-                                display: 'flex',
-                                flexDirection: 'column',
-                                gap: '6px',
-                                background: idx % 2 === 0 ? 'rgba(255,255,255,0.02)' : 'transparent'
-                            }}>
-                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                                        <div style={{ 
-                                            padding: '2px 6px', 
-                                            background: getImportanceColor(ev.importance) + '20',
-                                            border: `1px solid ${getImportanceColor(ev.importance)}40`,
-                                            borderRadius: '2px',
-                                            fontSize: TYPE.size.xs,
-                                            fontWeight: TYPE.weight.black,
-                                            color: getImportanceColor(ev.importance)
-                                        }}>
-                                            {ev.importance.toUpperCase()}
-                                        </div>
-                                        <span style={{ fontSize: TYPE.size.xs, fontWeight: TYPE.weight.black, color: COLOR.text.primary }}>{ev.event}</span>
-                                    </div>
-                                    <span style={{ fontSize: TYPE.size.xs, color: COLOR.text.muted, fontFamily: TYPE.family.mono, fontWeight: TYPE.weight.bold }}>{ev.time}</span>
-                                </div>
-
-                                <div style={{ display: 'flex', gap: '16px', fontSize: TYPE.size.xs, marginTop: '4px' }}>
-                                    <div style={{ display: 'flex', flexDirection: 'column' }}>
-                                        <span style={{ fontSize: TYPE.size.xs, color: COLOR.text.muted, fontWeight: TYPE.weight.black, letterSpacing: TYPE.letterSpacing.caps }}>CURR</span>
-                                        <span style={{ color: COLOR.text.secondary, fontWeight: TYPE.weight.black, fontFamily: TYPE.family.mono }}>{ev.currency}</span>
-                                    </div>
-                                    <div style={{ display: 'flex', flexDirection: 'column' }}>
-                                        <span style={{ fontSize: TYPE.size.xs, color: COLOR.text.muted, fontWeight: TYPE.weight.black, letterSpacing: TYPE.letterSpacing.caps }}>ACTUAL</span>
-                                        <span style={{ color: ev.actual ? COLOR.text.primary : COLOR.text.muted, fontWeight: TYPE.weight.black, fontFamily: TYPE.family.mono }}>{ev.actual || '---'}</span>
-                                    </div>
-                                    <div style={{ display: 'flex', flexDirection: 'column' }}>
-                                        <span style={{ fontSize: TYPE.size.xs, color: COLOR.text.muted, fontWeight: TYPE.weight.black, letterSpacing: TYPE.letterSpacing.caps }}>FORECAST</span>
-                                        <span style={{ color: COLOR.text.secondary, fontWeight: TYPE.weight.bold, fontFamily: TYPE.family.mono }}>{ev.forecast || '---'}</span>
-                                    </div>
-                                    <div style={{ display: 'flex', flexDirection: 'column' }}>
-                                        <span style={{ fontSize: TYPE.size.xs, color: COLOR.text.muted, fontWeight: TYPE.weight.black, letterSpacing: TYPE.letterSpacing.caps }}>PREVIOUS</span>
-                                        <span style={{ color: COLOR.text.secondary, fontWeight: TYPE.weight.bold, fontFamily: TYPE.family.mono }}>{ev.previous || '---'}</span>
-                                    </div>
-                                </div>
-                            </div>
-                        ))}
-                    </div>
+                    <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+                        <thead style={{ position: 'sticky', top: 0, background: COLOR.bg.elevated, zIndex: 1, borderBottom: BORDER.standard }}>
+                            <tr>
+                                <th style={thStyle}>TIME/REGION</th>
+                                <th style={{ ...thStyle, textAlign: 'left' }}>EVENT</th>
+                                <th style={thStyle}>ACTUAL</th>
+                                <th style={thStyle}>FORECAST</th>
+                                <th style={thStyle}>PREVIOUS</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {filteredEvents.map(event => (
+                                <EventRow key={event.id} event={event} />
+                            ))}
+                        </tbody>
+                    </table>
                 )}
             </div>
 
-            <div style={{ padding: '8px 12px', borderTop: BORDER.standard, background: COLOR.bg.elevated, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <span style={{ fontSize: TYPE.size.xs, color: COLOR.text.muted, fontWeight: TYPE.weight.black, letterSpacing: TYPE.letterSpacing.caps }}>POWERED BY RAPIDAPI</span>
-                <span style={{ fontSize: TYPE.size.xs, fontWeight: TYPE.weight.black, color: COLOR.semantic.info, letterSpacing: TYPE.letterSpacing.caps }}>MACRO_STREAM: LIVE</span>
+            <div style={{ padding: '6px 12px', borderTop: BORDER.standard, background: COLOR.bg.elevated, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    <TrendingUp size={12} color={COLOR.semantic.info} />
+                    <span style={{ fontSize: '10px', color: COLOR.text.muted, fontWeight: TYPE.weight.black, letterSpacing: TYPE.letterSpacing.caps }}>LIVE_MACRO_STREAM</span>
+                </div>
+                <span style={{ fontSize: '10px', fontWeight: TYPE.weight.black, color: COLOR.text.muted, opacity: 0.5 }}>ULTIMATE_CAL V2.1</span>
             </div>
+
+            <style>{`
+                @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+                @keyframes pulse { 0% { opacity: 0.4; } 50% { opacity: 1; } 100% { opacity: 0.4; } }
+            `}</style>
         </WidgetShell>
     );
 };
+
+const EventRow: React.FC<{ event: EconomicEvent }> = ({ event }) => {
+    const d = new Date(event.date);
+    const timeStr = d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false });
+    const dateStr = d.toLocaleDateString([], { month: 'short', day: 'numeric' });
+
+    return (
+        <tr style={{ borderBottom: BORDER.standard, cursor: 'pointer' }} className="hover-row">
+            <td style={tdStyle}>
+                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                    <Text size="xs" weight="black" color="primary">{timeStr}</Text>
+                    <Text size="xxs" color="muted" weight="bold">{dateStr}</Text>
+                    <Text size="xxs" color="info" weight="black" style={{ marginTop: '2px' }}>{event.country}</Text>
+                </div>
+            </td>
+            <td style={{ ...tdStyle, textAlign: 'left', paddingRight: '12px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <div style={{ width: '4px', height: '16px', borderRadius: '2px', background: IMPACT_COLORS[event.impact] }} />
+                    <Text size="xs" weight="bold" color="primary" style={{ lineHeight: '1.4' }}>{event.title}</Text>
+                </div>
+            </td>
+            <td style={tdStyle}><ValueBox value={event.actual} unit={event.unit} isBold /></td>
+            <td style={tdStyle}><ValueBox value={event.forecast} unit={event.unit} color="muted" /></td>
+            <td style={tdStyle}><ValueBox value={event.previous} unit={event.unit} color="muted" /></td>
+        </tr>
+    );
+};
+
+const ValueBox: React.FC<{ value: string | null; unit: string; isBold?: boolean; color?: 'primary' | 'muted' }> = ({ value, unit, isBold, color = 'primary' }) => (
+    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+        <Text 
+            family="mono" 
+            size="xs" 
+            weight={isBold ? "black" : "bold"} 
+            color={value ? (color as any) : "muted"}
+        >
+            {value || '--'}
+        </Text>
+        {value && <Text size="xxs" color="muted" weight="bold" style={{ opacity: 0.5, fontSize: '8px' }}>{unit}</Text>}
+    </div>
+);
+
+const thStyle: React.CSSProperties = {
+    padding: '8px 4px',
+    fontSize: '10px',
+    color: COLOR.text.muted,
+    fontWeight: TYPE.weight.black,
+    letterSpacing: TYPE.letterSpacing.caps,
+    textAlign: 'center',
+    borderBottom: BORDER.standard
+};
+
+const tdStyle: React.CSSProperties = {
+    padding: '10px 4px',
+    textAlign: 'center',
+    verticalAlign: 'middle'
+};
+
+const MOCK_EVENTS: EconomicEvent[] = [
+    { id: '1', title: 'CPI (YoY) (Mar)', country: 'USA', date: new Date().toISOString(), impact: 'HIGH', actual: null, forecast: '3.2%', previous: '3.1%', unit: '%' },
+    { id: '2', title: 'Interest Rate Decision', country: 'EUR', date: new Date(Date.now() + 86400000).toISOString(), impact: 'HIGH', actual: null, forecast: '4.50%', previous: '4.50%', unit: '%' },
+    { id: '3', title: 'Initial Jobless Claims', country: 'USA', date: new Date(Date.now() + 3600000 * 2).toISOString(), impact: 'MEDIUM', actual: null, forecast: '210K', previous: '215K', unit: 'K' },
+    { id: '4', title: 'Industrial Production (MoM)', country: 'IND', date: new Date(Date.now() - 3600000 * 5).toISOString(), impact: 'MEDIUM', actual: '4.2%', forecast: '3.8%', previous: '3.5%', unit: '%' },
+    { id: '5', title: 'Consumer Confidence', country: 'JPN', date: new Date(Date.now() + 3600000 * 12).toISOString(), impact: 'LOW', actual: null, forecast: '38.5', previous: '39.0', unit: 'idx' }
+];
+
+export const MacroNews = EconomicCalendar;

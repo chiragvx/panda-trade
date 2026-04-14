@@ -16,32 +16,21 @@ import {
   TrendingWidget, 
   PositionsWidget, 
   OrdersWidget, 
-  PortfolioWidget, 
-  BasketWidget 
+  PortfolioWidget 
 } from './widgets/Other/Widgets';
 import UpstoxHoldings from './widgets/upstox/UpstoxHoldings';
 import { IndicesWidget } from './widgets/Other/IndicesWidget';
 import { OIGraphWidget } from './widgets/Other/OIGraphWidget';
 import { TechnicalsWidget } from './widgets/Other/TechnicalsWidget';
-import { VWapWidget } from './widgets/Other/VWapWidget';
 import { ETFScanner } from './widgets/Other/ETFScanner';
-import { StraddleChainWidget } from './widgets/Other/StraddleChainWidget';
-import { VolatilitySkew } from './widgets/Other/VolatilitySkew';
-import { 
-  HeatmapStub, 
-  FuturesChainStub, 
-  NotificationsStub, 
-  CorpActionsStub, 
-} from './widgets/Other/Stubs';
-import { IVChart } from './widgets/Other/IVChart';
-import { NLScreener } from './widgets/Other/NLScreener';
+import { HeatmapStub } from './widgets/Other/Stubs';
+import { EconomicCalendar } from './widgets/News/MacroNews';
 import { MacroNews } from './widgets/News/MacroNews';
 import { Plus, Lock, Unlock, Settings2, RotateCcw, ChevronDown, Maximize2, Minimize2, MoreVertical, X } from 'lucide-react';
 import { OptionChainWidget } from './widgets/OptionChain/OptionChainWidget';
 
-import FearIndex from './widgets/fear-index/FearIndex';
-import PortMonitor from './widgets/port-monitor/PortMonitor';
-import JetTracker from './widgets/jet-tracker/JetTracker';
+import ShippingTraffic from './widgets/shipping-traffic/ShippingTraffic';
+import AirTraffic from './widgets/air-traffic/AirTraffic';
 import FireMap from './widgets/fire-map/FireMap';
 // Intelligence Widgets Removed Scrapers
 
@@ -50,6 +39,7 @@ import { Minesweeper } from './widgets/Games/Minesweeper';
 import { WordleGame } from './widgets/Games/Wordle';
 import { HeatmapWidget } from './widgets/Heatmap/HeatmapWidget';
 import { FundamentalsWidget } from './widgets/Other/FundamentalsWidget';
+import WorldBankExplorer from './widgets/worldbank/WorldBankExplorer';
 
 import { useLayoutStore } from './store/useStore';
 import { WidgetStateWrapper } from './components/WidgetStateWrapper';
@@ -65,30 +55,21 @@ const renderWidget = (id: string, node: TabNode) => {
     switch (id) {
         case 'watchlist': return <WatchlistWidget />;
         case 'chart': return <ChartWidget />;
-        case 'news': return <NewsWidget />;
+        case 'holdings': return <UpstoxHoldings />;
+        case 'orderEntry': return <OrderEntryWidget node={node} />;
         case 'trending': return <TrendingWidget />;
         case 'positions': return <PositionsWidget />;
         case 'orders': return <OrdersWidget />;
         case 'portfolio': return <PortfolioWidget />;
-        case 'holdings': return <UpstoxHoldings />;
-        case 'basket': return <BasketWidget />;
-        case 'orderEntry': return <OrderEntryWidget node={node} />;
         case 'indices': return <IndicesWidget />;
         case 'etf-scanner': return <ETFScanner />;
         case 'holdings-heatmap': return <HeatmapWidget />;
         case 'oi-graph': return <OIGraphWidget />;
-        case 'iv-chart': return <IVChart />;
-        case 'volatility-skew': return <VolatilitySkew />;
         case 'technicals': return <TechnicalsWidget />;
-        case 'vwap-indicator': return <VWapWidget />;
         case 'options-chain': return <OptionChainWidget />;
-        case 'straddle-chain': return <StraddleChainWidget />;
-        case 'futures-chain': return <FuturesChainStub />;
-        case 'notifications': return <NotificationsStub />;
-        case 'corporate-actions': return <CorpActionsStub />;
         case 'fundamentals': return <FundamentalsWidget />;
-        case 'macro-news': return <MacroNews />;
-        case 'stock-screener': return <NLScreener />;
+        case 'economic-calendar': return <EconomicCalendar />;
+        case 'world-bank-explorer': return <WorldBankExplorer />;
         case 'vol-surface-3d': return (
             <React.Suspense fallback={<div className="h-full w-full bg-black flex items-center justify-center text-[10px] text-muted-foreground">LOADING 3D ENGINE...</div>}>
                 <VolSurface3DWidget />
@@ -96,9 +77,10 @@ const renderWidget = (id: string, node: TabNode) => {
         );
         
         // Intelligence Widgets
-        case 'fear-greed-index': return <FearIndex />;
-        case 'marine-map': return <PortMonitor />;
-        case 'flight-map': return <JetTracker />;
+        case 'shipping-traffic':
+        case 'marine-map': return <ShippingTraffic />;
+        case 'air-traffic': 
+        case 'flight-map': return <AirTraffic />;
         case 'fire-map': return <FireMap />;
 
         case 'snake': return <SnakeGame />;
@@ -128,7 +110,11 @@ export const LayoutManager: React.FC<LayoutManagerProps> = ({ model }) => {
   useEffect(() => {
     const toDisplayName = (id: string) => {
       if (!id) return '';
-      return id.replace(/[_-]/g, ' ')
+      // Step 1: Handle camelCase by inserting a space before capitals
+      let formatted = id.replace(/([A-Z])/g, ' $1');
+      // Step 2: Replace separators and capitalize
+      return formatted.replace(/[_-]/g, ' ')
+        .trim()
         .split(' ')
         .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
         .join(' ');
@@ -227,13 +213,27 @@ export const LayoutManager: React.FC<LayoutManagerProps> = ({ model }) => {
   const onRenderTab = (node: TabNode, renderValues: any) => {
      const rawName = node.getName();
      // Force clean title case even if model is messy (all caps, hyphens, or underscores)
-     const cleanName = rawName.replace(/[_-]/g, ' ')
+     // Step 1: Detect camelCase transitions (lower to upper) and insert spaces
+     let cleanName = rawName.replace(/([a-z])([A-Z])/g, '$1 $2');
+     
+     // Step 2: Clean separators and capitalize
+     cleanName = cleanName.replace(/[_-]/g, ' ')
+        .trim()
         .split(' ')
         .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
         .join(' ');
      
      if (cleanName !== rawName) {
          renderValues.content = cleanName;
+     }
+
+     // SPECIFIC OVERRIDES
+     const componentId = node.getComponent();
+     if (componentId === 'air-traffic' || componentId === 'flight-map') {
+         renderValues.content = 'Air Traffic';
+     }
+     if (componentId === 'shipping-traffic' || componentId === 'marine-map') {
+         renderValues.content = 'Shipping Traffic';
      }
   };
 

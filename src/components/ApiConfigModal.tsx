@@ -5,7 +5,7 @@ import { ShieldCheck, ShieldAlert, Key, Globe, LogIn, ExternalLink, Lock, Zap, A
 import { COLOR, TYPE, BORDER, SPACE } from '../ds/tokens';
 
 interface ApiConfigModalProps {
-    provider: 'UPSTOX' | 'AISSTREAM' | 'NASA' | 'OPENSKY' | 'RAPIDAPI';
+    provider: 'UPSTOX' | 'AISSTREAM' | 'NASA' | 'FLIGHTAWARE' | 'RAPIDAPI';
     onClose: () => void;
 }
 
@@ -85,9 +85,8 @@ export const ApiConfigModal: React.FC<ApiConfigModalProps> = ({ provider, onClos
     const settings = useSettingsStore();
     const [aisKey, setAisKey] = useState(settings.aisStreamApiKey);
     const [nasaKey, setNasaKey] = useState(settings.nasaApiKey);
-    const [osUser, setOsUser] = useState(settings.openSkyUsername);
-    const [osPass, setOsPass] = useState(settings.openSkyPassword);
     const [rapidKey, setRapidKey] = useState(settings.rapidApiKey);
+    const [flightAwareKey, setFlightAwareKey] = useState(settings.flightAwareApiKey);
 
     const [isSaving, setIsSaving] = useState(false);
 
@@ -124,16 +123,7 @@ export const ApiConfigModal: React.FC<ApiConfigModalProps> = ({ provider, onClos
                 settings.addConnection('nasa-01');
             }
         },
-        OPENSKY: {
-            title: 'OpenSky Public Radar',
-            icon: <Plane size={18} />,
-            image: '/opensky_api_guide.png',
-            guide: 'Accessing global flight vectors via OpenSky Network public API. No credentials required for standard community access. Authenticated sessions are optional for high-frequency data.',
-            link: 'https://opensky-network.org/',
-            handleSave: () => {
-                settings.addConnection('opensky-01');
-            }
-        },
+
         RAPIDAPI: {
             title: 'RapidAPI Economic Intel',
             icon: <Globe size={18} />,
@@ -143,6 +133,17 @@ export const ApiConfigModal: React.FC<ApiConfigModalProps> = ({ provider, onClos
             handleSave: () => {
                 settings.setRapidApiKey(rapidKey);
                 settings.addConnection('rapidapi-01');
+            }
+        },
+        FLIGHTAWARE: {
+            title: 'FlightAware AeroAPI',
+            icon: <Plane size={18} />,
+            image: '/flightaware_guide.png',
+            guide: 'Access professional-grade global flight tracking and airline intelligence. AeroAPI v4 provides gate-level status and historical data. Secure your x-apikey from the AeroAPI portal.',
+            link: 'https://flightaware.com/commercial/aeroapi/portal',
+            handleSave: () => {
+                settings.setFlightAwareApiKey(flightAwareKey);
+                settings.addConnection('flightaware-01');
             }
         }
     };
@@ -177,7 +178,7 @@ export const ApiConfigModal: React.FC<ApiConfigModalProps> = ({ provider, onClos
         color: COLOR.text.muted,
         
         letterSpacing: TYPE.letterSpacing.caps,
-        display: 'flex',
+        display: 'center',
         alignItems: 'center',
         gap: '6px',
         marginBottom: SPACE[2]
@@ -274,7 +275,7 @@ export const ApiConfigModal: React.FC<ApiConfigModalProps> = ({ provider, onClos
                                 placeholder="••••••••••••••••"
                             />
 
-                            <label style={labelStyle}><Globe size={12} /> REDIRECT URI</label>
+                            <label style={labelStyle as any}><Globe size={12} /> REDIRECT URI</label>
                             <input 
                                 value={redirectUrl} 
                                 readOnly 
@@ -303,23 +304,15 @@ export const ApiConfigModal: React.FC<ApiConfigModalProps> = ({ provider, onClos
                         />
                     )}
 
-                    {provider === 'OPENSKY' && (
-                        <div style={{ 
-                            padding: '40px 20px', 
-                            background: COLOR.bg.base, 
-                            border: BORDER.standard, 
-                            borderRadius: '4px',
-                            display: 'flex',
-                            flexDirection: 'column',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            gap: '12px',
-                            textAlign: 'center'
-                        }}>
-                             <Globe size={32} color={COLOR.semantic.info} />
-                             <div style={{ fontSize: TYPE.size.xs, color: COLOR.text.primary, fontWeight: TYPE.weight.black }}>PUBLIC_DATA_ACTIVE</div>
-                             <div style={{ fontSize: TYPE.size.xs, color: COLOR.text.muted, lineHeight: '1.5', fontWeight: TYPE.weight.bold }}>Using OpenSky community-sourced ADSB vectors.<br/>No further configuration is required.</div>
-                        </div>
+
+                    {provider === 'FLIGHTAWARE' && (
+                        <SecureInput 
+                            label="FLIGHTAWARE X-APIKEY"
+                            icon={<Key size={12} />}
+                            value={flightAwareKey}
+                            onChange={setFlightAwareKey}
+                            placeholder="Enter AeroAPI Key"
+                        />
                     )}
 
                     {provider === 'RAPIDAPI' && (

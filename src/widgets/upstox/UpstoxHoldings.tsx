@@ -104,7 +104,7 @@ const UpstoxHoldings: React.FC = () => {
     const columns = [
         { 
             key: 'symbol', 
-            label: 'SYMBOL', 
+            label: 'Symbol', 
             width: 180,
             render: (val: string, item: any) => (
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
@@ -113,10 +113,10 @@ const UpstoxHoldings: React.FC = () => {
                 </div>
             )
         },
-        { key: 'quantity', label: 'QTY', align: 'right' as const, width: 80, render: (val: number) => <Text weight="medium" size="sm">{val}</Text> },
+        { key: 'quantity', label: 'Qty', align: 'right' as const, width: 80, render: (val: number) => <Text weight="medium" size="sm">{val}</Text> },
         { 
             key: 'avgCost', 
-            label: 'AVG_COST', 
+            label: 'Avg Cost', 
             align: 'right' as const, 
             width: 100,
             render: (val: number) => <Text color="secondary" size="sm">{val.toFixed(2)}</Text>
@@ -130,14 +130,14 @@ const UpstoxHoldings: React.FC = () => {
         },
         { 
             key: 'marketValue', 
-            label: 'CUR_VALUE', 
+            label: 'Cur Value', 
             align: 'right' as const, 
             width: 120,
             render: (val: number) => <Text weight="medium" size="sm">₹{val.toLocaleString('en-IN', { maximumFractionDigits: 0 })}</Text>
         },
         { 
             key: 'pnl', 
-            label: 'PNL', 
+            label: 'PnL', 
             align: 'right' as const, 
             width: 130,
             render: (val: number, item: any, idx: number) => (
@@ -146,7 +146,7 @@ const UpstoxHoldings: React.FC = () => {
                      onMouseLeave={() => setHoveredIndex(null)}>
                     
                     <Change value={val} format="absolute" size="sm" weight="bold" />
-
+ 
                     <HoverActions 
                         isVisible={hoveredIndex === idx}
                         onBuy={() => handleAction(item, 'BUY')}
@@ -158,7 +158,7 @@ const UpstoxHoldings: React.FC = () => {
         },
         { 
             key: 'pnlPct', 
-            label: '%CHG', 
+            label: '% Chg', 
             align: 'right' as const, 
             width: 80,
             render: (val: number) => <Change value={val} format="percent" weight="medium" size="xs" />
@@ -170,13 +170,13 @@ const UpstoxHoldings: React.FC = () => {
             {/* Portfolio Summary */}
             <div style={{ display: 'flex', gap: '32px', padding: '12px 16px', background: COLOR.bg.base, borderBottom: BORDER.standard }}>
                 <div>
-                    <Text variant="label" size="xs" weight="bold" color="muted" block style={{ letterSpacing: '0.1em' }}>TOTAL_MARKET_VALUE</Text>
+                    <Text variant="label" size="xs" weight="bold" color="muted" block style={{ letterSpacing: '0.05em' }}>Total Market Value</Text>
                     <Text size="xl" weight="bold" color="primary">
                         ₹{totalValue.toLocaleString('en-IN', { maximumFractionDigits: 0 })}
                     </Text>
                 </div>
                 <div>
-                    <Text variant="label" size="xs" weight="bold" color="muted" block style={{ letterSpacing: '0.1em' }}>UNREALIZED_PNL</Text>
+                    <Text variant="label" size="xs" weight="bold" color="muted" block style={{ letterSpacing: '0.05em' }}>Unrealized PnL</Text>
                     <div style={{ display: 'flex', alignItems: 'baseline', gap: '8px' }}>
                         <Text size="xl" weight="bold" color={totalPnL >= 0 ? 'up' : 'down'}>
                             {totalPnL >= 0 ? '+' : ''}₹{totalPnL.toLocaleString('en-IN', { maximumFractionDigits: 0 })}
@@ -192,7 +192,7 @@ const UpstoxHoldings: React.FC = () => {
                 {holdings.length === 0 ? (
                     <EmptyState 
                         icon={<Wallet size={48} />} 
-                        message="NO HOLDINGS FOUND" 
+                        message="No holdings found" 
                         subMessage="Long term investments will appear here once settled."
                     />
                 ) : (
@@ -206,11 +206,7 @@ const UpstoxHoldings: React.FC = () => {
             </div>
 
             <div style={{ height: '32px', padding: '0 12px', background: COLOR.bg.surface, borderTop: BORDER.strong, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <Text size="xs" color="muted" weight="bold" style={{ letterSpacing: '0.05em' }}>SOURCE: UPSTOX_HOLDINGS_PRO_V3</Text>
-                <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
-                    <BarChart3 size={14} color={COLOR.text.muted} />
-                    <Wallet size={14} color={COLOR.text.muted} />
-                </div>
+                <Text size="xs" color="muted" weight="bold" style={{ letterSpacing: '0.05em' }}>Source: Upstox_Holdings_Pro_v3</Text>
             </div>
         </WidgetShell>
     );

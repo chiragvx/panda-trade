@@ -42,14 +42,6 @@ export const WIDGET_REGISTRY: Record<string, WidgetConfig> = {
     singleton: true,
     category: 'Market Data',
   },
-  'stock-screener': {
-    id: 'stock-screener',
-    displayName: 'Momentum Screener',
-    icon: 'Search',
-    shortcut: '',
-    singleton: true,
-    category: 'Market Data',
-  },
 
   // CHARTS & ANALYTICS
   chart: {
@@ -65,22 +57,6 @@ export const WIDGET_REGISTRY: Record<string, WidgetConfig> = {
     displayName: 'OI Graph',
     icon: 'BarChart2',
     shortcut: 'Alt+G',
-    singleton: false,
-    category: 'Charts & Analytics',
-  },
-  'iv-chart': {
-    id: 'iv-chart',
-    displayName: 'IV Profile (Beta)',
-    icon: 'TrendingUp',
-    shortcut: '',
-    singleton: false,
-    category: 'Charts & Analytics',
-  },
-  'volatility-skew': {
-    id: 'volatility-skew',
-    displayName: 'Volatility Skew',
-    icon: 'Waves',
-    shortcut: '',
     singleton: false,
     category: 'Charts & Analytics',
   },
@@ -100,14 +76,6 @@ export const WIDGET_REGISTRY: Record<string, WidgetConfig> = {
     singleton: false,
     category: 'Charts & Analytics',
   },
-  'vwap-indicator': {
-    id: 'vwap-indicator',
-    displayName: 'VWap Indicator',
-    icon: 'Orbit',
-    shortcut: '',
-    singleton: false,
-    category: 'Charts & Analytics',
-  },
 
   // OPTIONS
   'options-chain': {
@@ -115,22 +83,6 @@ export const WIDGET_REGISTRY: Record<string, WidgetConfig> = {
     displayName: 'Options Chain',
     icon: 'Link',
     shortcut: 'Alt+O',
-    singleton: false,
-    category: 'Options',
-  },
-  'straddle-chain': {
-    id: 'straddle-chain',
-    displayName: 'Straddle Chain',
-    icon: 'Split',
-    shortcut: '',
-    singleton: false,
-    category: 'Options',
-  },
-  'futures-chain': {
-    id: 'futures-chain',
-    displayName: 'Futures Chain',
-    icon: 'FastForward',
-    shortcut: '',
     singleton: false,
     category: 'Options',
   },
@@ -160,41 +112,8 @@ export const WIDGET_REGISTRY: Record<string, WidgetConfig> = {
     singleton: true,
     category: 'Account',
   },
-  notifications: {
-    id: 'notifications',
-    displayName: 'Notifications',
-    icon: 'Bell',
-    shortcut: 'F9',
-    singleton: true,
-    category: 'Account',
-  },
-  basket: {
-    id: 'basket',
-    displayName: 'Basket',
-    icon: 'ShoppingBasket',
-    shortcut: '',
-    singleton: false,
-    category: 'Account',
-  },
-
 
   // TOOLS
-  news: {
-    id: 'news',
-    displayName: 'News',
-    icon: 'Newspaper',
-    shortcut: '',
-    singleton: true,
-    category: 'Tools',
-  },
-  'corporate-actions': {
-    id: 'corporate-actions',
-    displayName: 'Corporate Actions',
-    icon: 'Briefcase',
-    shortcut: '',
-    singleton: true,
-    category: 'Tools',
-  },
   fundamentals: {
     id: 'fundamentals',
     displayName: 'Fundamentals',
@@ -203,16 +122,24 @@ export const WIDGET_REGISTRY: Record<string, WidgetConfig> = {
     singleton: false,
     category: 'Tools',
   },
-  'macro-news': {
-    id: 'macro-news',
-    displayName: 'Global Macro Intel',
-    icon: 'Globe',
+  'economic-calendar': {
+    id: 'economic-calendar',
+    displayName: 'Economic Calendar',
+    icon: 'Calendar',
     shortcut: '',
     singleton: true,
     category: 'Tools',
   },
 
   // GAMES
+  'world-bank-explorer': {
+    id: 'world-bank-explorer',
+    displayName: 'World Bank Macro',
+    icon: 'Globe',
+    shortcut: '',
+    singleton: true,
+    category: 'Tools',
+  },
   snake: {
     id: 'snake',
     displayName: 'Snake',
@@ -239,26 +166,18 @@ export const WIDGET_REGISTRY: Record<string, WidgetConfig> = {
   },
 
   // INSTITUTIONAL INTEL (Ecosystem Pack 2)
-  'fear-greed-index': {
-    id: 'fear-greed-index',
-    displayName: 'Fear & Greed Index',
-    icon: 'Activity',
-    shortcut: '',
-    singleton: true,
-    category: 'Institutional Intel',
-  },
-  'marine-map': {
-    id: 'marine-map',
-    displayName: 'Marine Map',
+  'shipping-traffic': {
+    id: 'shipping-traffic',
+    displayName: 'Shipping Traffic',
     icon: 'Anchor',
     shortcut: '',
     singleton: true,
     category: 'Institutional Intel',
   },
-  'flight-map': {
-    id: 'flight-map',
-    displayName: 'Flight Map',
-    icon: 'Plane',
+  'air-traffic': {
+    id: 'air-traffic',
+    displayName: 'Air Traffic',
+    icon: 'Radar',
     shortcut: '',
     singleton: true,
     category: 'Institutional Intel',

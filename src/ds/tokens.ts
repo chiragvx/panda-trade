@@ -41,9 +41,9 @@ export const COLOR = {
 
 export const TYPE = {
   family: {
-    mono:    '"JetBrains Mono", "Fira Code", "Consolas", monospace',
-    sans:    '"Inter", "IBM Plex Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
-    heading: '"Genos", sans-serif',
+    mono:    '"JetBrains Mono", monospace',
+    sans:    '"JetBrains Mono", monospace',
+    heading: '"JetBrains Mono", monospace',
   },
   size: {
     xs:    '12px',  // ← FLOOR (confirmed 12px min)
@@ -101,7 +101,7 @@ export const LAYOUT = {
   cellPadH:  '12px',  // horizontal padding in all table cells
   cellPadV:  '0px',   // vertical padding (row height controls this)
   widgetPad: '8px',   // flexlayout tab content inset
-  toolbarH:  '36px',  // widget toolbar height
+  toolbarH:  '32px',  // widget toolbar height
   topbarH:   '40px',  // each top bar row height
   filterH:   '32px',  // filter / search bar rows
   sectionGap: '1px',  // visual spacer — use border, not margin

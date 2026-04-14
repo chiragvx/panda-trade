@@ -12,7 +12,7 @@ const LandingPage: React.FC = () => {
     const y = useTransform(scrollYProgress, [0, 0.3], [100, 0]);
 
     return (
-        <div style={{ minHeight: '100vh', background: '#000', color: '#fff', fontFamily: TYPE.family.sans, overflowX: 'hidden' }}>
+        <div style={{ minHeight: '100vh', background: '#000', color: '#fff', fontFamily: TYPE.family.mono, overflowX: 'hidden' }}>
             {/* Header / Nav */}
             <nav className="nav-container" style={{ 
                 height: '72px', 
@@ -73,7 +73,7 @@ const LandingPage: React.FC = () => {
                         letterSpacing: '-0.02em',
                         maxWidth: '1000px',
                         color: COLOR.semantic.info,
-                        fontFamily: TYPE.family.heading
+                        fontFamily: TYPE.family.mono
                     }}
                 >
                     Experimental trading <span style={{ color: '#444' }}>dashboard.</span>

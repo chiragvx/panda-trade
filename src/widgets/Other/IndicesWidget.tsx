@@ -1,86 +1,156 @@
-import React from 'react';
+import React, { useMemo, useState } from 'react';
 import { useIndices } from '../../hooks/useIndices';
-import { COLOR, TYPE, BORDER, SPACE, ROW_HEIGHT, Text, Badge, WidgetShell, Change } from '../../ds';
-import { Activity, TrendingUp, TrendingDown, Clock } from 'lucide-react';
+import { useSelectionStore, useLayoutStore } from '../../store/useStore';
+import { DataTable } from '../../ds/components/DataTable';
+import { Change } from '../../ds/components/Change';
+import { Price } from '../../ds/components/Price';
+import { COLOR, TYPE, BORDER } from '../../ds/tokens';
+import { Info, BarChart3, Link2 } from 'lucide-react';
+import { Tooltip } from '../../ds/components/Tooltip';
+
+import { WidgetShell } from '../../ds/components/WidgetShell';
+import { Search, Activity } from 'lucide-react';
 
 export const IndicesWidget: React.FC = () => {
-    const indices = useIndices();
+  const indices = useIndices();
+  const { setSelectedSymbol } = useSelectionStore();
+  const [hoveredRow, setHoveredRow] = useState<number | null>(null);
+  const [searchTerm, setSearchTerm] = useState('');
 
-    return (
-        <WidgetShell>
-            <WidgetShell.Toolbar>
-                <WidgetShell.Toolbar.Left>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                        <Activity size={14} style={{ color: COLOR.semantic.info }} />
-                        <Text size="xs" weight="black">
-                            Market Indices
-                        </Text>
-                    </div>
-                </WidgetShell.Toolbar.Left>
-            </WidgetShell.Toolbar>
-            
-            <div style={{ flex: 1, overflowY: 'auto', background: COLOR.bg.surface }} className="custom-scrollbar">
-                <div style={{ display: 'flex', flexDirection: 'column' }}>
-                    {/* Header Row */}
-                    <div style={{ 
-                        display: 'flex', 
-                        height: ROW_HEIGHT.header, 
-                        borderBottom: BORDER.standard,
-                        background: COLOR.bg.elevated,
-                        padding: '0 12px',
-                        alignItems: 'center',
-                        position: 'sticky',
-                        top: 0,
-                        zIndex: 10
-                    }}>
-                        <div style={{ flex: 1 }}><Text size="xs" weight="black" color="muted">Index</Text></div>
-                        <div style={{ width: '90px', textAlign: 'right' }}><Text size="xs" weight="black" color="muted">Ltp</Text></div>
-                        <div style={{ width: '90px', textAlign: 'right' }}><Text size="xs" weight="black" color="muted">%Chg</Text></div>
-                    </div>
-
-                    {indices.map((idx) => (
-                        <div 
-                            key={idx.instrument_key}
-                            style={{ 
-                                display: 'flex', 
-                                height: '40px', 
-                                borderBottom: BORDER.standard,
-                                padding: '0 12px',
-                                alignItems: 'center'
-                            }}
-                            className="hover:bg-bg-elevated"
-                        >
-                            <div style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
-                                <Text weight="black" size="md">{idx.ticker}</Text>
-                                <Text size="xs" color="muted" weight="bold">
-                                    {idx.instrument_key.split('|')[0]}
-                                </Text>
-                            </div>
-                            
-                            <div style={{ width: '90px', textAlign: 'right' }}>
-                                <Text weight="black" family="mono" size="md">
-                                    {idx.ltp.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                                </Text>
-                            </div>
-
-                            <div style={{ width: '90px', textAlign: 'right', display: 'flex', flexDirection: 'column', alignItems: 'flex-end' }}>
-                                <Change value={idx.pChange} format="percent" size="sm" weight="black" />
-                                <Text size="xs" color="muted" family="mono" weight="bold">
-                                    {idx.change > 0 ? '+' : ''}{idx.change.toFixed(2)}
-                                </Text>
-                            </div>
-                        </div>
-                    ))}
-                </div>
-            </div>
-
-            <div style={{ height: '32px', padding: '0 12px', borderTop: BORDER.strong, display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: COLOR.bg.surface }}>
-               <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                   <Clock size={12} color={COLOR.semantic.up} />
-                <Text size="xs" color="muted" weight="bold">Live feed: Realtime snapshot</Text>
-            </div>
-            <Badge label="Nse exchange" variant="muted" />
-            </div>
-        </WidgetShell>
+  const filteredData = useMemo(() => {
+    return indices.filter(i => 
+        i.ticker.toLowerCase().includes(searchTerm.toLowerCase())
     );
+  }, [indices, searchTerm]);
+
+  const columns = useMemo(() => [
+    {
+      key: 'ticker',
+      label: 'INDEX_SYMBOL',
+      width: 140,
+      render: (val: string, item: any) => (
+        <span style={{ fontWeight: TYPE.weight.bold, color: COLOR.text.primary, fontFamily: TYPE.family.mono }}>{val}</span>
+      )
+    },
+    {
+      key: 'ltp',
+      label: 'PRICE',
+      align: 'right' as const,
+      width: 90,
+      render: (val: number) => <Price value={val} size="sm" />
+    },
+    {
+      key: 'pChange',
+      label: '%CHG',
+      align: 'right' as const,
+      width: 80,
+      render: (val: number) => <Change value={val} format="percent" size="sm" />
+    },
+    {
+        key: 'actions',
+        label: '',
+        width: 100,
+        align: 'right' as const,
+        render: (_: any, item: any, index: number) => {
+            const isHovered = hoveredRow === index;
+            return (
+                <div style={{ 
+                    display: 'flex', 
+                    gap: '8px', 
+                    justifyContent: 'flex-end', 
+                    opacity: isHovered ? 1 : 0,
+                    transition: 'opacity 0.1s ease-in-out',
+                    pointerEvents: isHovered ? 'auto' : 'none'
+                }}>
+                    <Tooltip content="Fundamentals" position="top">
+                        <button 
+                            onClick={(e) => {
+                                e.stopPropagation();
+                                setSelectedSymbol({ ...item, ticker: item.ticker, name: item.ticker });
+                                if ((window as any).replaceTab) (window as any).replaceTab('fundamentals');
+                            }}
+                            style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', color: COLOR.text.muted }}
+                        >
+                            <Info size={14} className="hover:text-blue-400" />
+                        </button>
+                    </Tooltip>
+
+                    <Tooltip content="Chart" position="top">
+                        <button 
+                            onClick={(e) => {
+                                e.stopPropagation();
+                                setSelectedSymbol({ ...item, ticker: item.ticker, name: item.ticker });
+                                if ((window as any).targetWidget) (window as any).targetWidget('chart');
+                            }}
+                            style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', color: COLOR.text.muted }}
+                        >
+                            <BarChart3 size={14} className="hover:text-indigo-400" />
+                        </button>
+                    </Tooltip>
+
+                    <Tooltip content="Option Chain" position="top">
+                        <button 
+                            onClick={(e) => {
+                                e.stopPropagation();
+                                setSelectedSymbol({ ...item, ticker: item.ticker, name: item.ticker });
+                                if ((window as any).replaceTab) (window as any).replaceTab('option-chain');
+                            }}
+                            style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', color: COLOR.text.muted }}
+                        >
+                            <Link2 size={14} className="hover:text-purple-400" />
+                        </button>
+                    </Tooltip>
+                </div>
+            );
+        }
+    }
+  ], [hoveredRow, setSelectedSymbol]);
+
+  return (
+    <WidgetShell>
+      <WidgetShell.Toolbar>
+        <div style={{ display: 'flex', alignItems: 'center', width: '100%', gap: '12px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <Activity size={14} color={COLOR.semantic.info} />
+            <span style={{ fontSize: TYPE.size.xs, fontWeight: TYPE.weight.black, color: COLOR.text.primary, letterSpacing: TYPE.letterSpacing.caps }}>MARKET_INDICES</span>
+          </div>
+
+          <div style={{ display: 'flex', flex: 1, position: 'relative' }}>
+            <div style={{ position: 'absolute', left: '10px', top: '50%', transform: 'translateY(-50%)', zIndex: 5 }}>
+              <Search size={12} color={COLOR.text.muted} />
+            </div>
+            <input 
+              placeholder="SEARCH_INDICES..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              style={{ 
+                height: '28px',
+                background: 'transparent',
+                border: BORDER.standard,
+                color: COLOR.text.primary,
+                fontSize: '10px',
+                fontWeight: TYPE.weight.bold,
+                fontFamily: TYPE.family.mono,
+                width: '100%',
+                padding: '0 10px 0 28px',
+                outline: 'none'
+              }}
+            />
+          </div>
+        </div>
+      </WidgetShell.Toolbar>
+
+      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', background: COLOR.bg.surface }}>
+        <DataTable 
+          data={filteredData} 
+          columns={columns}
+          rowHeight="relaxed"
+          onRowMouseEnter={(_, idx) => setHoveredRow(idx)}
+          onRowMouseLeave={() => setHoveredRow(null)}
+          stickyLastColumn={true}
+          onRowClick={(item) => setSelectedSymbol({ ...item, ticker: item.ticker, name: item.ticker })}
+        />
+      </div>
+    </WidgetShell>
+  );
 };

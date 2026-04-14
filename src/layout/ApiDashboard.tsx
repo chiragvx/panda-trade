@@ -38,9 +38,10 @@ export const ApiDashboard: React.FC = () => {
         aisStreamApiKey, 
         nasaApiKey, 
         rapidApiKey,
-        openSkyUsername, 
+        flightAwareApiKey, 
         setAisStreamApiKey, 
         setRapidApiKey,
+        setFlightAwareApiKey,
         enabledConnections, 
         removeConnection 
     } = useSettingsStore();
@@ -48,7 +49,7 @@ export const ApiDashboard: React.FC = () => {
     const [searchQuery, setSearchQuery] = useState('');
     const [statusFilter, setStatusFilter] = useState<'ALL' | 'CONNECTED' | 'DISCONNECTED'>('ALL');
     const [typeFilter, setTypeFilter] = useState<'ALL' | 'BROKER' | 'DATA_FEED'>('ALL');
-    const [activeModal, setActiveModal] = useState<'UPSTOX' | 'AISSTREAM' | 'NASA' | 'OPENSKY' | 'RAPIDAPI' | 'SELECT' | null>(null);
+    const [activeModal, setActiveModal] = useState<'UPSTOX' | 'AISSTREAM' | 'NASA' | 'FLIGHTAWARE' | 'RAPIDAPI' | 'SELECT' | null>(null);
 
     // Master manifest of supported backends
     const masterConnections: ConnectionMeta[] = useMemo(() => [
@@ -83,14 +84,14 @@ export const ApiDashboard: React.FC = () => {
             lastActivity: nasaApiKey ? 'Live Now' : 'Never'
         },
         {
-            id: 'opensky-01',
+            id: 'flightaware-01',
             type: 'DATA_FEED',
-            provider: 'OPENSKY',
-            displayName: 'OpenSky Public Network',
-            description: 'Free global flight tracking via OpenSky community vectors.',
+            provider: 'FLIGHTAWARE',
+            displayName: 'FlightAware AeroAPI',
+            description: 'Professional grade global flight radar and airline intelligence.',
             icon: <Plane size={18} />,
-            status: enabledConnections.includes('opensky-01') ? 'connected' : 'disconnected',
-            lastActivity: enabledConnections.includes('opensky-01') ? 'Live Now' : 'Never'
+            status: flightAwareApiKey ? 'connected' : 'disconnected',
+            lastActivity: flightAwareApiKey ? 'Live Now' : 'Never'
         },
         {
             id: 'rapidapi-01',
@@ -102,7 +103,7 @@ export const ApiDashboard: React.FC = () => {
             status: rapidApiKey ? 'connected' : 'disconnected',
             lastActivity: rapidApiKey ? 'Live Now' : 'Never'
         }
-    ], [upstoxStatus, upstoxKey, aisStreamApiKey, nasaApiKey, openSkyUsername, rapidApiKey, enabledConnections]);
+    ], [upstoxStatus, upstoxKey, aisStreamApiKey, nasaApiKey, flightAwareApiKey, rapidApiKey, enabledConnections]);
 
     const connections = useMemo(() => 
         masterConnections.filter(c => enabledConnections.includes(c.id)),
@@ -116,8 +117,8 @@ export const ApiDashboard: React.FC = () => {
             setAisStreamApiKey('');
         } else if (provider === 'NASA') {
             useSettingsStore.getState().setNasaApiKey('');
-        } else if (provider === 'OPENSKY') {
-            useSettingsStore.getState().setOpenSkyCredentials('', '');
+        } else if (provider === 'FLIGHTAWARE') {
+            setFlightAwareApiKey('');
         } else if (provider === 'RAPIDAPI') {
             setRapidApiKey('');
         }
@@ -317,7 +318,7 @@ export const ApiDashboard: React.FC = () => {
                                             { id: 'UPSTOX', title: 'Upstox Bridge', desc: 'Secure broker API for trade execution & live Nifty streams.', icon: <Zap size={18} /> },
                                             { id: 'AISSTREAM', title: 'AIS Marine Feed', desc: 'Real-time WebSocket feed for global maritime vessel tracking.', icon: <Anchor size={18} /> },
                                             { id: 'NASA', title: 'NASA FIRMS Sat', desc: 'Thermal anomaly satellite data for global fire monitoring.', icon: <Activity size={18} /> },
-                                            { id: 'OPENSKY', title: 'OpenSky Vectors', desc: 'Global high-precision flight tracking vectors and aircraft metadata.', icon: <Plane size={18} /> },
+                                            { id: 'FLIGHTAWARE', title: 'FlightAware Radar', desc: 'Secure high-fidelity orbital flight tracking and airline intelligence.', icon: <Plane size={18} /> },
                                             { id: 'RAPIDAPI', title: 'RapidAPI Stream', desc: 'Global economic events and macro-calendar data stream.', icon: <Globe size={18} /> }
                                         ].map(p => (
                                             <div 
@@ -367,29 +368,7 @@ export const ApiDashboard: React.FC = () => {
                         {activeModal === 'UPSTOX' && <ApiConfigModal provider="UPSTOX" onClose={() => setActiveModal(null)} />}
                         {activeModal === 'AISSTREAM' && <ApiConfigModal provider="AISSTREAM" onClose={() => setActiveModal(null)} />}
                         {activeModal === 'NASA' && <ApiConfigModal provider="NASA" onClose={() => setActiveModal(null)} />}
-                        {activeModal === 'OPENSKY' && (
-                            <div style={{ 
-                                width: '400px',
-                                padding: '32px', 
-                                background: COLOR.bg.base, 
-                                border: BORDER.strong, 
-                                borderRadius: 0,
-                                display: 'flex',
-                                flexDirection: 'column',
-                                alignItems: 'center',
-                                gap: '20px',
-                                textAlign: 'center'
-                            }}>
-                                 <Globe size={48} color={COLOR.semantic.info} />
-                                 <div>
-                                    <Text variant="heading" size="md">PUBLIC_NET_ACTIVE</Text>
-                                    <div style={{ marginTop: '12px' }}>
-                                        <Text size="sm" color="secondary">Using community-sourced OpenSky ADSB vectors. This connection is open and requires no authentication.</Text>
-                                    </div>
-                                 </div>
-                                 <Button variant="filled" onClick={() => setActiveModal(null)} style={{ background: COLOR.semantic.info, color: COLOR.text.inverse, width: '100%' }}>CONFIRM</Button>
-                            </div>
-                        )}
+                        {activeModal === 'FLIGHTAWARE' && <ApiConfigModal provider="FLIGHTAWARE" onClose={() => setActiveModal(null)} />}
                         {activeModal === 'RAPIDAPI' && <ApiConfigModal provider="RAPIDAPI" onClose={() => setActiveModal(null)} />}
                     </div>
                 </div>

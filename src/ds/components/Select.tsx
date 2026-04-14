@@ -5,8 +5,8 @@ type SelectSize = 'sm' | 'md' | 'lg';
 
 const HEIGHT: Record<SelectSize, string> = {
   sm: '24px',
-  md: '28px',
-  lg: '32px',
+  md: '32px',
+  lg: '40px',
 };
 
 const FONT_SIZE: Record<SelectSize, string> = {
@@ -17,8 +17,8 @@ const FONT_SIZE: Record<SelectSize, string> = {
 
 const PADDING: Record<SelectSize, string> = {
   sm: '0 22px 0 6px',
-  md: '0 24px 0 8px',
-  lg: '0 28px 0 10px',
+  md: '0 24px 0 12px',
+  lg: '0 28px 0 16px',
 };
 
 interface SelectProps extends Omit<React.SelectHTMLAttributes<HTMLSelectElement>, 'size'> {

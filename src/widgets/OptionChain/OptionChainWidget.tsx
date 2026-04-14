@@ -1,19 +1,20 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { NIFTY_50 } from '../../utils/defaultSymbol';
 import { useUpstoxStore } from '../../store/useUpstoxStore';
 import { useSelectionStore, useLayoutStore } from '../../store/useStore';
 import { upstoxApi } from '../../services/upstoxApi';
 import { upstoxSearch, UpstoxSearchResult } from '../../services/upstoxSearch';
-import { COLOR, TYPE, BORDER, ROW_HEIGHT, SPACE } from '../../ds/tokens';
+import { COLOR, TYPE, BORDER } from '../../ds/tokens';
 import { Price } from '../../ds/components/Price';
 import { Change } from '../../ds/components/Change';
-import { Button } from '../../ds/components/Button';
 import { Badge } from '../../ds/components/Badge';
 import { Select } from '../../ds';
 import { WidgetShell } from '../../ds/components/WidgetShell';
-import { EmptyState } from '../../ds/components/EmptyState';
+import { DataTable } from '../../ds/components/DataTable';
+import { HoverActions } from '../../ds/components/HoverActions';
+import { SegmentedControl } from '../../ds/components/SegmentedControl';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Search, ChevronDown, Sigma, ShoppingBag, Settings2, RotateCcw, AlertCircle, Loader2 } from 'lucide-react';
+import { Search, Loader2, Sigma, ShoppingBag, RotateCcw } from 'lucide-react';
 import { isIsin } from '../../utils/liveSymbols';
 
 interface MarketData {
@@ -49,8 +50,6 @@ interface StrikeRow {
   pe?: OptionData;
 }
 
-const COLUMN_WIDTH = 100;
-
 export const OptionChainWidget: React.FC = () => {
   const { accessToken, prices } = useUpstoxStore();
   const { selectedSymbol, setSelectedSymbol } = useSelectionStore();
@@ -59,14 +58,9 @@ export const OptionChainWidget: React.FC = () => {
   const [expiries, setExpiries] = useState<string[]>([]);
   const [selectedExpiry, setSelectedExpiry] = useState<string>('');
   const [chain, setChain] = useState<StrikeRow[]>([]);
-  const [strikeLimit, setStrikeLimit] = useState(10);
   const [loading, setLoading] = useState(false);
   const [expiryLoading, setExpiryLoading] = useState(false);
-  const [showGreeks, setShowGreeks] = useState(false);
-  const [basketMode, setBasketMode] = useState(false);
-  const [basket, setBasket] = useState<string[]>([]);
   const [error, setError] = useState<string | null>(null);
-  const [debug, setDebug] = useState(false);
 
   const [currentRootKey, setCurrentRootKey] = useState<string>('');
   const [localKey, setLocalKey] = useState<string | null>(null);
@@ -78,26 +72,12 @@ export const OptionChainWidget: React.FC = () => {
   const [searchResults, setSearchResults] = useState<UpstoxSearchResult[]>([]);
   const [showSearch, setShowSearch] = useState(false);
 
-  // Sync scroll Refs
-  const ceHeaderRef = useRef<HTMLDivElement>(null);
-  const peHeaderRef = useRef<HTMLDivElement>(null);
-  const ceBodyRef = useRef<HTMLDivElement>(null);
-  const peBodyRef = useRef<HTMLDivElement>(null);
-
-  const isSyncing = useRef(false);
-
-  const syncScroll = (e: React.UIEvent<HTMLDivElement>) => {
-    if (isSyncing.current) return;
-    isSyncing.current = true;
-    const scrollLeft = Math.abs(e.currentTarget.scrollLeft);
-    const target = e.currentTarget;
-    [ceHeaderRef, peHeaderRef, ceBodyRef, peBodyRef].forEach(ref => {
-      if (ref.current && ref.current !== target) {
-        ref.current.scrollLeft = scrollLeft;
-      }
-    });
-    requestAnimationFrame(() => { isSyncing.current = false; });
-  };
+  // Redesign state
+  const [optionType, setOptionType] = useState<'CE'|'PE'>('CE');
+  const [hoveredRow, setHoveredRow] = useState<number | null>(null);
+  const [showGreeks, setShowGreeks] = useState(false);
+  const [basketMode, setBasketMode] = useState(false);
+  const [basket, setBasket] = useState<string[]>([]);
 
   const loadOptionChain = async (symbolKey: string) => {
     if (!accessToken || !symbolKey) return;
@@ -152,7 +132,6 @@ export const OptionChainWidget: React.FC = () => {
         loadOptionChain(targetKey);
       }
     } else if (!currentRootKey) {
-        // Default to Nifty 50 on initial load if nothing selected
         const defaultKey = 'NSE_INDEX|Nifty 50';
         setCurrentRootKey(defaultKey);
         loadOptionChain(defaultKey);
@@ -176,102 +155,232 @@ export const OptionChainWidget: React.FC = () => {
     return () => clearTimeout(timer);
   }, [search, accessToken]);
 
-  const currentSpot = prices[localKey || selectedSymbol?.instrument_key || '']?.ltp || selectedSymbol?.ltp || 0;
-  
-  const { atmIndex, visibleChain, hasMoreAbove, hasMoreBelow } = React.useMemo(() => {
-    if (!chain.length) return { atmIndex: 0, visibleChain: [], hasMoreAbove: false, hasMoreBelow: false };
-    const idx = chain.findIndex(r => r.strike >= currentSpot);
-    const resolvedIdx = idx === -1 ? chain.length - 1 : idx;
-    const start = Math.max(0, resolvedIdx - strikeLimit);
-    const end = Math.min(chain.length, resolvedIdx + strikeLimit);
-    return {
-      atmIndex: resolvedIdx,
-      visibleChain: chain.slice(start, end),
-      hasMoreAbove: start > 0,
-      hasMoreBelow: end < chain.length
-    };
-  }, [chain, currentSpot, strikeLimit]);
+  const currentSpot = prices[localKey || selectedSymbol?.instrument_key || '']?.ltp || selectedSymbol?.ltp || chain[0]?.spot || 0;
 
-  // CE cols: LTP nearest to Strike, wider columns scroll outward left
-  const GreeksCols = ['IV', 'THETA', 'DELTA'];
-  const StdCols = ['VOLUME', 'OI CHG', 'OI', 'LTP'];
-  const ceCols = [...(showGreeks ? GreeksCols : []), ...StdCols];
-  const peCols = ['LTP', 'OI', 'OI CHG', 'VOLUME', ...(showGreeks ? ['DELTA', 'THETA', 'IV'] : [])];
+  const atmStrike = useMemo(() => {
+    if (!chain.length || currentSpot === 0) return null;
+    return chain.reduce((prev, curr) => 
+      Math.abs(curr.strike - currentSpot) < Math.abs(prev.strike - currentSpot) ? curr : prev
+    ).strike;
+  }, [chain, currentSpot]);
 
-  const FINAL_ROW_HEIGHT = 32;
-  const STRIKE_W = 80;
-  const CE_TOTAL_W = ceCols.length * COLUMN_WIDTH;
-  const PE_TOTAL_W = peCols.length * COLUMN_WIDTH;
+  const columns = useMemo(() => {
+    const baseCols = [
+      {
+          key: 'strike',
+          label: 'STRIKE',
+          width: 80,
+          render: (val: number) => {
+              const isAtm = val === atmStrike;
+              return (
+                <span style={{ 
+                    fontWeight: TYPE.weight.black, 
+                    fontFamily: TYPE.family.mono,
+                    color: isAtm ? COLOR.text.primary : COLOR.text.secondary
+                }}>
+                  {val.toLocaleString()}
+                </span>
+              );
+          }
+      },
+      {
+          key: 'ltp',
+          label: 'LTP',
+          align: 'right' as const,
+          width: 90,
+          render: (_: any, item: StrikeRow) => {
+              const opt = optionType === 'CE' ? item.ce : item.pe;
+              const liveLtp = prices[opt?.instrument_key || '']?.ltp || opt?.market_data?.ltp || 0;
+              return <Price value={liveLtp} size="sm" />;
+          }
+      },
+      {
+          key: 'change',
+          label: 'CHG',
+          align: 'right' as const,
+          width: 80,
+          render: (_: any, item: StrikeRow) => {
+              const opt = optionType === 'CE' ? item.ce : item.pe;
+              const chg = opt?.market_data?.pChange || 0;
+              return <Change value={chg} format="percent" size="sm" />;
+          }
+      }
+    ];
 
-  const renderCell = (opt: OptionData | undefined, strike: number, col: string, side: 'CE' | 'PE') => {
-    if (!opt) return <div key={col} style={{ width: COLUMN_WIDTH, height: FINAL_ROW_HEIGHT, borderRight: BORDER.standard, flexShrink: 0, boxSizing: 'border-box' }} />;
-    const mData = opt.market_data;
-    const gData = opt.option_greeks;
-    const liveLtp = prices[opt.instrument_key]?.ltp || mData?.ltp || 0;
-    const inTheMoney = side === 'CE' ? strike < currentSpot : strike > currentSpot;
-    const isSelected = basket.includes(opt.instrument_key);
-    let content: React.ReactNode = null;
-    switch (col) {
-      case 'LTP': content = <div style={{ display: 'flex', flexDirection: 'column', alignItems: side === 'CE' ? 'flex-end' : 'flex-start' }}><span style={{ fontWeight: TYPE.weight.bold }}>{Number(liveLtp).toFixed(2)}</span><Change value={mData?.pChange || 0} format="percent" size="xs" /></div>; break;
-      case 'OI': content = (mData?.oi || 0).toLocaleString(); break;
-      case 'OI CHG': content = <Change value={(mData?.oi || 0) - (mData?.prev_oi || 0)} format="absolute" size="xs" />; break;
-      case 'VOLUME': content = (mData?.volume || 0).toLocaleString(); break;
-      case 'DELTA': content = gData?.delta?.toFixed(2) || '0.00'; break;
-      case 'THETA': content = gData?.theta?.toFixed(2) || '0.00'; break;
-      case 'IV': content = `${(gData?.iv || 0).toFixed(1)}%`; break;
+    if (showGreeks) {
+      baseCols.push(
+        {
+          key: 'iv',
+          label: 'IV',
+          align: 'right' as const,
+          width: 70,
+          render: (_: any, item: StrikeRow) => {
+            const opt = optionType === 'CE' ? item.ce : item.pe;
+            return <span style={{ color: COLOR.semantic.info, fontSize: '11px' }}>{(opt?.option_greeks?.iv || 0).toFixed(1)}%</span>;
+          }
+        },
+        {
+          key: 'delta',
+          label: 'DELTA',
+          align: 'right' as const,
+          width: 70,
+          render: (_: any, item: StrikeRow) => {
+            const opt = optionType === 'CE' ? item.ce : item.pe;
+            return <span style={{ color: COLOR.text.secondary, fontSize: '11px' }}>{(opt?.option_greeks?.delta || 0).toFixed(2)}</span>;
+          }
+        },
+        {
+          key: 'theta',
+          label: 'THETA',
+          align: 'right' as const,
+          width: 70,
+          render: (_: any, item: StrikeRow) => {
+            const opt = optionType === 'CE' ? item.ce : item.pe;
+            return <span style={{ color: COLOR.text.secondary, fontSize: '11px' }}>{(opt?.option_greeks?.theta || 0).toFixed(2)}</span>;
+          }
+        }
+      );
     }
-    return (
-      <div key={`${opt.instrument_key}-${col}`} onClick={() => basketMode && setBasket(prev => prev.includes(opt.instrument_key) ? prev.filter(k => k !== opt.instrument_key) : [...prev, opt.instrument_key])} style={{ 
-        width: COLUMN_WIDTH, height: FINAL_ROW_HEIGHT, display: 'flex', alignItems: 'center', justifyContent: side === 'CE' ? 'flex-end' : 'flex-start', padding: '0 8px', borderRight: BORDER.standard, flexShrink: 0, boxSizing: 'border-box',
-        background: isSelected ? `${COLOR.semantic.info}25` : inTheMoney ? `${COLOR.semantic.warning}08` : 'transparent', fontSize: TYPE.size.xs, fontWeight: TYPE.weight.bold, color: col === 'IV' ? COLOR.semantic.info : COLOR.text.primary, cursor: basketMode ? 'pointer' : 'default', position: 'relative', overflow: 'hidden', fontFamily: TYPE.family.mono
-      }} className="group">
-        {content}
-        {col === 'LTP' && !basketMode && (
-          <div className="opacity-0 group-hover:opacity-100 absolute inset-0 bg-bg-overlay flex items-center justify-center gap-1 z-10 transition-opacity">
-            <Button variant="buy" size="xs" onClick={(e) => { e.stopPropagation(); setSelectedSymbol({ ticker: selectedSymbol?.ticker || '', name: selectedSymbol?.name || '', exchange: 'NFO', instrument_key: opt.instrument_key, ltp: liveLtp } as any); setTimeout(() => openOrderModal('BUY'), 0); }}>B</Button>
-            <Button variant="sell" size="xs" onClick={(e) => { e.stopPropagation(); setSelectedSymbol({ ticker: selectedSymbol?.ticker || '', name: selectedSymbol?.name || '', exchange: 'NFO', instrument_key: opt.instrument_key, ltp: liveLtp } as any); setTimeout(() => openOrderModal('SELL'), 0); }}>S</Button>
-          </div>
-        )}
-      </div>
-    );
-  };
 
-  const openOptionOrder = (side: 'BUY' | 'SELL', key: string, ltp: number) => {
-    setSelectedSymbol({ ticker: selectedSymbol?.ticker || '', name: selectedSymbol?.name || '', exchange: 'NFO', instrument_key: key, ltp } as any);
-    setTimeout(() => openOrderModal(side), 0);
-  };
+    baseCols.push(
+      {
+          key: 'volume',
+          label: 'VOL',
+          align: 'right' as const,
+          width: 80,
+          render: (_: any, item: StrikeRow) => {
+              const opt = optionType === 'CE' ? item.ce : item.pe;
+              const vol = opt?.market_data?.volume || 0;
+              return (
+                <span style={{ fontSize: '11px', color: COLOR.text.muted, fontWeight: TYPE.weight.bold }}>
+                  {vol > 1000000 ? `${(vol / 1000000).toFixed(1)}M` : vol > 1000 ? `${(vol / 1000).toFixed(1)}K` : vol}
+                </span>
+              );
+          }
+      },
+      {
+          key: 'oi',
+          label: 'OI',
+          align: 'right' as const,
+          width: 90,
+          render: (_: any, item: StrikeRow) => {
+              const opt = optionType === 'CE' ? item.ce : item.pe;
+              const oi = opt?.market_data?.oi || 0;
+              return <span style={{ fontWeight: TYPE.weight.bold, fontSize: '11px', color: COLOR.text.secondary }}>{oi.toLocaleString()}</span>;
+          }
+      },
+      {
+          key: 'oi_chg',
+          label: 'OI CHG',
+          align: 'right' as const,
+          width: 90,
+          render: (_: any, item: StrikeRow) => {
+              const opt = optionType === 'CE' ? item.ce : item.pe;
+              const mData = opt?.market_data;
+              const val = (mData?.oi || 0) - (mData?.prev_oi || 0);
+              return <Change value={val} format="absolute" size="sm" />;
+          }
+      },
+      {
+          key: 'actions',
+          label: '',
+          width: 200,
+          align: 'right' as const,
+          render: (_: any, item: StrikeRow, index: number) => {
+              const opt = optionType === 'CE' ? item.ce : item.pe;
+              const liveLtp = prices[opt?.instrument_key || '']?.ltp || opt?.market_data?.ltp || 0;
+              
+              if (!opt) return null;
+
+              if (basketMode) {
+                const isSelected = basket.includes(opt.instrument_key);
+                return (
+                  <button 
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setBasket(prev => isSelected ? prev.filter(k => k !== opt.instrument_key) : [...prev, opt.instrument_key]);
+                    }}
+                    style={{
+                      background: isSelected ? COLOR.semantic.info : 'transparent',
+                      border: `1px solid ${COLOR.semantic.info}`,
+                      color: isSelected ? COLOR.text.inverse : COLOR.semantic.info,
+                      padding: '2px 10px',
+                      fontSize: '10px',
+                      fontWeight: 'bold',
+                      borderRadius: '2px',
+                      cursor: 'pointer'
+                    }}
+                  >
+                    {isSelected ? 'ADDED' : 'ADD'}
+                  </button>
+                );
+              }
+
+              return (
+                  <HoverActions 
+                      isVisible={hoveredRow === index}
+                      position="sticky"
+                      onBuy={() => { 
+                          setSelectedSymbol({ ticker: selectedSymbol?.ticker || '', name: selectedSymbol?.name || '', exchange: 'NFO', instrument_key: opt.instrument_key, ltp: liveLtp } as any); 
+                          setTimeout(() => openOrderModal('BUY'), 0); 
+                      }}
+                      onSell={() => { 
+                          setSelectedSymbol({ ticker: selectedSymbol?.ticker || '', name: selectedSymbol?.name || '', exchange: 'NFO', instrument_key: opt.instrument_key, ltp: liveLtp } as any); 
+                          setTimeout(() => openOrderModal('SELL'), 0); 
+                      }}
+                      onChart={() => {
+                        setSelectedSymbol({ ticker: selectedSymbol?.ticker || '', name: selectedSymbol?.name || '', exchange: 'NFO', instrument_key: opt.instrument_key, ltp: liveLtp } as any); 
+                        (window as any).targetWidget?.('chart');
+                      }}
+                  />
+              );
+          }
+      }
+    );
+
+    return baseCols;
+  }, [optionType, hoveredRow, prices, currentSpot, atmStrike, selectedSymbol, setSelectedSymbol, openOrderModal, showGreeks, basketMode, basket]);
 
   return (
     <WidgetShell>
-        <WidgetShell.Toolbar>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flex: 1 }}>
-                <div style={{ position: 'relative' }}>
-                    <div onClick={() => setShowSearch(true)} style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '2px 8px', background: COLOR.bg.surface, border: BORDER.standard, cursor: 'text', minWidth: '160px' }}>
+        <WidgetShell.Toolbar height="32px" style={{ padding: 0, gap: 0 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 0, flex: 1, height: '100%' }}>
+                <SegmentedControl 
+                    options={[
+                        { label: 'CALLS', value: 'CE' },
+                        { label: 'PUTS', value: 'PE' }
+                    ]}
+                    value={optionType}
+                    onChange={(val) => setOptionType(val as 'CE' | 'PE')}
+                    size="sm"
+                    style={{ height: '100%', borderTop: 'none', borderBottom: 'none', borderLeft: 'none' }}
+                />
+
+                <div style={{ position: 'relative', height: '100%' }}>
+                    <div onClick={() => setShowSearch(true)} style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '0 12px', background: COLOR.bg.surface, borderRight: BORDER.standard, cursor: 'text', height: '100%', minWidth: '180px' }}>
                         <Search size={12} style={{ color: COLOR.text.muted }} />
-                        <span style={{ fontSize: '11px', color: COLOR.text.primary, fontWeight: TYPE.weight.bold }}>{localTicker || selectedSymbol?.ticker || 'SEARCH...'}</span>
+                        <span style={{ fontSize: '11px', color: COLOR.text.primary, fontWeight: TYPE.weight.bold, letterSpacing: TYPE.letterSpacing.caps }}>
+                            {localTicker || selectedSymbol?.ticker || 'SEARCH...'}
+                        </span>
                         <Price value={currentSpot} size="xs" color="info" />
-                        {localKey && (
-                            <button 
-                                onClick={(e) => { e.stopPropagation(); setLocalKey(null); setLocalTicker(null); }}
-                                style={{ background: COLOR.semantic.down, border: 'none', color: COLOR.text.inverse, fontSize: TYPE.size.xs, fontWeight: TYPE.weight.black, padding: '1px 6px', borderRadius: '2px', marginLeft: '4px', cursor: 'pointer' }}
-                            >
-                                RESET
-                            </button>
-                        )}
                     </div>
                     <AnimatePresence>{showSearch && (
                         <>
                             <div onClick={() => setShowSearch(false)} style={{ position: 'fixed', inset: 0, zIndex: 100 }} />
                             <motion.div initial={{ opacity: 0, y: -5 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} style={{ position: 'absolute', top: '100%', left: 0, width: '320px', background: COLOR.bg.overlay, border: BORDER.standard, zIndex: 2000 }}>
-                                <input autoFocus value={search} onChange={e => setSearch(e.target.value)} placeholder="TICKER OR INDEX..." style={{ width: '100%', background: COLOR.bg.surface, border: 'none', borderBottom: BORDER.standard, padding: '10px', color: '#fff' }} />
+                                <input autoFocus value={search} onChange={e => setSearch(e.target.value)} placeholder="TICKER OR INDEX..." style={{ width: '100%', background: COLOR.bg.surface, border: 'none', borderBottom: BORDER.standard, padding: '10px', color: '#fff', outline: 'none' }} />
                                 <div style={{ maxHeight: '400px', overflowY: 'auto' }}>
                                     {searchResults.map(res => (
                                         <div key={res.instrumentKey} onClick={() => { 
                                             setLocalKey(res.instrumentKey); 
                                             setLocalTicker(res.ticker);
                                             setSearch(''); 
-                                        }} style={{ padding: '8px 12px', cursor: 'pointer', display: 'flex', justifyContent: 'space-between', boxSizing: 'border-box' }} className="hover:bg-interactive-hover">
-                                            <div style={{ display: 'flex', flexDirection: 'column' }}><span style={{ fontWeight: TYPE.weight.black, fontSize: TYPE.size.xs }}>{res.ticker}</span><span style={{ fontSize: TYPE.size.xs, color: COLOR.text.muted, fontWeight: TYPE.weight.bold }}>{res.name}</span></div>
+                                            setShowSearch(false);
+                                        }} style={{ padding: '8px 12px', cursor: 'pointer', display: 'flex', justifyContent: 'space-between', boxSizing: 'border-box' }} className="hover:bg-interactive-hover transition-colors">
+                                            <div style={{ display: 'flex', flexDirection: 'column' }}>
+                                                <span style={{ fontWeight: TYPE.weight.black, fontSize: TYPE.size.xs }}>{res.ticker}</span>
+                                                <span style={{ fontSize: TYPE.size.xs, color: COLOR.text.muted, fontWeight: TYPE.weight.bold }}>{res.name}</span>
+                                            </div>
                                             <Badge label={res.exchange} variant="exchange-nse" />
                                         </div>
                                     ))}
@@ -280,98 +389,105 @@ export const OptionChainWidget: React.FC = () => {
                         </>
                     )}</AnimatePresence>
                 </div>
+
                 <Select 
                     value={selectedExpiry} 
                     onChange={(e: React.ChangeEvent<HTMLSelectElement>) => handleExpiryChange(e.target.value)} 
                     disabled={expiryLoading || expiries.length === 0}
                     selectSize="sm"
+                    style={{ height: '32px', border: 'none', borderRight: BORDER.standard }}
                 >
                     {expiryLoading ? <option>LOADING...</option> : expiries.length === 0 ? <option>NO_EXPIRY</option> : expiries.map(ex => <option key={ex} value={ex}>{ex}</option>)}
                 </Select>
             </div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <button onClick={() => setBasketMode(!basketMode)} style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '2px 10px', background: basketMode ? `${COLOR.semantic.info}22` : 'transparent', border: basketMode ? `1px solid ${COLOR.semantic.info}` : BORDER.standard, color: basketMode ? COLOR.semantic.info : COLOR.text.primary, fontSize: TYPE.size.xs, fontWeight: TYPE.weight.black, cursor: 'pointer', borderRadius: '2px' }}><ShoppingBag size={12} /> BASKET ({basket.length})</button>
-                <button onClick={() => setShowGreeks(!showGreeks)} style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '2px 10px', background: showGreeks ? `${COLOR.semantic.info}22` : 'transparent', border: showGreeks ? `1px solid ${COLOR.semantic.info}` : BORDER.standard, color: showGreeks ? COLOR.semantic.info : COLOR.text.primary, fontSize: TYPE.size.xs, fontWeight: TYPE.weight.black, cursor: 'pointer', borderRadius: '2px' }}><Sigma size={12} /> GREEKS</button>
-                <button onClick={() => currentRootKey && fetchChain(currentRootKey, selectedExpiry)} style={{ padding: '4px', border: BORDER.standard, color: COLOR.text.muted, cursor: 'pointer', background: 'transparent' }}><RotateCcw size={12} /></button>
+            
+            <div style={{ display: 'flex', alignItems: 'center', gap: 0, height: '100%' }}>
+                <button 
+                  onClick={() => setBasketMode(!basketMode)} 
+                  style={{ 
+                    display: 'flex', alignItems: 'center', gap: '6px', height: '100%', padding: '0 12px', 
+                    background: basketMode ? `${COLOR.semantic.info}22` : 'transparent', 
+                    border: 'none',
+                    borderLeft: BORDER.standard, 
+                    color: basketMode ? COLOR.semantic.info : COLOR.text.primary, 
+                    fontSize: TYPE.size.xs, fontWeight: TYPE.weight.black, cursor: 'pointer', outline: 'none'
+                  }}
+                >
+                  <ShoppingBag size={12} /> BASKET ({basket.length})
+                </button>
+                <button 
+                  onClick={() => setShowGreeks(!showGreeks)} 
+                  style={{ 
+                    display: 'flex', alignItems: 'center', gap: '6px', height: '100%', padding: '0 12px', 
+                    background: showGreeks ? `${COLOR.semantic.info}22` : 'transparent', 
+                    border: 'none',
+                    borderLeft: BORDER.standard, 
+                    color: showGreeks ? COLOR.semantic.info : COLOR.text.primary, 
+                    fontSize: TYPE.size.xs, fontWeight: TYPE.weight.black, cursor: 'pointer', outline: 'none'
+                  }}
+                >
+                  <Sigma size={12} /> GREEKS
+                </button>
+                <button 
+                  onClick={() => currentRootKey && fetchChain(currentRootKey, selectedExpiry)} 
+                  style={{ height: '100%', padding: '0 12px', border: 'none', borderLeft: BORDER.standard, color: COLOR.text.muted, cursor: 'pointer', background: 'transparent', display: 'flex', alignItems: 'center', outline: 'none' }}
+                >
+                  <RotateCcw size={12} className={(loading || expiryLoading) ? 'animate-spin' : ''} />
+                </button>
             </div>
         </WidgetShell.Toolbar>
 
-        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden', position: 'relative' }}>
-            {/* Table Header — fixed, no vertical scroll */}
-            <div style={{ display: 'flex', height: '32px', flexShrink: 0, background: COLOR.bg.surface, borderBottom: BORDER.standard, fontSize: TYPE.size.xs, fontWeight: TYPE.weight.black, color: COLOR.text.muted, boxSizing: 'border-box', overflow: 'hidden', fontFamily: TYPE.family.mono }}>
-                <div ref={ceHeaderRef} onScroll={syncScroll} style={{ flex: 1, overflowX: 'auto', overflowY: 'hidden', direction: 'rtl', borderRight: BORDER.standard }} className="hide-scrollbar">
-                    <div style={{ display: 'flex', direction: 'ltr', width: CE_TOTAL_W, flexShrink: 0 }}>
-                        {ceCols.map(c => <div key={c} style={{ width: COLUMN_WIDTH, display: 'flex', alignItems: 'center', justifyContent: 'flex-end', padding: '0 8px', borderRight: BORDER.standard, flexShrink: 0, boxSizing: 'border-box' }}>{c}</div>)}
-                    </div>
-                </div>
-                <div style={{ width: STRIKE_W, flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', background: COLOR.bg.elevated, borderRight: BORDER.standard, zIndex: 20, boxSizing: 'border-box', color: COLOR.text.primary }}>STRIKE</div>
-                <div ref={peHeaderRef} onScroll={syncScroll} style={{ flex: 1, overflowX: 'auto', overflowY: 'hidden', display: 'flex' }} className="hide-scrollbar">
-                    <div style={{ display: 'flex', width: PE_TOTAL_W, flexShrink: 0 }}>
-                        {peCols.map(c => <div key={c} style={{ width: COLUMN_WIDTH, display: 'flex', alignItems: 'center', justifyContent: 'flex-start', padding: '0 8px', borderRight: BORDER.standard, flexShrink: 0, boxSizing: 'border-box' }}>{c}</div>)}
-                    </div>
-                </div>
-            </div>
-
-            {/* BODY — single vertical scroll container */}
-            <div style={{ flex: 1, overflowY: 'auto', display: 'flex', alignItems: 'flex-start', position: 'relative' }} className="custom-scrollbar">
-
-                {/* CE BODY */}
-                <div ref={ceBodyRef} onScroll={syncScroll} style={{ flex: 1, overflowX: 'auto', overflowY: 'hidden', direction: 'rtl', borderRight: BORDER.standard }} className="hide-scrollbar">
-                    <div style={{ display: 'flex', flexDirection: 'column', direction: 'ltr', width: CE_TOTAL_W, flexShrink: 0 }}>
-                        {hasMoreAbove && <div onClick={() => setStrikeLimit(p => p + 20)} style={{ height: FINAL_ROW_HEIGHT, minHeight: FINAL_ROW_HEIGHT, flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', background: COLOR.semantic.info, color: COLOR.text.inverse, fontSize: TYPE.size.xs, fontWeight: TYPE.weight.black, cursor: 'pointer', boxSizing: 'border-box', letterSpacing: TYPE.letterSpacing.caps }}>LOAD_MORE_STRIKES</div>}
-                        {visibleChain.map(row => (
-                            <div key={row.strike} style={{ display: 'flex', height: FINAL_ROW_HEIGHT, minHeight: FINAL_ROW_HEIGHT, flexShrink: 0, borderBottom: BORDER.standard, boxSizing: 'border-box', overflow: 'hidden' }}>
-                                {ceCols.map(c => renderCell(row.ce, row.strike, c, 'CE'))}
-                            </div>
-                        ))}
-                        {hasMoreBelow && <div onClick={() => setStrikeLimit(p => p + 20)} style={{ height: FINAL_ROW_HEIGHT, minHeight: FINAL_ROW_HEIGHT, flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', background: COLOR.semantic.info, color: COLOR.text.inverse, fontSize: TYPE.size.xs, fontWeight: TYPE.weight.black, cursor: 'pointer', boxSizing: 'border-box', letterSpacing: TYPE.letterSpacing.caps }}>LOAD_MORE_STRIKES</div>}
-                    </div>
-                </div>
-
-                {/* STRIKE COLUMN */}
-                <div style={{ width: STRIKE_W, flexShrink: 0, display: 'flex', flexDirection: 'column', background: COLOR.bg.elevated, borderRight: BORDER.standard, zIndex: 5 }}>
-                    {hasMoreAbove && <div style={{ height: FINAL_ROW_HEIGHT, minHeight: FINAL_ROW_HEIGHT, flexShrink: 0, boxSizing: 'border-box' }} />}
-                    {visibleChain.map(row => (
-                        <div key={row.strike} style={{ height: FINAL_ROW_HEIGHT, minHeight: FINAL_ROW_HEIGHT, flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', borderBottom: BORDER.standard, fontWeight: TYPE.weight.black, fontSize: TYPE.size.xs, color: COLOR.text.primary, position: 'relative', boxSizing: 'border-box', fontFamily: TYPE.family.mono }}>
-                            {Math.abs(row.strike - currentSpot) <= 25 && <div style={{ position: 'absolute', inset: 0, borderTop: `1px solid ${COLOR.semantic.info}`, borderBottom: `1px solid ${COLOR.semantic.info}`, pointerEvents: 'none' }} />}
-                            {row.strike.toLocaleString()}
-                        </div>
-                    ))}
-                    {hasMoreBelow && <div style={{ height: FINAL_ROW_HEIGHT, minHeight: FINAL_ROW_HEIGHT, flexShrink: 0, boxSizing: 'border-box' }} />}
-                </div>
-
-                {/* PE BODY */}
-                <div ref={peBodyRef} onScroll={syncScroll} style={{ flex: 1, overflowX: 'auto', overflowY: 'hidden', display: 'flex' }} className="hide-scrollbar">
-                    <div style={{ display: 'flex', flexDirection: 'column', width: PE_TOTAL_W, flexShrink: 0 }}>
-                        {hasMoreAbove && <div onClick={() => setStrikeLimit(p => p + 20)} style={{ height: FINAL_ROW_HEIGHT, minHeight: FINAL_ROW_HEIGHT, flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', background: COLOR.semantic.info, color: COLOR.text.inverse, fontSize: TYPE.size.xs, fontWeight: TYPE.weight.black, cursor: 'pointer', boxSizing: 'border-box', letterSpacing: TYPE.letterSpacing.caps }}>LOAD_MORE_STRIKES</div>}
-                        {visibleChain.map(row => (
-                            <div key={row.strike} style={{ display: 'flex', height: FINAL_ROW_HEIGHT, minHeight: FINAL_ROW_HEIGHT, flexShrink: 0, borderBottom: BORDER.standard, boxSizing: 'border-box', overflow: 'hidden' }}>
-                                {peCols.map(c => renderCell(row.pe, row.strike, c, 'PE'))}
-                            </div>
-                        ))}
-                        {hasMoreBelow && <div onClick={() => setStrikeLimit(p => p + 20)} style={{ height: FINAL_ROW_HEIGHT, minHeight: FINAL_ROW_HEIGHT, flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', background: COLOR.semantic.info, color: COLOR.text.inverse, fontSize: TYPE.size.xs, fontWeight: TYPE.weight.black, cursor: 'pointer', boxSizing: 'border-box', letterSpacing: TYPE.letterSpacing.caps }}>LOAD_MORE_STRIKES</div>}
-                    </div>
-                </div>
-
-            </div>{/* end BODY */}
-
-            {(expiryLoading || (loading && chain.length === 0)) && (
-                <div style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.6)', zIndex: 100, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                    <Loader2 className="animate-spin" size={32} />
-                </div>
-            )}
-        </div>{/* end flex column */}
+        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+            <DataTable 
+                data={chain}
+                columns={columns}
+                rowHeight="compact"
+                stickyFirstColumn={true}
+                stickyLastColumn={true}
+                onRowMouseEnter={(_, idx) => setHoveredRow(idx)}
+                onRowMouseLeave={() => setHoveredRow(null)}
+                getRowStyle={(item) => {
+                    const isAtm = item.strike === atmStrike;
+                    const inTheMoney = optionType === 'CE' ? item.strike < currentSpot : item.strike > currentSpot;
+                    
+                    const style: React.CSSProperties = {};
+                    
+                    if (inTheMoney) {
+                        style.background = `${COLOR.semantic.warning}0B`;
+                    }
+                    
+                    if (isAtm) {
+                        style.borderTop = `1px solid ${COLOR.semantic.info}`;
+                        style.borderBottom = `1px solid ${COLOR.semantic.info}`;
+                    }
+                    
+                    return style;
+                }}
+                style={{ flex: 1, display: 'flex', flexDirection: 'column' }}
+            />
+        </div>
 
         {basketMode && basket.length > 0 && (
-            <div style={{ height: '40px', background: COLOR.semantic.info, display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 16px', zIndex: 100 }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}><ShoppingBag size={14} /><span>{basket.length} POSITIONS IN BASKET</span></div>
-                <div style={{ display: 'flex', gap: '8px' }}>
-                    <button onClick={() => setBasket([])} style={{ background: 'transparent', border: '1px solid #fff', padding: '2px 12px' }}>CLEAR</button>
-                    <button style={{ background: '#fff', color: '#000', padding: '2px 16px' }}>EXECUTE</button>
+            <div style={{ height: '32px', background: COLOR.semantic.info, display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 12px', zIndex: 100, flexShrink: 0 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '10px', color: '#fff' }}>
+                  <ShoppingBag size={14} />
+                  <span style={{ fontSize: '11px', fontWeight: 'bold' }}>{basket.length} POSITIONS IN BASKET</span>
+                </div>
+                <div style={{ display: 'flex', gap: '1px' }}>
+                    <button 
+                      onClick={() => setBasket([])} 
+                      style={{ background: 'transparent', border: '1px solid rgba(255,255,255,0.3)', color: '#fff', height: '24px', padding: '0 12px', fontSize: '10px', fontWeight: 'bold', cursor: 'pointer' }}
+                    >
+                      CLEAR
+                    </button>
+                    <button 
+                      style={{ background: '#fff', color: COLOR.semantic.info, border: 'none', height: '24px', padding: '0 16px', fontSize: '10px', fontWeight: 'bold', cursor: 'pointer' }}
+                    >
+                      EXECUTE
+                    </button>
                 </div>
             </div>
         )}
     </WidgetShell>
   );
 };
-

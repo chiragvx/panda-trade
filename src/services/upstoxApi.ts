@@ -267,6 +267,19 @@ export const upstoxApi = {
       const isUnsupported = interval === '5minute' || interval === '15minute' || interval === '60minute';
       const actualInterval = isUnsupported ? '1minute' : interval;
       
+      // Resolve NFO/BFO Instrument Mapping for Simulation
+      let mappedInstrumentKey = instrumentKey;
+      if (SHIFT_DAYS > 0 && (instrumentKey.startsWith('NFO|') || instrumentKey.startsWith('BFO|'))) {
+          // Remap Year: E.g. NIFTY26APR22000CE -> NIFTY24APR22000CE
+          // Regex finds 2 digits followed by month (3 letters)
+          mappedInstrumentKey = instrumentKey.replace(/([A-Z]+)(\d{2})([A-Z]{3})/, (_, sym, yr, mo) => {
+              const yrNum = parseInt(yr);
+              // If year is 26 and shift is 2 years, map to 24
+              const realYr = Math.max(24, yrNum - Math.floor(SHIFT_DAYS / 364));
+              return `${sym}${realYr}${mo}`;
+          });
+      }
+
       if ((actualInterval === 'day' || actualInterval === '1day') && finalToDate >= normalizeToReal(today)) {
           const yesterday = new Date();
           yesterday.setDate(yesterday.getDate() - 1);
@@ -274,7 +287,7 @@ export const upstoxApi = {
       }
 
       const response = await api.get(
-        `${BASE_URL}/historical-candle/${encodeURIComponent(instrumentKey)}/${actualInterval}/${finalToDate}/${nFrom}`,
+        `${BASE_URL}/historical-candle/${encodeURIComponent(mappedInstrumentKey)}/${actualInterval}/${finalToDate}/${nFrom}`,
         { headers: authHeaders(token) }
       );
 
@@ -465,4 +478,22 @@ export const upstoxApi = {
       
       return response.data;
     }),
+
+  getFullQuotes: async (token: string, instrumentKeys: string[]) => {
+    const keys = uniqueKeys(instrumentKeys).join(',');
+    const response = await api.get(`${BASE_URL}/market-quote/quotes`, {
+      params: { instrument_key: keys },
+      headers: authHeaders(token),
+    });
+    return response.data;
+  },
+
+  getLTP: async (token: string, instrumentKeys: string[]) => {
+    const keys = uniqueKeys(instrumentKeys).join(',');
+    const response = await api.get(`${BASE_URL}/market-quote/ltp`, {
+      params: { instrument_key: keys },
+      headers: authHeaders(token),
+    });
+    return response.data;
+  },
 };

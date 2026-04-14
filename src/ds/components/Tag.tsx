@@ -17,16 +17,18 @@ interface TagProps {
   label:    string;
   variant?: TagVariant;
   style?:   React.CSSProperties;
+  onClick?: () => void;
 }
 
 /**
  * Tag — compact pill label for exchange names, order types, statuses.
  * Standard height 16px. Sharp corners (borderRadius: 0).
  */
-export const Tag: React.FC<TagProps> = ({ label, variant = 'muted', style }) => {
+export const Tag: React.FC<TagProps> = ({ label, variant = 'muted', style, onClick }) => {
   const { text, border, bg } = VARIANT_COLORS[variant];
   return (
     <span
+      onClick={onClick}
       style={{
         display:       'inline-flex',
         alignItems:    'center',

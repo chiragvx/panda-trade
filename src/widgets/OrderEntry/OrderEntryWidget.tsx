@@ -1,215 +1,317 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { TabNode } from 'flexlayout-react';
-import { useSelectionStore } from '../../store/useStore';
-import { ShieldCheck, Zap } from 'lucide-react';
-import { COLOR, TYPE, BORDER, SPACE } from '../../ds/tokens';
-import { isIsin } from '../../utils/liveSymbols';
-import { WidgetSymbolSearch } from '../../components/WidgetSearch/WidgetSymbolSearch';
+import { useSelectionStore, useLayoutStore } from '../../store/useStore';
 import { useUpstoxStore } from '../../store/useUpstoxStore';
-import { NIFTY_50 } from '../../utils/defaultSymbol';
+import { upstoxApi } from '../../services/upstoxApi';
+import { useToastStore } from '../../components/ToastContainer';
+import { 
+  ShieldCheck, 
+  ChevronUp, 
+  ChevronDown, 
+  RotateCcw,
+  Search,
+  Activity,
+  ArrowRight,
+  Wallet
+} from 'lucide-react';
+import { 
+  COLOR, 
+  TYPE, 
+  BORDER, 
+  WidgetShell,
+  Text,
+  Input,
+  Select,
+  Button,
+  SegmentedControl,
+  Price,
+  Badge
+} from '../../ds';
+import { WidgetSymbolSearch } from '../../components/WidgetSearch/WidgetSymbolSearch';
 
-interface OrderEntryWidgetProps {
+interface OrderWidgetProps {
     node?: TabNode;
 }
 
-export const OrderEntryWidget: React.FC<OrderEntryWidgetProps> = ({ node }) => {
-    const { selectedSymbol: globalSymbol } = useSelectionStore();
-    const { setInstrumentMeta } = useUpstoxStore();
-    const [mode, setMode] = useState<'BUY' | 'SELL'>('BUY');
-    const [symbol, setSymbol] = useState(globalSymbol?.ticker || NIFTY_50.ticker);
-    const [name, setName] = useState(globalSymbol?.name || NIFTY_50.name);
-    const [price, setPrice] = useState('0.00');
-    const [qty, setQty] = useState('1');
-    const [localOverride, setLocalOverride] = useState(false);
+export const OrderEntryWidget: React.FC<OrderWidgetProps> = ({ node }) => {
+    const { selectedSymbol, setSelectedSymbol } = useSelectionStore();
+    const { orderMode, editingOrder, closeOrderModal } = useLayoutStore();
+    const { accessToken, status, prices, funds, setInstrumentMeta } = useUpstoxStore();
+    const { addToast } = useToastStore();
 
-    const displaySymbol = isIsin(symbol) ? (name || 'INSTRUMENT') : symbol;
+    const [side, setSide] = useState<'BUY' | 'SELL'>(orderMode || 'BUY');
+    const [productType, setProductType] = useState<'I' | 'D'>('I');
+    const [orderType, setOrderType] = useState<'MARKET' | 'LIMIT' | 'SL' | 'SL-M'>('MARKET');
+    const [qty, setQty] = useState<number>(1);
+    const [price, setPrice] = useState<string>('');
+    const [triggerPrice, setTriggerPrice] = useState<string>('');
+    const [validity, setValidity] = useState<'DAY' | 'IOC'>('DAY');
+    
+    const [executing, setExecuting] = useState(false);
+    const [showSearch, setShowSearch] = useState(false);
 
     useEffect(() => {
-        if (node) {
-            const name = node.getName();
-            const parts = name.split(' ');
-            if (parts.length >= 2) {
-                setSymbol(parts[0]);
-                setMode(parts[1] === 'SELL' ? 'SELL' : 'BUY');
+        if (orderMode) setSide(orderMode);
+    }, [orderMode]);
+
+    useEffect(() => {
+        if (editingOrder) {
+            const raw = editingOrder.raw;
+            setSide(editingOrder.side as any);
+            setQty(raw.quantity);
+            setPrice(String(raw.price || 0));
+            setTriggerPrice(String(raw.trigger_price || 0));
+            setProductType(raw.product as any);
+            setOrderType(raw.order_type as any);
+            setValidity(raw.validity as any);
+        } else if (selectedSymbol) {
+            const ltp = prices[selectedSymbol.instrument_key || '']?.ltp || selectedSymbol.ltp || 0;
+            if (orderType !== 'MARKET') setPrice(Number(ltp).toFixed(2));
+            setTriggerPrice(Number(ltp).toFixed(2));
+        }
+    }, [selectedSymbol, editingOrder]);
+
+    const currentLtp = useMemo(() => {
+        if (!selectedSymbol) return 0;
+        return prices[selectedSymbol.instrument_key || '']?.ltp || selectedSymbol.ltp || 0;
+    }, [selectedSymbol, prices]);
+
+    const isBuy = side === 'BUY';
+    const accent = isBuy ? COLOR.semantic.up : COLOR.semantic.down;
+    const isLive = status === 'connected' && !!accessToken;
+    const availableMargin = Number(funds?.available_margin ?? 0);
+    
+    const totalValue = qty * (orderType === 'MARKET' ? currentLtp : parseFloat(price) || currentLtp);
+    const marginReq = productType === 'I' ? totalValue / 5 : totalValue;
+
+    const handleExecute = async () => {
+        if (!isLive || !selectedSymbol?.instrument_key) {
+            addToast('OFFLINE', 'error');
+            return;
+        }
+        setExecuting(true);
+        try {
+            const orderPayload = {
+                quantity: qty,
+                product: productType,
+                validity,
+                price: (orderType === 'MARKET' || orderType === 'SL-M') ? 0 : parseFloat(price),
+                tag: 'ANTIGRAVITY_v2',
+                instrument_token: selectedSymbol.instrument_key,
+                order_type: orderType,
+                transaction_type: side,
+                disclosed_quantity: 0,
+                trigger_price: (orderType === 'SL' || orderType === 'SL-M') ? parseFloat(triggerPrice) : 0,
+                is_amo: false,
+            };
+
+            const res = editingOrder 
+                ? await upstoxApi.modifyOrder(accessToken!, { ...orderPayload, order_id: editingOrder.id })
+                : await upstoxApi.placeOrder(accessToken!, orderPayload as any);
+
+            if (res.status === 'success') {
+                addToast('TRANSMITTED', 'success');
+                if (editingOrder) closeOrderModal();
+            } else {
+                addToast(res.errors?.[0]?.message || 'REJECTED', 'error');
             }
+        } catch (err: any) {
+            addToast(err.message, 'error');
+        } finally {
+            setExecuting(false);
         }
-    }, [node]);
+    };
 
-    useEffect(() => {
-        if (!node && globalSymbol) {
-            setSymbol(globalSymbol.ticker);
-            setName(globalSymbol.name);
-            setPrice(globalSymbol.ltp.toString());
-        }
-    }, [globalSymbol, node]);
-
-    const activeColor = mode === 'BUY' ? COLOR.semantic.up : COLOR.semantic.down;
+    const handleAddFunds = () => {
+        window.open('https://pro.upstox.com/funds/securities/wallet', '_blank');
+    };
 
     return (
-        <div style={{ 
-            display: 'flex', 
-            flexDirection: 'column', 
-            height: '100%', 
-            background: COLOR.bg.base, 
-            fontFamily: TYPE.family.mono,
-            color: COLOR.text.primary,
-            userSelect: 'none'
-        }}>
-            {/* Header */}
-            <div style={{ 
-                padding: '12px 16px', 
-                borderBottom: `2px solid ${activeColor}`, 
-                background: COLOR.bg.surface,
-                display: 'flex',
-                justifyContent: 'space-between',
-                alignItems: 'center'
-            }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                    <div style={{ 
-                        width: '32px', 
-                        height: '32px', 
-                        background: activeColor, 
-                        display: 'flex', 
-                        alignItems: 'center', 
-                        justifyContent: 'center', 
-                        fontSize: '14px', 
-                        fontWeight: TYPE.weight.bold, 
-                        color: COLOR.text.inverse 
-                    }}>
-                        {mode === 'BUY' ? 'B' : 'S'}
+        <WidgetShell>
+            <style dangerouslySetInnerHTML={{ __html: `
+                .no-spinners::-webkit-outer-spin-button,
+                .no-spinners::-webkit-inner-spin-button {
+                    -webkit-appearance: none;
+                    margin: 0;
+                }
+                .no-spinners {
+                    -moz-appearance: textfield;
+                }
+            `}} />
+            
+            {showSearch && (
+                <div style={{ padding: '8px', background: COLOR.bg.elevated, borderBottom: BORDER.standard, position: 'relative', zIndex: 10 }}>
+                    <WidgetSymbolSearch onSelect={(res) => { setSelectedSymbol({ ticker: res.ticker, name: res.name, exchange: res.exchange, instrument_key: res.instrumentKey, ltp: 0 } as any); setInstrumentMeta({ [res.instrumentKey]: { ticker: res.ticker, name: res.name, exchange: res.exchange } }); setShowSearch(false); }} />
+                </div>
+            )}
+
+            <div style={{ flex: 1, display: 'flex', flexDirection: 'column', background: COLOR.bg.base, overflowX: 'hidden', overflowY: 'auto' }}>
+                {/* Header Info */}
+                <div style={{ padding: '12px 16px', borderBottom: BORDER.standard, display: 'flex', flexWrap: 'wrap', justifyContent: 'space-between', alignItems: 'center', gap: '12px' }}>
+                    <div style={{ display: 'flex', flexDirection: 'column', minWidth: '120px' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                            <span style={{ fontSize: '14px', fontWeight: 900, color: COLOR.text.primary, letterSpacing: '-0.02em' }}>{selectedSymbol?.ticker || '---'}</span>
+                            <Badge label={selectedSymbol?.exchange || '---'} variant="info" />
+                        </div>
+                        <span style={{ fontSize: '11px', color: COLOR.text.muted, fontWeight: 700, maxWidth: '200px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{selectedSymbol?.name || '...'}</span>
                     </div>
-                    <div>
-                        <div style={{ fontSize: '14px', fontWeight: TYPE.weight.black,  letterSpacing: TYPE.letterSpacing.tight, color: COLOR.text.primary }}>{displaySymbol || 'WAITING_FOR_CTX'}</div>
-                        <div style={{ fontSize: TYPE.size.xs, color: COLOR.text.muted,  fontWeight: TYPE.weight.black, letterSpacing: TYPE.letterSpacing.caps }}>LIMIT_ORDER_ENTRY</div>
+                    
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '16px', flexShrink: 0 }}>
+                        <div style={{ textAlign: 'right' }}>
+                            <Price value={currentLtp} size="md" weight="black" />
+                            <div style={{ display: 'flex', gap: '4px', justifyContent: 'flex-end', alignItems: 'center' }}>
+                                <Activity size={10} color={COLOR.semantic.up} />
+                                <Text size="xs" color="up" weight="black">{(selectedSymbol?.changePct || 0).toFixed(2)}%</Text>
+                            </div>
+                        </div>
+                        <div style={{ display: 'flex', gap: '4px' }}>
+                            <button onClick={() => setShowSearch(!showSearch)} style={{ width: '28px', height: '28px', background: COLOR.bg.elevated, border: BORDER.standard, color: COLOR.text.muted, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><Search size={14} /></button>
+                            <button onClick={() => { setQty(1); setOrderType('MARKET'); }} style={{ width: '28px', height: '28px', background: COLOR.bg.elevated, border: BORDER.standard, color: COLOR.text.muted, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><RotateCcw size={14} /></button>
+                        </div>
                     </div>
                 </div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                    <WidgetSymbolSearch 
-                        onSelect={(res) => {
-                            setSymbol(res.ticker);
-                            setName(res.name);
-                            setLocalOverride(true);
-                            setInstrumentMeta({ [res.instrumentKey]: { ticker: res.ticker, name: res.name, exchange: res.exchange } });
+
+                <div style={{ padding: '16px', display: 'flex', flexDirection: 'column', gap: '20px' }}>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                         <Text variant="label" color="muted" size="xs">SIDE</Text>
+                         <SegmentedControl 
+                            options={[{ label: 'BUY', value: 'BUY' }, { label: 'SELL', value: 'SELL' }]}
+                            value={side}
+                            onChange={(v) => setSide(v as any)}
+                            style={{ height: '40px' }}
+                        />
+                    </div>
+
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                        <Text variant="label" color="muted" size="xs">ORDER TYPE</Text>
+                        <SegmentedControl 
+                            options={[{ label: 'MARKET', value: 'MARKET' }, { label: 'LIMIT', value: 'LIMIT' }, { label: 'SL', value: 'SL' }]}
+                            value={orderType}
+                            onChange={(v: any) => setOrderType(v)}
+                            style={{ height: '40px' }}
+                        />
+                    </div>
+
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                        <Text variant="label" color="muted" size="xs">PRODUCT</Text>
+                        <SegmentedControl 
+                            options={[
+                                { label: <div style={{ padding: '12px 0' }}>INTRADAY<br/>(MIS)</div>, value: 'I' }, 
+                                { label: <div style={{ padding: '12px 0' }}>DELIVERY<br/>(CNC)</div>, value: 'D' }
+                            ]}
+                            value={productType}
+                            onChange={(v: any) => setProductType(v)}
+                            style={{ height: 'auto', minHeight: '48px' }}
+                        />
+                    </div>
+
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                        <Text variant="label" color="muted" size="xs">QUANTITY</Text>
+                        <div style={{ display: 'flex', border: BORDER.standard, height: '40px', background: COLOR.bg.elevated }}>
+                            <button onClick={() => setQty(q => Math.max(1, q-1))} style={{ padding: '0 12px', border: 'none', background: 'transparent', color: COLOR.text.muted, cursor: 'pointer', display: 'flex', alignItems: 'center' }}><ChevronDown size={14} /></button>
+                            <input 
+                                type="number" 
+                                className="no-spinners"
+                                value={qty} 
+                                onChange={e => setQty(parseInt(e.target.value) || 0)} 
+                                style={{ flex: 1, border: 'none', background: 'transparent', color: COLOR.text.primary, textAlign: 'center', fontSize: '14px', fontWeight: 'bold', outline: 'none', padding: '0 12px', margin: '0 4px' }} 
+                            />
+                            <button onClick={() => setQty(q => q+1)} style={{ padding: '0 12px', border: 'none', background: 'transparent', color: COLOR.text.muted, cursor: 'pointer', display: 'flex', alignItems: 'center' }}><ChevronUp size={14} /></button>
+                        </div>
+                    </div>
+
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                        <Text variant="label" color="muted" size="xs">{orderType === 'MARKET' ? 'ESTIMATED PRICE' : 'PRICE'}</Text>
+                        <div style={{ display: 'flex', border: BORDER.standard, height: '40px', background: orderType === 'MARKET' ? 'transparent' : COLOR.bg.elevated }}>
+                            {orderType !== 'MARKET' && <button onClick={() => setPrice(p => (parseFloat(p || '0') - 0.05).toFixed(2))} style={{ padding: '0 12px', border: 'none', background: 'transparent', color: COLOR.text.muted, cursor: 'pointer', display: 'flex', alignItems: 'center' }}><ChevronDown size={14} /></button>}
+                            <input 
+                                type="text" 
+                                disabled={orderType === 'MARKET'}
+                                value={orderType === 'MARKET' ? currentLtp.toFixed(2) : price} 
+                                onChange={e => setPrice(e.target.value)} 
+                                style={{ flex: 1, border: 'none', background: 'transparent', color: orderType === 'MARKET' ? COLOR.text.muted : COLOR.text.primary, textAlign: 'center', fontSize: '14px', fontWeight: 'bold', outline: 'none', padding: '0 12px', margin: '0 4px' }} 
+                            />
+                            {orderType !== 'MARKET' && <button onClick={() => setPrice(p => (parseFloat(p || '0') + 0.05).toFixed(2))} style={{ padding: '0 12px', border: 'none', background: 'transparent', color: COLOR.text.muted, cursor: 'pointer', display: 'flex', alignItems: 'center' }}><ChevronUp size={14} /></button>}
+                        </div>
+                    </div>
+
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+                         {orderType.startsWith('SL') && (
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                                <Text variant="label" color="muted" size="xs">TRIGGER</Text>
+                                <Input value={triggerPrice} onChange={e => setTriggerPrice(e.target.value)} inputSize="md" className="no-spinners" style={{ textAlign: 'center', fontWeight: 'bold', padding: '0 12px', height: '40px' }} />
+                            </div>
+                        )}
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                            <Text variant="label" color="muted" size="xs">VAL</Text>
+                            <Select value={validity} onChange={e => setValidity(e.target.value as any)} selectSize="md" style={{ height: '40px' }}>
+                                <option value="DAY">DAY</option>
+                                <option value="IOC">IOC</option>
+                            </Select>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            {/* INTEGRATED ACTION FOOTER */}
+            <div style={{ padding: '16px', borderTop: BORDER.standard, background: '#000', display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                {/* Linked Financial Info */}
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
+                        <span style={{ fontSize: '10px', color: COLOR.text.muted, fontWeight: 900, letterSpacing: '0.05em' }}>REQUIRED</span>
+                        <div style={{ display: 'flex', alignItems: 'baseline', gap: '2px' }}>
+                             <span style={{ fontSize: '12px', color: COLOR.text.primary, fontWeight: 900 }}>₹</span>
+                             <span style={{ fontSize: '14px', color: COLOR.text.primary, fontWeight: 900 }}>{marginReq.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+                        </div>
+                    </div>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '2px', alignItems: 'flex-end' }}>
+                        <span style={{ fontSize: '10px', color: COLOR.text.muted, fontWeight: 900, letterSpacing: '0.05em' }}>AVAILABLE</span>
+                        <div style={{ display: 'flex', alignItems: 'baseline', gap: '2px' }}>
+                             <span style={{ fontSize: '12px', color: COLOR.semantic.up, fontWeight: 900 }}>₹</span>
+                             <span style={{ fontSize: '14px', color: COLOR.semantic.up, fontWeight: 900 }}>{availableMargin.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+                        </div>
+                    </div>
+                </div>
+
+                {/* Primary Action Row */}
+                <div style={{ display: 'flex', gap: '8px' }}>
+                    <Button 
+                        variant={isBuy ? 'buy' : 'sell'} 
+                        size="md" 
+                        fullWidth 
+                        glow
+                        disabled={executing || (isLive && availableMargin < marginReq)}
+                        onClick={handleExecute}
+                        style={{ height: '36px', borderRadius: '2px' }}
+                    >
+                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
+                            <span style={{ fontSize: '12px', fontWeight: 700, letterSpacing: '1px' }}>
+                                {executing ? '...' : (editingOrder ? 'UPDATE' : 'TRADE')}
+                            </span>
+                            {!executing && <ArrowRight size={14} color="currentColor" />}
+                        </div>
+                    </Button>
+
+                    <Button 
+                        variant="muted" 
+                        size="md" 
+                        fullWidth 
+                        onClick={handleAddFunds}
+                        style={{ 
+                            height: '36px', 
+                            borderRadius: '2px',
+                            border: BORDER.standard,
                         }}
-                        placeholder="SEARCH..." 
-                    />
-                    {localOverride && (
-                        <button 
-                            onClick={() => {
-                                setLocalOverride(false);
-                                if (globalSymbol) {
-                                    setSymbol(globalSymbol.ticker);
-                                    setName(globalSymbol.name);
-                                    setPrice(globalSymbol.ltp.toString());
-                                }
-                            }}
-                            style={{ background: 'transparent', border: 'none', color: activeColor, fontSize: TYPE.size.xs, fontWeight: TYPE.weight.black, cursor: 'pointer', letterSpacing: TYPE.letterSpacing.caps }}
-                        >
-                            RESET
-                        </button>
-                    )}
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', border: `1px solid ${activeColor}40`, padding: '2px 8px', background: `${activeColor}10`, borderRadius: '2px' }}>
-                        <Zap size={10} style={{ color: activeColor }} />
-                        <span style={{ fontSize: TYPE.size.xs, fontWeight: TYPE.weight.black, color: activeColor, letterSpacing: TYPE.letterSpacing.caps }}>LIVE_ACTIVE</span>
-                    </div>
+                    >
+                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
+                            <Wallet size={14} color={COLOR.text.muted} />
+                            <span style={{ fontSize: '12px', color: COLOR.text.muted, fontWeight: 700, letterSpacing: '1px' }}>
+                                FUNDS
+                            </span>
+                        </div>
+                    </Button>
                 </div>
             </div>
-
-            {/* Form Area */}
-            <div style={{ flex: 1, padding: '20px', display: 'flex', flexDirection: 'column', gap: '20px' }}>
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                        <label style={{ fontSize: TYPE.size.xs, color: COLOR.text.muted, fontWeight: TYPE.weight.black, letterSpacing: TYPE.letterSpacing.caps }}>QUANTITY</label>
-                        <input 
-                            type="number"
-                            value={qty}
-                            onChange={(e) => setQty(e.target.value)}
-                            style={{ 
-                                background: COLOR.bg.elevated, 
-                                border: BORDER.standard, 
-                                color: COLOR.text.primary, 
-                                padding: '8px 12px', 
-                                fontSize: '12px', 
-                                outline: 'none', 
-                                fontFamily: TYPE.family.mono,
-                                width: '100%'
-                            }}
-                        />
-                    </div>
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                        <label style={{ fontSize: TYPE.size.xs, color: COLOR.text.muted, fontWeight: TYPE.weight.black, letterSpacing: TYPE.letterSpacing.caps }}>PRICE</label>
-                        <input 
-                            type="text"
-                            value={price}
-                            onChange={(e) => setPrice(e.target.value)}
-                            style={{ 
-                                background: COLOR.bg.elevated, 
-                                border: BORDER.standard, 
-                                color: COLOR.text.primary, 
-                                padding: '8px 12px', 
-                                fontSize: '12px', 
-                                outline: 'none', 
-                                fontFamily: TYPE.family.mono,
-                                width: '100%'
-                            }}
-                        />
-                    </div>
-                </div>
-
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '8px' }}>
-                    {['MARKET', 'LIMIT', 'SL'].map(type => (
-                        <button key={type} style={{ 
-                            padding: '8px', 
-                            fontSize: TYPE.size.xs, 
-                            fontWeight: TYPE.weight.black, 
-                            background: type === 'LIMIT' ? `${COLOR.semantic.info}20` : COLOR.bg.surface, 
-                            border: type === 'LIMIT' ? BORDER.info : BORDER.standard,
-                            color: type === 'LIMIT' ? COLOR.semantic.info : COLOR.text.muted,
-                            cursor: 'pointer',
-                            letterSpacing: TYPE.letterSpacing.caps,
-                            borderRadius: '2px'
-                        }}>
-                            {type}
-                        </button>
-                    ))}
-                </div>
-
-                <div style={{ padding: '12px', background: COLOR.bg.elevated, border: BORDER.standard, display: 'flex', flexDirection: 'column', gap: '10px', borderRadius: '2px' }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                        <span style={{ fontSize: TYPE.size.xs, color: COLOR.text.muted, fontWeight: TYPE.weight.black, letterSpacing: TYPE.letterSpacing.caps }}>MARGIN_REQD</span>
-                        <span style={{ fontSize: TYPE.size.sm, fontWeight: TYPE.weight.black, fontVariantNumeric: 'tabular-nums', color: COLOR.text.primary }}>₹{(parseFloat(qty || '0') * parseFloat(price || '0')).toLocaleString()}</span>
-                    </div>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                        <span style={{ fontSize: TYPE.size.xs, color: COLOR.text.muted, fontWeight: TYPE.weight.black, letterSpacing: TYPE.letterSpacing.caps }}>AVAIL_CASH</span>
-                        <span style={{ fontSize: TYPE.size.sm, fontWeight: TYPE.weight.black, color: COLOR.semantic.up, fontVariantNumeric: 'tabular-nums' }}>₹1,42,500.20</span>
-                    </div>
-                    <div style={{ height: '1px', background: COLOR.bg.border }} />
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: COLOR.semantic.up }}>
-                        <ShieldCheck size={14} />
-                        <span style={{ fontSize: TYPE.size.xs, fontWeight: TYPE.weight.black, letterSpacing: TYPE.letterSpacing.caps }}>SECURE_PRECISION_EXECUTION</span>
-                    </div>
-                </div>
-            </div>
-
-            {/* Main Action */}
-            <div style={{ padding: '20px', borderTop: BORDER.standard, background: COLOR.bg.elevated }}>
-                <button style={{ 
-                    width: '100%', 
-                    padding: '14px', 
-                    background: activeColor, 
-                    border: 'none', 
-                    color: COLOR.text.inverse, 
-                    fontSize: TYPE.size.sm, 
-                    fontWeight: TYPE.weight.black, 
-                     
-                    letterSpacing: TYPE.letterSpacing.caps,
-                    cursor: 'pointer',
-                    borderRadius: '2px',
-                    boxShadow: `0 4px 12px ${activeColor}40`
-                }}>
-                    TRANSMIT_{mode}_ORDER
-                </button>
-            </div>
-        </div>
+        </WidgetShell>
     );
 };

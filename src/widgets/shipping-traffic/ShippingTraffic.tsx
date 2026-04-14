@@ -76,7 +76,7 @@ const MapController: React.FC<{ center?: [number, number] }> = ({ center }) => {
     return null;
 };
 
-const MarineMap: React.FC = () => {
+const ShippingTraffic: React.FC = () => {
   const { aisStreamApiKey } = useSettingsStore();
   const [vessels, setVessels] = useState<Record<number, VesselState>>({});
   const [selectedVessel, setSelectedVessel] = useState<VesselState | null>(null);
@@ -89,18 +89,28 @@ const MarineMap: React.FC = () => {
   const lastSyncRef = useRef<number>(0);
 
   useEffect(() => {
+    let isMounted = true;
+    let reconnectTimeout: ReturnType<typeof setTimeout> | null = null;
+    let connectTimeout: ReturnType<typeof setTimeout> | null = null;
+
     if (!aisStreamApiKey) {
         setStatus('IDLE');
         return;
     }
 
     const connect = () => {
+        if (!isMounted) return;
+        
         setStatus('CONNECTING');
-        const ws = new WebSocket('wss://stream.aisstream.io/v0/stream');
+        const wsUrl = `${window.location.protocol === 'https:' ? 'wss' : 'ws'}://${window.location.host}/api/aisstream`;
+        const ws = new WebSocket(wsUrl);
         wsRef.current = ws;
 
         ws.onopen = () => {
-            if (ws.readyState !== WebSocket.OPEN) return;
+            if (!isMounted || ws.readyState !== WebSocket.OPEN) {
+                ws.close();
+                return;
+            }
             setStatus('LIVE');
             ws.send(JSON.stringify({
                 APIKey: aisStreamApiKey,
@@ -109,6 +119,7 @@ const MarineMap: React.FC = () => {
         };
 
         ws.onmessage = async (event) => {
+            if (!isMounted) return;
             let messageData = event.data;
             if (messageData instanceof Blob) messageData = await messageData.text();
             
@@ -173,14 +184,35 @@ const MarineMap: React.FC = () => {
             } catch (err) {}
         };
 
-        ws.onerror = () => setStatus('ERROR');
+        ws.onerror = () => {
+            if (isMounted) setStatus('ERROR');
+        };
+
         ws.onclose = () => {
-            if (status !== 'IDLE') setTimeout(connect, 5000);
+            // Only reconnect if the component is still mounted — prevents
+            // Strict Mode cleanup from scheduling a phantom reconnect.
+            if (isMounted && wsRef.current === ws) {
+                setStatus('CONNECTING');
+                reconnectTimeout = setTimeout(connect, 5000);
+            }
         };
     };
 
-    connect();
-    return () => { if (wsRef.current) wsRef.current.close(); };
+    // Debounce the initial connection by 50ms so React Strict Mode's
+    // immediate unmount/remount cycle doesn't try to open a socket that
+    // is destroyed before the TCP handshake completes.
+    connectTimeout = setTimeout(connect, 50);
+
+    return () => { 
+        isMounted = false;
+        if (connectTimeout) clearTimeout(connectTimeout);
+        if (reconnectTimeout) clearTimeout(reconnectTimeout);
+        if (wsRef.current) {
+            wsRef.current.onclose = null; // Prevent onclose firing during cleanup
+            wsRef.current.close();
+            wsRef.current = null;
+        }
+    };
   }, [aisStreamApiKey]);
 
   const vesselList = useMemo(() => Object.values(vessels), [vessels]);
@@ -197,11 +229,13 @@ const MarineMap: React.FC = () => {
 
   if (!aisStreamApiKey) {
       return (
-          <EmptyState 
-            icon={<Anchor size={48} color={COLOR.semantic.info} />}
-            message="AIS_STREAM_API_REQUIRED"
-            subMessage="Please configure your AISStream.io API key in the Connectivity Dashboard."
-          />
+          <WidgetShell>
+              <EmptyState 
+                icon={<Anchor size={48} strokeWidth={1} />}
+                message="CONFIG_REQUIRED"
+                subMessage="Please configure your AISStream.io API key in the Connectivity Dashboard."
+              />
+          </WidgetShell>
       );
   }
 
@@ -210,9 +244,8 @@ const MarineMap: React.FC = () => {
         <WidgetShell.Toolbar>
             <WidgetShell.Toolbar.Left>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                    <Anchor size={14} color={COLOR.semantic.info} />
                     <Text size="xs" weight="black" style={{ letterSpacing: TYPE.letterSpacing.caps }}>
-                        MARINE_TRACKER_LIVE [AIS]
+                        SHIPPING TRAFFIC
                     </Text>
                 </div>
             </WidgetShell.Toolbar.Left>
@@ -225,7 +258,7 @@ const MarineMap: React.FC = () => {
                         background: status === 'LIVE' ? COLOR.semantic.up : (status === 'ERROR' ? COLOR.semantic.danger : COLOR.semantic.warning), 
                         boxShadow: status === 'LIVE' ? `0 0 8px ${COLOR.semantic.up}` : 'none' 
                     }} />
-                    <Text size="xs" weight="black" color="muted">{status}</Text>
+                    <Text family="mono" size="xs" weight="black" color="muted">{status}</Text>
                 </div>
             </WidgetShell.Toolbar.Right>
         </WidgetShell.Toolbar>
@@ -258,10 +291,11 @@ const MarineMap: React.FC = () => {
 
                 <div style={{ flex: 1, overflowY: 'auto' }} className="custom-scrollbar">
                     {filteredVessels.length === 0 ? (
-                        <div style={{ padding: '60px 20px', textAlign: 'center', opacity: 0.3 }}>
-                            <Anchor size={32} color={COLOR.text.muted} style={{ margin: '0 auto 16px' }} />
-                            <Text size="xs" weight="black">NO VESSELS DETECTED</Text>
-                        </div>
+                        <EmptyState 
+                            icon={<Anchor size={48} strokeWidth={1} />} 
+                            message="NO_AIS_TRACKS"
+                            subMessage="No transponder data received for the selected regions or filters."
+                        />
                     ) : (
                         filteredVessels.slice(0, 100).map(v => (
                             <VesselRow key={v.mmsi} vessel={v} active={selectedVessel?.mmsi === v.mmsi} onClick={() => setSelectedVessel(v)} />
@@ -356,4 +390,4 @@ const VesselPopupContent: React.FC<{ vessel: VesselState }> = ({ vessel }) => {
     );
 };
 
-export default MarineMap;
+export default ShippingTraffic;

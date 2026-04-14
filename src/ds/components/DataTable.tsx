@@ -18,6 +18,7 @@ interface DataTableProps<T> {
   onRowContextMenu?: (e: React.MouseEvent, item: T, index: number) => void;
   onRowMouseEnter?: (item: T, index: number) => void;
   onRowMouseLeave?: (item: T, index: number) => void;
+  getRowStyle?: (item: T, index: number) => React.CSSProperties | undefined;
   sortCol?: string | null;
   sortDir?: 'asc' | 'desc';
   onSort?: (col: string) => void;
@@ -36,6 +37,7 @@ export const DataTable = <T extends Record<string, any>>({
   onRowContextMenu,
   onRowMouseEnter,
   onRowMouseLeave,
+  getRowStyle,
   sortCol,
   sortDir,
   onSort,
@@ -96,62 +98,64 @@ export const DataTable = <T extends Record<string, any>>({
           </tr>
         </thead>
         <tbody>
-          {data.map((item, rowIdx) => (
-            <tr 
-              key={rowIdx} 
-              onClick={() => onRowClick?.(item, rowIdx)}
-              onMouseEnter={() => { setHoveredRow(rowIdx); onRowMouseEnter?.(item, rowIdx); }}
-              onMouseLeave={() => { setHoveredRow(null); onRowMouseLeave?.(item, rowIdx); }}
-              onContextMenu={(e) => onRowContextMenu?.(e, item, rowIdx)}
-              style={{ 
-                height: ROW_HEIGHT[rowHeight], 
-                cursor: onRowClick ? 'pointer' : 'default',
-                transition: 'background 60ms linear',
-                background: hoveredRow === rowIdx ? 'rgba(255, 255, 255, 0.05)' : 'transparent',
-              }}
-            >
-              {columns.map((col, colIdx) => {
-                const isStickyFirst = colIdx === 0 && stickyFirstColumn;
-                const isStickyLast = colIdx === columns.length - 1 && stickyLastColumn;
-                
-                // Only use an opaque background for sticky cells if we're hovering 
-                // OR if it's the first column (which usually needs to hide symbols under it).
-                // For the LAST column (actions), keep it transparent when not hovered to avoid "dead blocks"
-                let cellBg = 'transparent';
-                if (isStickyFirst) {
-                    cellBg = hoveredRow === rowIdx ? 'rgba(40, 40, 40, 1)' : COLOR.bg.base;
-                } else if (isStickyLast) {
-                    cellBg = hoveredRow === rowIdx ? COLOR.bg.base : 'transparent';
-                }
+          {data.map((item, rowIdx) => {
+            const customStyle = getRowStyle?.(item, rowIdx);
+            return (
+              <tr 
+                key={rowIdx} 
+                onClick={() => onRowClick?.(item, rowIdx)}
+                onMouseEnter={() => { setHoveredRow(rowIdx); onRowMouseEnter?.(item, rowIdx); }}
+                onMouseLeave={() => { setHoveredRow(null); onRowMouseLeave?.(item, rowIdx); }}
+                onContextMenu={(e) => onRowContextMenu?.(e, item, rowIdx)}
+                style={{ 
+                  height: ROW_HEIGHT[rowHeight], 
+                  cursor: onRowClick ? 'pointer' : 'default',
+                  transition: 'background 60ms linear',
+                  background: hoveredRow === rowIdx ? 'rgba(255, 255, 255, 0.05)' : customStyle?.background || 'transparent',
+                  ...customStyle
+                }}
+              >
+                {columns.map((col, colIdx) => {
+                  const isStickyFirst = colIdx === 0 && stickyFirstColumn;
+                  const isStickyLast = colIdx === columns.length - 1 && stickyLastColumn;
+                  
+                  let cellBg = 'transparent';
+                  if (isStickyFirst) {
+                      cellBg = hoveredRow === rowIdx ? 'rgba(40, 40, 40, 1)' : (customStyle?.background as string) || COLOR.bg.base;
+                  } else if (isStickyLast) {
+                      cellBg = hoveredRow === rowIdx ? (customStyle?.background as string) || COLOR.bg.base : 'transparent';
+                  }
 
-                return (
-                  <td 
-                    key={col.key}
-                    style={{ 
-                      padding: '0 12px', 
-                      fontSize: TYPE.size.sm,
-                      fontFamily: TYPE.family.mono,
-                      fontWeight: TYPE.weight.medium,
-                      color: COLOR.text.primary,
-                      textAlign: col.align || 'left',
-                      borderRight: isStickyLast && hoveredRow !== rowIdx ? 'none' : BORDER.standard,
-                      borderBottom: BORDER.standard,
-                      width: col.width,
-                      minWidth: col.width,
-                      position: (isStickyFirst || isStickyLast) ? 'sticky' : 'static',
-                      left: isStickyFirst ? 0 : 'auto',
-                      right: isStickyLast ? 0 : 'auto',
-                      zIndex: (isStickyFirst || isStickyLast) ? 10 : 1,
-                      backgroundColor: cellBg,
-                      pointerEvents: isStickyLast && hoveredRow !== rowIdx ? 'none' : 'auto'
-                    }}
-                  >
-                    {col.render ? col.render(item[col.key], item, rowIdx) : item[col.key]}
-                  </td>
-                );
-              })}
-            </tr>
-          ))}
+                  return (
+                    <td 
+                      key={col.key}
+                      style={{ 
+                        padding: isStickyLast ? '0' : '0 12px', 
+                        fontSize: TYPE.size.sm,
+                        fontFamily: TYPE.family.mono,
+                        fontWeight: TYPE.weight.medium,
+                        color: COLOR.text.primary,
+                        textAlign: col.align || 'left',
+                        borderRight: isStickyLast ? 'none' : BORDER.standard,
+                        borderBottom: customStyle?.borderBottom || BORDER.standard,
+                        borderTop: customStyle?.borderTop || 'none',
+                        width: col.width,
+                        minWidth: col.width,
+                        position: (isStickyFirst || isStickyLast) ? 'sticky' : 'static',
+                        left: isStickyFirst ? 0 : 'auto',
+                        right: isStickyLast ? 1 : 'auto',
+                        zIndex: (isStickyFirst || isStickyLast) ? 10 : 1,
+                        backgroundColor: cellBg,
+                        pointerEvents: isStickyLast && hoveredRow !== rowIdx ? 'none' : 'auto'
+                      }}
+                    >
+                      {col.render ? col.render(item[col.key], item, rowIdx) : item[col.key]}
+                    </td>
+                  );
+                })}
+              </tr>
+            );
+          })}
         </tbody>
       </table>
     </div>

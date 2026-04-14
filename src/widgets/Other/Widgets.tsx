@@ -10,9 +10,11 @@ import { buildSymbolFromFeed } from '../../utils/liveSymbols';
 import { useToastStore } from '../../components/ToastContainer';
 import { useContextMenuStore, ContextMenuOption } from '../../store/useContextMenuStore';
 import { upstoxApi } from '../../services/upstoxApi';
-import { Info, X, Edit2, Play, Pause, ChevronUp, ChevronDown, RefreshCcw, Trash2, BarChart3, Trash } from 'lucide-react';
+import { Info, X, Edit2, Play, Pause, ChevronUp, ChevronDown, RefreshCcw, Trash2, BarChart3, Trash, ShoppingBag, Wallet } from 'lucide-react';
 import { HoverActions } from '../../ds/components/HoverActions';
 import { Tooltip } from '../../ds/components/Tooltip';
+import { EmptyState } from '../../ds/components/EmptyState';
+import { Text } from '../../ds/components/Text';
 
 const toNumber = (value: unknown, fallback = 0) => {
   const parsed = Number(value);
@@ -80,8 +82,7 @@ const ColHdr: React.FC<{ label: string; w?: number; flex?: boolean; align?: 'lef
       fontFamily: TYPE.family.mono,
       fontSize: TYPE.size.xs,
       color: COLOR.text.muted,
-      letterSpacing: TYPE.letterSpacing.caps,
-      
+      letterSpacing: '0.05em',
       paddingLeft: align === 'left' ? '8px' : 0,
       paddingRight: align === 'right' ? '6px' : 0,
     }}
@@ -106,9 +107,9 @@ export const TrendingWidget: React.FC = () => {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100%', background: COLOR.bg.surface }}>
       <div style={{ display: 'flex', height: ROW_HEIGHT.header, background: COLOR.bg.surface, borderBottom: BORDER.standard, flexShrink: 0 }}>
-        <ColHdr label="SYMBOL" flex />
+        <ColHdr label="Symbol" flex />
         <ColHdr label="LTP" w={72} align="right" />
-        <ColHdr label="%CHG" w={56} align="right" />
+        <ColHdr label="% Chg" w={56} align="right" />
       </div>
       <div style={{ flex: 1, overflowY: 'auto' }}>
         {trending.length === 0 ? (
@@ -164,49 +165,57 @@ export const PositionsWidget: React.FC = () => {
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100%', background: COLOR.bg.surface }}>
-      <div style={{ display: 'flex', height: ROW_HEIGHT.header, background: COLOR.bg.surface, borderBottom: BORDER.standard, flexShrink: 0 }}>
-        <ColHdr label="SYMBOL" flex />
-        <ColHdr label="QTY" w={40} align="right" />
-        <ColHdr label="AVG" w={64} align="right" />
-        <ColHdr label="LTP" w={64} align="right" />
-        <ColHdr label="P&L" w={80} align="right" />
-      </div>
-      <div style={{ flex: 1, overflowY: 'auto' }}>
-        {normalizedPositions.length === 0 ? (
-          <div style={{ padding: '20px', textAlign: 'center', color: COLOR.text.muted, fontSize: TYPE.size.sm, fontFamily: TYPE.family.mono }}>NO OPEN POSITIONS</div>
-        ) : (
-          normalizedPositions.map((p) => {
-            const pct = p.avgPrice ? ((p.ltp - p.avgPrice) / p.avgPrice) * 100 : 0;
-            return (
-              <div key={p.id} style={{ display: 'flex', alignItems: 'center', height: ROW_HEIGHT.relaxed, borderBottom: BORDER.standard, paddingLeft: '8px' }}>
-                <span style={{ flex: 1, fontFamily: TYPE.family.mono, fontSize: TYPE.size.sm, fontWeight: TYPE.weight.medium, color: COLOR.text.primary,  }}>{p.symbol}</span>
-                <span style={{ width: '40px', textAlign: 'right', paddingRight: '6px', fontFamily: TYPE.family.mono, fontSize: TYPE.size.sm, color: COLOR.text.secondary }}>{p.quantity}</span>
-                <span style={{ width: '64px', textAlign: 'right', paddingRight: '6px', fontFamily: TYPE.family.mono, fontSize: TYPE.size.xs, color: COLOR.text.muted }}>{p.avgPrice.toFixed(2)}</span>
-                <span style={{ width: '64px', textAlign: 'right', paddingRight: '6px', fontFamily: TYPE.family.mono, fontSize: TYPE.size.sm, color: COLOR.text.primary }}>{p.ltp.toFixed(2)}</span>
-                <div style={{ width: '80px', textAlign: 'right', paddingRight: '6px', display: 'flex', flexDirection: 'column', alignItems: 'flex-end' }}>
-                  <Change value={p.pnl} format="absolute" size="sm" />
-                  <Change value={pct} format="percent" size="xs" />
-                </div>
-              </div>
-            );
-          })
-        )}
-      </div>
-      <div style={{ padding: '3px 8px', borderTop: BORDER.standard, display: 'flex', justifyContent: 'space-between', flexShrink: 0 }}>
-        <span style={{ fontFamily: TYPE.family.mono, fontSize: TYPE.size.xs, color: COLOR.text.muted }}>TOTAL P&L</span>
-        <Change value={totalPnl} format="absolute" size="sm" />
-      </div>
+      {normalizedPositions.length === 0 ? (
+        <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <EmptyState 
+                icon={<Wallet size={48} color={COLOR.text.muted} strokeWidth={1} />} 
+                message="No active positions" 
+                subMessage="Your open trades and P&L will appear here after execution."
+            />
+        </div>
+      ) : (
+        <>
+            <div style={{ display: 'flex', height: ROW_HEIGHT.header, background: COLOR.bg.surface, borderBottom: BORDER.standard, flexShrink: 0 }}>
+                <ColHdr label="Symbol" flex />
+                <ColHdr label="Qty" w={40} align="right" />
+                <ColHdr label="Avg" w={64} align="right" />
+                <ColHdr label="LTP" w={64} align="right" />
+                <ColHdr label="PnL" w={80} align="right" />
+            </div>
+            <div style={{ flex: 1, overflowY: 'auto' }}>
+                {normalizedPositions.map((p) => {
+                    const pct = p.avgPrice ? ((p.ltp - p.avgPrice) / p.avgPrice) * 100 : 0;
+                    return (
+                    <div key={p.id} style={{ display: 'flex', alignItems: 'center', height: ROW_HEIGHT.relaxed, borderBottom: BORDER.standard, paddingLeft: '8px' }}>
+                        <span style={{ flex: 1, fontFamily: TYPE.family.mono, fontSize: TYPE.size.sm, fontWeight: TYPE.weight.medium, color: COLOR.text.primary,  }}>{p.symbol}</span>
+                        <span style={{ width: '40px', textAlign: 'right', paddingRight: '6px', fontFamily: TYPE.family.mono, fontSize: TYPE.size.sm, color: COLOR.text.secondary }}>{p.quantity}</span>
+                        <span style={{ width: '64px', textAlign: 'right', paddingRight: '6px', fontFamily: TYPE.family.mono, fontSize: TYPE.size.xs, color: COLOR.text.muted }}>{p.avgPrice.toFixed(2)}</span>
+                        <span style={{ width: '64px', textAlign: 'right', paddingRight: '6px', fontFamily: TYPE.family.mono, fontSize: TYPE.size.sm, color: COLOR.text.primary }}>{p.ltp.toFixed(2)}</span>
+                        <div style={{ width: '80px', textAlign: 'right', paddingRight: '6px', display: 'flex', flexDirection: 'column', alignItems: 'flex-end' }}>
+                        <Change value={p.pnl} format="absolute" size="sm" />
+                        <Change value={pct} format="percent" size="xs" />
+                        </div>
+                    </div>
+                    );
+                })}
+            </div>
+            <div style={{ height: '32px', padding: '0 12px', background: COLOR.bg.surface, borderTop: BORDER.strong, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <Text size="xs" color="muted" weight="bold" style={{ letterSpacing: '0.05em' }}>Total PnL</Text>
+                <Change value={totalPnl} format="absolute" size="sm" weight="bold" />
+            </div>
+        </>
+      )}
     </div>
   );
 };
 
 const ORDERS_COL_WIDTHS: Record<string, number> = {
-  'TIME': 60,
-  'SYMBOL': 130,
-  'SIDE': 40,
-  'QTY': 60,
-  'PRICE': 80,
-  'STATUS': 150
+  'Time': 60,
+  'Symbol': 130,
+  'Side': 40,
+  'Qty': 60,
+  'Avg Px': 80,
+  'Status': 150
 };
 
 const OrdersRow: React.FC<{ order: any }> = ({ order }) => {
@@ -411,81 +420,89 @@ export const OrdersWidget: React.FC = () => {
     [orders]
   );
 
-  const cols = ['TIME', 'SYMBOL', 'SIDE', 'QTY', 'PRICE', 'STATUS'];
+  const cols = ['Time', 'Symbol', 'Side', 'Qty', 'Avg Px', 'Status'];
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', height: '100%', background: COLOR.bg.surface }}>
-      <div style={{ height: '32px', display: 'flex', alignItems: 'center', justifyContent: 'flex-end', padding: '0', borderBottom: BORDER.standard, flexShrink: 0, background: COLOR.bg.base }}>
-        <Tooltip content="Cancel all orders" position="left">
-            <button 
-                onClick={handleCancelAll}
-                className="hover:bg-zinc-800"
-                style={{ 
-                    background: 'none', 
-                    border: 'none',
-                    color: COLOR.semantic.down, 
-                    height: '32px',
-                    width: '32px',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    cursor: 'pointer',
-                    transition: 'all 0.1s linear',
-                    padding: 0
-                }}
-            >
-                <Trash2 size={16} />
-            </button>
-        </Tooltip>
-      </div>
-
-      <div 
-        ref={headerRef}
-        style={{ display: 'flex', height: ROW_HEIGHT.header, background: COLOR.bg.surface, borderBottom: BORDER.standard, flexShrink: 0, overflow: 'hidden' }}
-      >
-        {cols.map(c => (
-            <div 
-                key={c} 
-                style={{ 
-                    width: ORDERS_COL_WIDTHS[c], 
-                    minWidth: ORDERS_COL_WIDTHS[c], 
-                    display: 'flex', 
-                    alignItems: 'center', 
-                    justifyContent: c === 'SYMBOL' ? 'flex-start' : 'flex-end',
-                    fontFamily: TYPE.family.mono,
-                    fontSize: TYPE.size.xs,
-                    fontWeight: TYPE.weight.black,
-                    color: COLOR.text.muted,
-                    letterSpacing: TYPE.letterSpacing.caps,
-                    padding: '0 12px',
-                    position: c === 'SYMBOL' ? 'sticky' : 'static',
-                    left: c === 'SYMBOL' ? 0 : 'auto',
-                    zIndex: c === 'SYMBOL' ? 20 : 1,
-                    background: COLOR.bg.surface,
-                    borderRight: BORDER.standard
-                }}
-            >
-                {c}
-            </div>
-        ))}
-        <div style={{ width: 100, minWidth: 100, flexShrink: 0, background: COLOR.bg.surface }} />
-      </div>
-      <div 
-        ref={contentRef}
-        onScroll={syncScroll}
-        style={{ flex: 1, overflow: 'auto' }}
-        className="custom-scrollbar"
-      >
-        <div style={{ minWidth: 'fit-content' }}>
-            {normalizedOrders.length === 0 ? (
-                <div style={{ padding: '40px', textAlign: 'center', color: COLOR.text.muted, fontSize: TYPE.size.sm, fontFamily: TYPE.family.mono }}>NO ORDERS</div>
-            ) : (
-                normalizedOrders.map((o) => (
-                    <OrdersRow key={o.id} order={o} />
-                ))
-            )}
+    <div style={{ display: 'flex', flexDirection: 'column', height: '100%', background: COLOR.bg.base }}>
+      {normalizedOrders.length === 0 ? (
+        <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <EmptyState 
+                icon={<ShoppingBag size={48} color={COLOR.text.muted} strokeWidth={1} />} 
+                message="No active orders" 
+                subMessage="Your trading activity for the day will appear here once initiated."
+            />
         </div>
-      </div>
+      ) : (
+        <>
+            <div style={{ height: '32px', display: 'flex', alignItems: 'center', justifyContent: 'flex-end', padding: '0', borderBottom: BORDER.standard, flexShrink: 0, background: COLOR.bg.base }}>
+                <Tooltip content="Cancel all orders" position="left">
+                    <button 
+                        onClick={handleCancelAll}
+                        className="hover:bg-zinc-800"
+                        style={{ 
+                            background: 'none', 
+                            border: 'none',
+                            color: COLOR.semantic.down, 
+                            height: '32px',
+                            width: '32px',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            cursor: 'pointer',
+                            transition: 'all 0.1s linear',
+                            padding: 0
+                        }}
+                    >
+                        <Trash2 size={16} />
+                    </button>
+                </Tooltip>
+            </div>
+
+            <div 
+                ref={headerRef}
+                style={{ display: 'flex', height: ROW_HEIGHT.header, background: COLOR.bg.surface, borderBottom: BORDER.standard, flexShrink: 0, overflow: 'hidden' }}
+            >
+                {cols.map(c => (
+                    <div 
+                        key={c} 
+                        style={{ 
+                            width: ORDERS_COL_WIDTHS[c], 
+                            minWidth: ORDERS_COL_WIDTHS[c], 
+                            display: 'flex', 
+                            alignItems: 'center', 
+                            justifyContent: c === 'Symbol' ? 'flex-start' : 'flex-end',
+                            fontFamily: TYPE.family.mono,
+                            fontSize: TYPE.size.xs,
+                            fontWeight: TYPE.weight.bold,
+                            color: COLOR.text.muted,
+                            letterSpacing: '0.05em',
+                            padding: '0 12px',
+                            position: c === 'Symbol' ? 'sticky' : 'static',
+                            left: c === 'Symbol' ? 0 : 'auto',
+                            zIndex: c === 'Symbol' ? 20 : 1,
+                            background: COLOR.bg.surface,
+                            borderRight: BORDER.standard
+                        }}
+                    >
+                        {c}
+                    </div>
+                ))}
+                <div style={{ width: 100, minWidth: 100, flexShrink: 0, background: COLOR.bg.surface }} />
+            </div>
+            <div 
+                ref={contentRef}
+                onScroll={syncScroll}
+                style={{ flex: 1, overflow: 'auto' }}
+                className="custom-scrollbar"
+            >
+                <div style={{ minWidth: 'fit-content' }}>
+                    {normalizedOrders.map((o) => (
+                        <OrdersRow key={o.id} order={o} />
+                    ))}
+                </div>
+            </div>
+        </>
+      )}
     </div>
   );
 };

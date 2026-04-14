@@ -31,6 +31,7 @@ export const SegmentedControl: React.FC<SegmentedControlProps> = ({
         display: 'flex', 
         background: COLOR.bg.elevated, 
         border: BORDER.standard,
+        height: 'inherit',
         ...style 
       }}
     >
@@ -41,7 +42,8 @@ export const SegmentedControl: React.FC<SegmentedControlProps> = ({
             key={opt.value}
             onClick={() => onChange(opt.value)}
             style={{ 
-                padding: size === 'xs' ? '2px 8px' : '4px 12px', 
+                height: '100%',
+                padding: '0 12px', 
                 fontSize: TYPE.size.xs, 
                 fontWeight: TYPE.weight.black, 
                 background: isActive ? COLOR.interactive.selected : 'transparent',
@@ -51,6 +53,7 @@ export const SegmentedControl: React.FC<SegmentedControlProps> = ({
                 cursor: 'pointer',
                 display: 'flex',
                 alignItems: 'center',
+                justifyContent: 'center',
                 gap: '6px',
                 fontFamily: TYPE.family.mono,
                 

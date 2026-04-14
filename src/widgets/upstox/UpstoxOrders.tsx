@@ -75,7 +75,7 @@ const UpstoxOrders: React.FC = () => {
     const columns = [
         { 
             key: 'order_timestamp', 
-            label: 'TIME_LOC', 
+            label: 'Time', 
             width: 90,
             render: (val: string) => {
                 const timeStr = val?.split(' ')[1] || '--:--:--';
@@ -89,7 +89,7 @@ const UpstoxOrders: React.FC = () => {
         },
         { 
             key: 'trading_symbol', 
-            label: 'SYMBOL', 
+            label: 'Symbol', 
             render: (val: string, item: any) => (
                 <div style={{ display: 'flex', flexDirection: 'column' }}>
                     <Text weight="bold" size="md" color="primary">{val}</Text>
@@ -102,7 +102,7 @@ const UpstoxOrders: React.FC = () => {
         },
         { 
             key: 'transaction_type', 
-            label: 'DIR', 
+            label: 'Side', 
             width: 60,
             render: (val: string) => (
                 <Text weight="bold" color={val === 'BUY' ? 'up' : 'down'} size="sm">
@@ -110,10 +110,10 @@ const UpstoxOrders: React.FC = () => {
                 </Text>
             )
         },
-        { key: 'quantity', label: 'QTY', align: 'right' as const, width: 80, render: (val: number) => <Text weight="medium" size="sm">{val}</Text> },
+        { key: 'quantity', label: 'Qty', align: 'right' as const, width: 80, render: (val: number) => <Text weight="medium" size="sm">{val}</Text> },
         { 
             key: 'price', 
-            label: 'PX_EXEC', 
+            label: 'Avg Px', 
             align: 'right' as const, 
             width: 90,
             render: (val: any, item: any) => {
@@ -123,7 +123,7 @@ const UpstoxOrders: React.FC = () => {
         },
         { 
             key: 'status', 
-            label: 'STATUS_MSG', 
+            label: 'Status', 
             align: 'right' as const, 
             width: 140,
             render: (val: string, item: any, idx: number) => (
@@ -134,7 +134,7 @@ const UpstoxOrders: React.FC = () => {
                     <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                         <div style={{ width: '4px', height: '12px', background: COLOR.semantic[getStatusColor(val) as keyof typeof COLOR.semantic] }} />
                         <Text weight="bold" color={getStatusColor(val) as any} size="xs" style={{ letterSpacing: '0.05em' }}>
-                            {val.toUpperCase()}
+                            {val.charAt(0).toUpperCase() + val.slice(1).toLowerCase()}
                         </Text>
                     </div>
 
@@ -153,58 +153,62 @@ const UpstoxOrders: React.FC = () => {
             {status !== 'connected' && (
                 <StatusBanner 
                     variant="disconnected" 
-                    message={`DISCONNECTED - STALE ORDER BOOK [${new Date().toLocaleTimeString()}]`} 
+                    message={`Disconnected - Stale order book [${new Date().toLocaleTimeString()}]`} 
                 />
             )}
 
-            <WidgetShell.Toolbar>
-                <WidgetShell.Toolbar.Left>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                        <ShoppingBag size={14} color={COLOR.text.primary} />
-                        <Text size="xs" weight="bold" style={{ letterSpacing: TYPE.letterSpacing.caps }}>
-                            DLY_ORDER_BOOK
-                        </Text>
-                        <Badge label={orders.length.toString()} variant="muted" />
-                    </div>
-                </WidgetShell.Toolbar.Left>
-                <WidgetShell.Toolbar.Right>
-                    <button onClick={fetchOrders} style={{ background: 'none', border: 'none', color: COLOR.text.muted, cursor: 'pointer' }} className={loading ? 'animate-spin' : 'hover:text-text-primary'}>
-                        <RefreshCw size={14} />
-                    </button>
-                </WidgetShell.Toolbar.Right>
-            </WidgetShell.Toolbar>
-
-            <div style={{ flex: 1, overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
-                {orders.length === 0 ? (
+            {orders.length === 0 ? (
+                <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                     <EmptyState 
-                        icon={<ShoppingBag size={48} />} 
-                        message="NO ORDER ENTRIES TODAY" 
-                        subMessage="Recent trades and pending orders will appear here once initiated."
+                        icon={<ShoppingBag size={48} color={COLOR.text.muted} strokeWidth={1} />} 
+                        message="No active orders" 
+                        subMessage="Your trading activity for the day will appear here once initiated."
                     />
-                ) : (
-                    <DataTable 
-                        data={orders}
-                        columns={columns}
-                        onRowClick={handleSelect}
-                        stickyFirstColumn
-                    />
-                )}
-            </div>
+                </div>
+            ) : (
+                <>
+                    <WidgetShell.Toolbar>
+                        <WidgetShell.Toolbar.Left>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                <ShoppingBag size={14} color={COLOR.text.primary} />
+                                <Text size="xs" weight="bold" style={{ letterSpacing: '0.05em' }}>
+                                    Daily Order Book
+                                </Text>
+                                <Badge label={orders.length.toString()} variant="muted" />
+                            </div>
+                        </WidgetShell.Toolbar.Left>
+                        <WidgetShell.Toolbar.Right>
+                            <button onClick={fetchOrders} style={{ background: 'none', border: 'none', color: COLOR.text.muted, cursor: 'pointer' }} className={loading ? 'animate-spin' : 'hover:text-text-primary'}>
+                                <RefreshCw size={14} />
+                            </button>
+                        </WidgetShell.Toolbar.Right>
+                    </WidgetShell.Toolbar>
+
+                    <div style={{ flex: 1, overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
+                        <DataTable 
+                            data={orders}
+                            columns={columns}
+                            onRowClick={handleSelect}
+                            stickyFirstColumn
+                        />
+                    </div>
+                </>
+            )}
 
             <div style={{ height: '32px', padding: '0 12px', background: COLOR.bg.surface, borderTop: BORDER.strong, display: 'flex', alignItems: 'center', gap: '16px' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
                     <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: COLOR.semantic.up }} />
-                    <Text size="xs" color="muted" weight="medium">FILLED</Text>
+                    <Text size="xs" color="muted" weight="medium">Filled</Text>
                 </div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
                     <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: COLOR.semantic.info }} />
-                    <Text size="xs" color="muted" weight="medium">OPEN</Text>
+                    <Text size="xs" color="muted" weight="medium">Open</Text>
                 </div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
                     <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: COLOR.semantic.danger }} />
-                    <Text size="xs" color="muted" weight="medium">REJECTED</Text>
+                    <Text size="xs" color="muted" weight="medium">Rejected</Text>
                 </div>
-                <Text size="xs" color="muted" weight="bold" style={{ marginLeft: 'auto', letterSpacing: '0.05em' }}>SOURCE: UPSTOX_OMS_V3</Text>
+                <Text size="xs" color="muted" weight="bold" style={{ marginLeft: 'auto', letterSpacing: '0.05em' }}>Source: Upstox_OMS_v3</Text>
             </div>
         </WidgetShell>
     );

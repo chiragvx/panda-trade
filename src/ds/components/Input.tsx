@@ -6,8 +6,8 @@ type InputSize    = 'sm' | 'md' | 'lg';
 
 const HEIGHT: Record<InputSize, string> = {
   sm: '24px',
-  md: '28px',
-  lg: '32px',
+  md: '32px',
+  lg: '40px',
 };
 
 interface InputProps extends Omit<React.InputHTMLAttributes<HTMLInputElement>, 'size'> {
@@ -27,7 +27,7 @@ export const Input = React.forwardRef<HTMLInputElement, InputProps>(
 
     const baseStyle: React.CSSProperties = {
       height:       HEIGHT[inputSize],
-      padding:      '0 8px',
+      padding:      '0 12px',
       fontFamily:   TYPE.family.mono,
       fontSize:     TYPE.size.sm,
       fontWeight:   TYPE.weight.medium,

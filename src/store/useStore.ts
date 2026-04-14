@@ -43,8 +43,14 @@ export const useLayoutStore = create<LayoutStore>((set) => ({
   editingOrder: null,
   viewingOrder: null,
   viewingHolding: null,
-  openOrderModal: (mode) => set({ isOrderModalOpen: true, orderMode: mode, editingOrder: null, viewingOrder: null, viewingHolding: null }),
-  openModifyModal: (order) => set({ isOrderModalOpen: true, orderMode: order.side, editingOrder: order, viewingOrder: null, viewingHolding: null }),
+  openOrderModal: (mode) => {
+    set({ isOrderModalOpen: true, orderMode: mode, editingOrder: null, viewingOrder: null, viewingHolding: null });
+    (window as any).targetWidget?.('orderEntry', 'ORDER_ENTRY');
+  },
+  openModifyModal: (order) => {
+    set({ isOrderModalOpen: true, orderMode: order.side, editingOrder: order, viewingOrder: null, viewingHolding: null });
+    (window as any).targetWidget?.('orderEntry', 'ORDER_MODIFICATION');
+  },
   openOrderDetails: (order) => set({ isOrderModalOpen: true, viewingOrder: order, editingOrder: null, viewingHolding: null }),
   openHoldingDetails: (holding) => set({ isOrderModalOpen: true, viewingHolding: holding, editingOrder: null, viewingOrder: null }),
   closeOrderModal: () => set({ isOrderModalOpen: false, editingOrder: null, viewingOrder: null, viewingHolding: null }),

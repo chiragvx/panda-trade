@@ -28,7 +28,7 @@
   --interactive-selected: #1a110a;
   --interactive-focus:    #FF7722;
 
-  --font-mono: "JetBrains Mono", "Fira Code", "Consolas", monospace;
+  --font-mono: "JetBrains Mono", monospace;
 
   /* Typography scale — 11px floor */
   --text-xs: 11px;

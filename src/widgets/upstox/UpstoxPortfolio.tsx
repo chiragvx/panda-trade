@@ -100,7 +100,7 @@ const UpstoxPortfolio: React.FC = () => {
     const columns = [
         { 
             key: 'trading_symbol', 
-            label: 'SYMBOL', 
+            label: 'Symbol', 
             render: (val: string, item: any) => (
                 <div style={{ display: 'flex', flexDirection: 'column' }}>
                     <Text weight="bold" size="md" color="primary">
@@ -115,7 +115,7 @@ const UpstoxPortfolio: React.FC = () => {
                 </div>
             )
         },
-        { key: 'quantity', label: 'QTY', align: 'right' as const, width: 80, render: (val: number) => <Text weight="medium">{val}</Text> },
+        { key: 'quantity', label: 'Qty', align: 'right' as const, width: 80, render: (val: number) => <Text weight="medium">{val}</Text> },
         { 
             key: 'ltp', 
             label: 'LTP', 
@@ -128,7 +128,7 @@ const UpstoxPortfolio: React.FC = () => {
         },
         { 
             key: 'pnl', 
-            label: activeTab === 'positions' ? 'UNRLZD P&L' : 'CUR_VALUE', 
+            label: activeTab === 'positions' ? 'Unrlzd P&L' : 'Cur Value', 
             align: 'right' as const, 
             width: 140,
             render: (_: any, item: any, idx: number) => {
@@ -169,95 +169,107 @@ const UpstoxPortfolio: React.FC = () => {
             {status !== 'connected' && (
                 <StatusBanner 
                     variant="disconnected" 
-                    message={`DISCONNECTED - STALE DATA [${new Date().toLocaleTimeString()}]`} 
+                    message={`Disconnected - Stale data [${new Date().toLocaleTimeString()}]`} 
                 />
             )}
 
-            {/* Summary Banner */}
-            <div style={{ padding: SPACE[2], display: 'grid', gridTemplateColumns: '1fr 1fr', gap: SPACE[2], background: COLOR.bg.base, borderBottom: BORDER.standard }}>
-                 <div style={{ background: COLOR.bg.surface, padding: '10px 14px', border: BORDER.standard, display: 'flex', alignItems: 'center', gap: '12px' }}>
-                    <Wallet size={16} color={COLOR.semantic.info} />
-                    <div>
-                        <Text variant="label" size="xs" weight="bold" color="muted" block>AVBL MARGIN</Text>
-                        <Text size="lg" weight="bold" color="primary" block>
-                            ₹{funds ? (funds.available_margin).toLocaleString('en-IN') : '--'}
-                        </Text>
+            {data.length === 0 ? (
+                <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
+                    <EmptyState 
+                        icon={<Wallet size={48} color={COLOR.text.muted} strokeWidth={1} />} 
+                        message={activeTab === 'positions' ? "No active positions" : "No settled holdings"} 
+                        subMessage={`Your ${activeTab} will appear here after trade synchronization.`}
+                    />
+                    <div style={{ marginTop: '24px' }}>
+                         <button onClick={refreshData} style={{ display: 'flex', alignItems: 'center', gap: '8px', background: 'transparent', border: BORDER.standard, padding: '8px 16px', color: COLOR.text.muted, cursor: 'pointer', borderRadius: '2px' }} className="hover:text-text-primary">
+                             <RefreshCw size={14} className={loading ? 'animate-spin' : ''} />
+                             <Text size="xs" weight="bold">Sync Portfolio</Text>
+                         </button>
                     </div>
-                 </div>
+                </div>
+            ) : (
+                <>
+                    {/* Summary Banner */}
+                    <div style={{ padding: SPACE[2], display: 'grid', gridTemplateColumns: '1fr 1fr', gap: SPACE[2], background: COLOR.bg.base, borderBottom: BORDER.standard }}>
+                        <div style={{ background: COLOR.bg.surface, padding: '10px 14px', border: BORDER.standard, display: 'flex', alignItems: 'center', gap: '12px' }}>
+                            <Wallet size={16} color={COLOR.semantic.info} />
+                            <div>
+                                <Text variant="label" size="xs" weight="bold" color="muted" block>Avbl Margin</Text>
+                                <Text size="lg" weight="bold" color="primary" block>
+                                    ₹{funds ? (funds.available_margin).toLocaleString('en-IN') : '--'}
+                                </Text>
+                            </div>
+                        </div>
 
-                 <div style={{ background: COLOR.bg.surface, padding: '10px 14px', border: BORDER.standard, display: 'flex', alignItems: 'center', gap: '12px' }}>
-                    <div style={{ color: totalPnL >= 0 ? COLOR.semantic.up : COLOR.semantic.down }}>
-                        <RefreshCw size={16} className={loading ? 'animate-spin' : ''} />
-                    </div>
-                    <div>
-                        <Text variant="label" size="xs" weight="bold" color="muted" block>DAY UNRLZD</Text>
-                        <div style={{ display: 'flex', alignItems: 'baseline', gap: '4px' }}>
-                             <Text size="lg" weight="bold" color={totalPnL >= 0 ? 'up' : 'down'}>
-                                {totalPnL >= 0 ? '+' : ''}₹{totalPnL.toLocaleString('en-IN', { maximumFractionDigits: 0 })}
-                             </Text>
+                        <div style={{ background: COLOR.bg.surface, padding: '10px 14px', border: BORDER.standard, display: 'flex', alignItems: 'center', gap: '12px' }}>
+                            <div style={{ color: totalPnL >= 0 ? COLOR.semantic.up : COLOR.semantic.down }}>
+                                <RefreshCw size={16} className={loading ? 'animate-spin' : ''} />
+                            </div>
+                            <div>
+                                <Text variant="label" size="xs" weight="bold" color="muted" block>Day Unrlzd</Text>
+                                <div style={{ display: 'flex', alignItems: 'baseline', gap: '4px' }}>
+                                    <Text size="lg" weight="bold" color={totalPnL >= 0 ? 'up' : 'down'}>
+                                        {totalPnL >= 0 ? '+' : ''}₹{totalPnL.toLocaleString('en-IN', { maximumFractionDigits: 0 })}
+                                    </Text>
+                                </div>
+                            </div>
                         </div>
                     </div>
-                 </div>
-            </div>
 
-            <WidgetShell.Toolbar>
-                <WidgetShell.Toolbar.Left>
-                    <SegmentedControl 
-                        options={[
-                            { label: `POSITIONS [${positions.length}]`, value: 'positions', icon: <LayoutGrid size={12} /> },
-                            { label: `HOLDINGS [${holdings.length}]`, value: 'holdings', icon: <List size={12} /> }
-                        ]}
-                        value={activeTab}
-                        onChange={(v) => setActiveTab(v as any)}
-                    />
-                </WidgetShell.Toolbar.Left>
-                <WidgetShell.Toolbar.Right>
-                    <button onClick={refreshData} style={{ background: 'none', border: 'none', color: COLOR.text.muted, cursor: 'pointer' }} className={loading ? 'animate-spin' : 'hover:text-text-primary'}>
-                        <RefreshCw size={14} />
-                    </button>
-                </WidgetShell.Toolbar.Right>
-            </WidgetShell.Toolbar>
+                    <WidgetShell.Toolbar>
+                        <WidgetShell.Toolbar.Left>
+                            <SegmentedControl 
+                                options={[
+                                    { label: `Positions [${positions.length}]`, value: 'positions', icon: <LayoutGrid size={12} /> },
+                                    { label: `Holdings [${holdings.length}]`, value: 'holdings', icon: <List size={12} /> }
+                                ]}
+                                value={activeTab}
+                                onChange={(v) => setActiveTab(v as any)}
+                            />
+                        </WidgetShell.Toolbar.Left>
+                        <WidgetShell.Toolbar.Right>
+                            <button onClick={refreshData} style={{ background: 'none', border: 'none', color: COLOR.text.muted, cursor: 'pointer' }} className={loading ? 'animate-spin' : 'hover:text-text-primary'}>
+                                <RefreshCw size={14} />
+                            </button>
+                        </WidgetShell.Toolbar.Right>
+                    </WidgetShell.Toolbar>
 
-            <div style={{ flex: 1, overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
-                {data.length === 0 ? (
-                    <EmptyState 
-                        icon={<Wallet size={48} />} 
-                        message={`NO DATA AVAILABLE IN ${activeTab.toUpperCase()}`} 
-                        subMessage={`Your active ${activeTab} will appear here after synchronization.`}
-                    />
-                ) : (
-                    <DataTable 
-                        data={data}
-                        columns={columns}
-                        onRowClick={handleSelect}
-                        stickyFirstColumn
-                    />
-                )}
-            </div>
+                    <div style={{ flex: 1, overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
+                        <DataTable 
+                            data={data}
+                            columns={columns}
+                            onRowClick={handleSelect}
+                            stickyFirstColumn
+                        />
+                    </div>
 
-            {activeTab === 'positions' && positions.length > 0 && (
-                <div style={{ padding: SPACE[2], borderTop: BORDER.strong, background: COLOR.bg.surface }}>
-                     <button style={{ 
-                         width: '100%',
-                         height: '32px',
-                         background: COLOR.semantic.down,
-                         border: 'none',
-                         color: COLOR.text.inverse,
-                         fontSize: TYPE.size.xs,
-                         fontWeight: TYPE.weight.black,
-                         
-                         letterSpacing: TYPE.letterSpacing.caps,
-                         cursor: 'pointer',
-                         display: 'flex',
-                         alignItems: 'center',
-                         justifyContent: 'center',
-                         gap: '8px'
-                     }} className="hover:opacity-90">
-                        <XCircle size={14} />
-                        TERMINATE ALL POSITIONS
-                     </button>
-                </div>
+                    {activeTab === 'positions' && positions.length > 0 && (
+                        <div style={{ padding: SPACE[2], borderTop: BORDER.strong, background: COLOR.bg.surface }}>
+                            <button style={{ 
+                                width: '100%',
+                                height: '32px',
+                                background: COLOR.semantic.down,
+                                border: 'none',
+                                color: COLOR.text.inverse,
+                                fontSize: TYPE.size.xs,
+                                fontWeight: TYPE.weight.black,
+                                letterSpacing: '0.05em',
+                                cursor: 'pointer',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                gap: '8px'
+                            }} className="hover:opacity-90">
+                                <XCircle size={14} />
+                                Terminate All Positions
+                            </button>
+                        </div>
+                    )}
+                </>
             )}
+        </WidgetShell>
+    );
+};
         </WidgetShell>
     );
 };

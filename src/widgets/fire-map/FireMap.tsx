@@ -1,9 +1,8 @@
 import React, { useMemo, useState, useEffect } from 'react';
-import { Flame, MapPin, Search, Filter, Eye, EyeOff, Shield, Radio, Activity, AlertTriangle, Layers, Target, Info } from 'lucide-react';
+import { Flame, MapPin, Search, Filter, Eye, EyeOff, Shield, Radio, Activity, AlertTriangle, Layers, Target, Info, ShieldAlert } from 'lucide-react';
 import { MapContainer, TileLayer, Marker, Popup, useMap, ZoomControl, CircleMarker } from 'react-leaflet';
 import L from 'leaflet';
-import { COLOR, TYPE, BORDER, SPACE } from '../../ds/tokens';
-import { WidgetShell } from '../../ds/components/WidgetShell';
+import { COLOR, TYPE, BORDER, SPACE, WidgetShell, EmptyState, Text } from '../../ds';
 import axios from 'axios';
 import { useSettingsStore } from '../../store/useSettingsStore';
 
@@ -48,7 +47,8 @@ const FireMap: React.FC = () => {
 
     const fetchFires = async (force = false) => {
         if (!nasaApiKey) {
-            setStatus('ERROR');
+            setStatus('IDLE');
+            setLoading(false);
             return;
         }
 
@@ -60,6 +60,7 @@ const FireMap: React.FC = () => {
             return;
         }
 
+        setLoading(true);
         setStatus('LOADING');
         try {
             // Official NASA endpoint requiring Map Key (Global Area: -180,-90,180,90 for 1 Day)
@@ -95,6 +96,7 @@ const FireMap: React.FC = () => {
         } catch (err) {
             console.error('NASA FIRMS API Error:', err);
             setStatus('ERROR');
+            setLoading(false);
         }
     };
 
@@ -120,14 +122,23 @@ const FireMap: React.FC = () => {
         return { extreme, total };
     }, [fires]);
 
+    if (!nasaApiKey) {
+        return (
+            <WidgetShell>
+                <EmptyState 
+                    icon={<Flame size={48} strokeWidth={1} />} 
+                    message="CONFIG_REQUIRED"
+                    subMessage="NASA FIRMS Map Key is required for thermal anomaly detection."
+                />
+            </WidgetShell>
+        );
+    }
+
     return (
         <WidgetShell>
             <WidgetShell.Toolbar>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flex: 1 }}>
-                    <Flame size={14} color={COLOR.semantic.down} />
-                    <span style={{ fontSize: TYPE.size.xs, fontWeight: TYPE.weight.black, color: COLOR.text.primary, letterSpacing: TYPE.letterSpacing.caps }}>
-                        NASA_FIRMS_THERMAL_SCANNER
-                    </span>
+                    <Text size="xs" weight="black" style={{ letterSpacing: TYPE.letterSpacing.caps }}>THERMAL FIRE MAP</Text>
                     <div style={{ 
                         fontSize: TYPE.size.xs, 
                         padding: '1px 8px', 
@@ -145,10 +156,9 @@ const FireMap: React.FC = () => {
                     </div>
                 </div>
                 <div style={{ fontSize: TYPE.size.xs, color: COLOR.text.muted, display: 'flex', alignItems: 'center', gap: '12px', fontWeight: TYPE.weight.black, fontFamily: TYPE.family.mono }}>
-                    <span>D_SCAN: {stats.extreme}</span>
-                    <span>GLOBAL: {stats.total}</span>
+                    <span>EXTREME: {stats.extreme}</span>
                     <button onClick={() => fetchFires(true)} style={{ background: 'transparent', border: 'none', color: COLOR.text.muted, cursor: 'pointer', padding: '0 4px' }}>
-                        <Info size={14} />
+                        <RefreshCw size={12} className={loading ? 'spin' : ''} />
                     </button>
                 </div>
             </WidgetShell.Toolbar>
@@ -157,23 +167,15 @@ const FireMap: React.FC = () => {
                 {/* Control Panel */}
                 <div style={{ width: '280px', borderRight: BORDER.standard, background: COLOR.bg.surface, display: 'flex', flexDirection: 'column' }}>
                     <div style={{ padding: '16px', borderBottom: BORDER.standard, background: COLOR.bg.elevated }}>
-                            {nasaApiKey ? (
-                                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', background: COLOR.bg.surface, border: BORDER.standard, padding: '8px 12px', borderRadius: '2px', marginBottom: '20px' }}>
-                                    <Search size={14} color={COLOR.text.muted} />
-                                    <input 
-                                        value={searchQuery}
-                                        onChange={e => setSearchQuery(e.target.value)}
-                                        placeholder="LOCATE_COORDS..."
-                                        style={{ background: 'transparent', border: 'none', outline: 'none', color: COLOR.text.primary, fontSize: TYPE.size.xs, fontWeight: TYPE.weight.bold, fontFamily: TYPE.family.mono, width: '100%' }}
-                                    />
-                                </div>
-                            ) : (
-                                <div style={{ padding: '12px', background: `${COLOR.semantic.down}10`, border: `1px solid ${COLOR.semantic.down}40`, borderRadius: '4px', marginBottom: '20px', textAlign: 'center' }}>
-                                    <AlertTriangle size={24} color={COLOR.semantic.down} style={{ margin: '0 auto 8px' }} />
-                                    <div style={{ fontSize: TYPE.size.xs, color: COLOR.semantic.down, fontWeight: TYPE.weight.black, letterSpacing: TYPE.letterSpacing.caps }}>API_KEY_REQUIRED</div>
-                                    <div style={{ fontSize: TYPE.size.xs, color: COLOR.text.muted, marginTop: '4px', fontWeight: TYPE.weight.bold }}>Add NASA FIRMS Map Key in API Dashboard</div>
-                                </div>
-                            )}
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', background: COLOR.bg.surface, border: BORDER.standard, padding: '8px 12px', borderRadius: '2px', marginBottom: '20px' }}>
+                            <Search size={14} color={COLOR.text.muted} />
+                            <input 
+                                value={searchQuery}
+                                onChange={e => setSearchQuery(e.target.value)}
+                                placeholder="LOCATE_COORDS..."
+                                style={{ background: 'transparent', border: 'none', outline: 'none', color: COLOR.text.primary, fontSize: TYPE.size.xs, fontWeight: TYPE.weight.bold, fontFamily: TYPE.family.mono, width: '100%' }}
+                            />
+                        </div>
 
                         <div style={{ marginBottom: '16px' }}>
                             <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
@@ -189,8 +191,8 @@ const FireMap: React.FC = () => {
                                 style={{ width: '100%', cursor: 'pointer', accentColor: COLOR.semantic.down }}
                             />
                             <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: TYPE.size.xs, color: COLOR.text.muted, marginTop: '4px', fontWeight: TYPE.weight.bold }}>
-                                <span>ALL_PULSES</span>
-                                <span>MAJOR_INFERNO</span>
+                                <span>FILTER_OFF</span>
+                                <span>INFERNO_ONLY</span>
                             </div>
                         </div>
 
@@ -201,11 +203,18 @@ const FireMap: React.FC = () => {
                     </div>
 
                     <div style={{ flex: 1, overflowY: 'auto' }} className="custom-scrollbar">
-                        {filteredFires.length === 0 ? (
-                            <div style={{ padding: '40px 20px', textAlign: 'center', opacity: 0.3 }}>
-                                <AlertTriangle size={32} style={{ margin: '0 auto 12px' }} />
-                                <div style={{ fontSize: TYPE.size.xs, fontWeight: TYPE.weight.black, letterSpacing: TYPE.letterSpacing.caps }}>NO_ANOMALIES_FILTERED</div>
-                            </div>
+                        {status === 'ERROR' ? (
+                            <EmptyState 
+                                icon={<ShieldAlert size={48} color={COLOR.semantic.down} strokeWidth={1} />} 
+                                message="API_REJECTION"
+                                subMessage="NASA FIRMS servers are currently unresponsive or rejecting the request."
+                            />
+                        ) : filteredFires.length === 0 ? (
+                            <EmptyState 
+                                icon={<Flame size={48} strokeWidth={1} />} 
+                                message="NO_ANOMALIES"
+                                subMessage="No thermal anomalies detected at the current threshold."
+                            />
                         ) : (
                             filteredFires.slice(0, 50).map((f, i) => (
                                 <FireRow key={`${f.latitude}-${i}`} fire={f} onClick={() => setSelectedFire(f)} />
@@ -242,6 +251,10 @@ const FireMap: React.FC = () => {
                     </MapContainer>
                 </div>
             </div>
+            <style>{`
+                @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+                .spin { animation: spin 1s linear infinite; }
+            `}</style>
         </WidgetShell>
     );
 };

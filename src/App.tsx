@@ -124,10 +124,10 @@ const App: React.FC = () => {
 
   useEffect(() => {
     (window as any).loadLayout = loadLayout;
-    (window as any).addNodeToLayout = (componentId: string) => {
+    (window as any).addNodeToLayout = (componentId: string, nodeName?: string) => {
       let targetId = (window as any).activeTabsetId || undefined;
       model.doAction(Actions.addNode(
-        { type: "tab", name: componentId.toUpperCase(), component: componentId },
+        { type: "tab", name: nodeName || componentId, component: componentId },
         targetId,
         DockLocation.CENTER,
         -1,
@@ -135,15 +135,15 @@ const App: React.FC = () => {
       ));
     };
 
-    (window as any).replaceTab = (componentId: string) => {
+    (window as any).replaceTab = (componentId: string, nodeName?: string) => {
       const activeId = (window as any).activeTabId;
       if (activeId) {
         model.doAction(Actions.updateNodeAttributes(activeId, {
           component: componentId,
-          name: componentId.toUpperCase()
+          name: nodeName || componentId
         }));
       } else {
-        (window as any).addNodeToLayout(componentId);
+        (window as any).addNodeToLayout(componentId, nodeName);
       }
     };
   }, [loadLayout, model]);
@@ -289,7 +289,6 @@ const App: React.FC = () => {
                   <LayoutManager model={model} />
                 </main>
 
-                <OrderEntryModal />
                 <DisclaimerModal />
                 <ContextMenu />
                 <ToastContainer />
