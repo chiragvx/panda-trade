@@ -148,7 +148,7 @@ export const IndicesWidget: React.FC = () => {
           onRowMouseEnter={(_, idx) => setHoveredRow(idx)}
           onRowMouseLeave={() => setHoveredRow(null)}
           stickyLastColumn={true}
-          onRowClick={(item) => setSelectedSymbol({ ...item, ticker: item.ticker, name: item.ticker })}
+          onRowClick={(item) => setSelectedSymbol({ ...item, ticker: item.ticker, name: item.ticker } as any)}
         />
       </div>
     </WidgetShell>

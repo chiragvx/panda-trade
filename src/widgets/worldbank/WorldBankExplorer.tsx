@@ -159,7 +159,7 @@ const WorldBankExplorer: React.FC = () => {
                     </div>
                     <div style={{ height: '16px', width: '1px', background: COLOR.bg.border, marginRight: '8px' }} />
                     <SegmentedControl 
-                        options={[{ label: <BarChart2 size={12}/>, value: 'chart' }, { label: <TableIcon size={12}/>, value: 'table' }]} 
+                        options={[{ label: 'CHART', value: 'chart' }, { label: 'TABLE', value: 'table' }]} 
                         value={viewMode} 
                         onChange={(v) => setViewMode(v as 'chart' | 'table')}
                     />
@@ -171,7 +171,7 @@ const WorldBankExplorer: React.FC = () => {
                 <div style={{ width: '300px', borderRight: BORDER.standard, display: 'flex', flexDirection: 'column', background: COLOR.bg.surface }}>
                     <div style={{ padding: SPACE[3], borderBottom: BORDER.standard }}>
                         <div style={{ position: 'relative' }}>
-                            <div style={{ display: 'flex', alignItems: 'center', gap: SPACE[2], background: COLOR.bg.floating, border: BORDER.standard, padding: '10px', borderRadius: '0px' }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: SPACE[2], background: COLOR.bg.elevated, border: BORDER.standard, padding: '10px', borderRadius: '0px' }}>
                                 {isSearching ? <Loader2 size={13} className="spin" color={COLOR.semantic.info} /> : <Search size={13} color={COLOR.text.muted} />}
                                 <input 
                                     value={searchQuery} 
@@ -225,7 +225,7 @@ const WorldBankExplorer: React.FC = () => {
                                                         borderLeft: isActive ? `2px solid ${COLOR.semantic.info}` : '2px solid transparent'
                                                     }}
                                                 >
-                                                    <Text size="xs" weight={isActive ? "black" : "regular"} color="inherit" family="mono">{p.name}</Text>
+                                                    <Text size="xs" weight={isActive ? "black" : "regular"} color={isActive ? "info" : "secondary"} family="mono">{p.name}</Text>
                                                 </button>
                                             );
                                         })}
@@ -239,7 +239,7 @@ const WorldBankExplorer: React.FC = () => {
                             
                             {/* Entity Search field - UI consistent */}
                             <div style={{ position: 'relative', marginBottom: SPACE[4] }}>
-                                <div style={{ display: 'flex', alignItems: 'center', gap: SPACE[2], background: COLOR.bg.floating, border: BORDER.standard, padding: '8px', borderRadius: '0px' }}>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: SPACE[2], background: COLOR.bg.elevated, border: BORDER.standard, padding: '8px', borderRadius: '0px' }}>
                                     <Plus size={12} color={COLOR.text.muted} />
                                     <input 
                                         value={entitySearch} 

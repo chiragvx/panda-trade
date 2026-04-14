@@ -196,8 +196,8 @@ export const OrderEntryWidget: React.FC<OrderWidgetProps> = ({ node }) => {
                         <Text variant="label" color="muted" size="xs">PRODUCT</Text>
                         <SegmentedControl 
                             options={[
-                                { label: <div style={{ padding: '12px 0' }}>INTRADAY<br/>(MIS)</div>, value: 'I' }, 
-                                { label: <div style={{ padding: '12px 0' }}>DELIVERY<br/>(CNC)</div>, value: 'D' }
+                                { label: 'INTRADAY', value: 'I' }, 
+                                { label: 'DELIVERY', value: 'D' }
                             ]}
                             value={productType}
                             onChange={(v: any) => setProductType(v)}
@@ -278,11 +278,9 @@ export const OrderEntryWidget: React.FC<OrderWidgetProps> = ({ node }) => {
                     <Button 
                         variant={isBuy ? 'buy' : 'sell'} 
                         size="md" 
-                        fullWidth 
-                        glow
                         disabled={executing || (isLive && availableMargin < marginReq)}
                         onClick={handleExecute}
-                        style={{ height: '36px', borderRadius: '2px' }}
+                        style={{ height: '36px', borderRadius: '2px', flex: 1 }}
                     >
                         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
                             <span style={{ fontSize: '12px', fontWeight: 700, letterSpacing: '1px' }}>
@@ -293,14 +291,14 @@ export const OrderEntryWidget: React.FC<OrderWidgetProps> = ({ node }) => {
                     </Button>
 
                     <Button 
-                        variant="muted" 
+                        variant="secondary" 
                         size="md" 
-                        fullWidth 
                         onClick={handleAddFunds}
                         style={{ 
                             height: '36px', 
                             borderRadius: '2px',
                             border: BORDER.standard,
+                            flex: 1
                         }}
                     >
                         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>

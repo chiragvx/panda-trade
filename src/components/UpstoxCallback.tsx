@@ -2,9 +2,9 @@ import React, { useEffect, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useUpstoxStore } from '../store/useUpstoxStore';
 import { upstoxApi } from '../services/upstoxApi';
-import { ShieldCheck, ShieldAlert, Loader2, Lock, ArrowRight, ServerCrash, Globe } from 'lucide-react';
+import { ShieldCheck, ShieldAlert, Loader2, Lock, ArrowRight, ServerCrash, Globe, AlertCircle } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { COLOR, TYPE, SPACE, BORDER } from '../ds/tokens';
+import { COLOR, TYPE, SPACE, BORDER, Text } from '../ds';
 
 const UpstoxCallback: React.FC = () => {
     const location = useLocation();
@@ -90,7 +90,7 @@ const UpstoxCallback: React.FC = () => {
                                 </div>
                                 <div className="space-y-1">
                                     <Text variant="heading" size="sm" weight="black" block color="primary">TOKEN_EXCHANGE</Text>
-                                    <Text size="xs" color="muted" weight="bold" block uppercase tracking="widest">Negotiating secure session...</Text>
+                                    <Text size="xs" color="muted" weight="bold" block uppercase>Negotiating secure session...</Text>
                                 </div>
                             </motion.div>
                         )}
@@ -102,7 +102,7 @@ const UpstoxCallback: React.FC = () => {
                                 </div>
                                 <div className="space-y-1">
                                     <Text variant="heading" size="sm" weight="black" block color="primary">ACCESS_GRANTED</Text>
-                                    <Text size="xs" color="muted" weight="bold" block uppercase tracking="widest">Redirecting to terminal...</Text>
+                                    <Text size="xs" color="muted" weight="bold" block uppercase>Redirecting to terminal...</Text>
                                 </div>
                             </motion.div>
                         )}

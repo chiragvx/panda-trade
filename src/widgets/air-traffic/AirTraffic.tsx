@@ -112,7 +112,7 @@ const AirTraffic: React.FC = () => {
               status: f.status || 'ACTIVE',
               category: classifyAircraft(f.ident || '', f.operator || ''),
             };
-          }).filter(f => f.latitude !== 0);
+          }).filter((f: AircraftState) => f.latitude !== 0);
 
         setFlights(mapped);
         setLastUpdate(new Date());

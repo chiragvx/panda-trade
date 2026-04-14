@@ -209,8 +209,8 @@ const EventRow: React.FC<{ event: EconomicEvent }> = ({ event }) => {
             <td style={tdStyle}>
                 <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
                     <Text size="xs" weight="black" color="primary">{timeStr}</Text>
-                    <Text size="xxs" color="muted" weight="bold">{dateStr}</Text>
-                    <Text size="xxs" color="info" weight="black" style={{ marginTop: '2px' }}>{event.country}</Text>
+                    <Text size="xs" color="muted" weight="bold">{dateStr}</Text>
+                    <Text size="xs" color="info" weight="black" style={{ marginTop: '2px' }}>{event.country}</Text>
                 </div>
             </td>
             <td style={{ ...tdStyle, textAlign: 'left', paddingRight: '12px' }}>
@@ -236,7 +236,7 @@ const ValueBox: React.FC<{ value: string | null; unit: string; isBold?: boolean;
         >
             {value || '--'}
         </Text>
-        {value && <Text size="xxs" color="muted" weight="bold" style={{ opacity: 0.5, fontSize: '8px' }}>{unit}</Text>}
+        {value && <Text size="xs" color="muted" weight="bold" style={{ opacity: 0.5, fontSize: '8px' }}>{unit}</Text>}
     </div>
 );
 

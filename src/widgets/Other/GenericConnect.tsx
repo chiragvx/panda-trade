@@ -17,11 +17,10 @@ const PROVIDERS = [
     { id: 'upstox-01', name: 'Upstox', type: 'BROKER', icon: <Zap size={16} />, color: COLOR.semantic.info },
     { id: 'aisstream-01', name: 'AISStream', type: 'DATA_FEED', icon: <Anchor size={16} />, color: COLOR.semantic.info },
     { id: 'nasa-01', name: 'NASA FIRMS', type: 'DATA_FEED', icon: <Activity size={16} />, color: COLOR.semantic.down },
-    { id: 'opensky-01', name: 'OpenSky Network', type: 'DATA_FEED', icon: <Plane size={16} />, color: COLOR.semantic.info },
 ];
 
 export const GenericConnect: React.FC<{ onClose: () => void }> = ({ onClose }) => {
-    const { addConnection, setAisStreamApiKey, setNasaApiKey, setOpenSkyCredentials } = useSettingsStore();
+    const { addConnection, setAisStreamApiKey, setNasaApiKey } = useSettingsStore();
     const { setCredentials } = useUpstoxStore();
 
     const [step, setStep] = useState<1 | 2>(1);
@@ -53,8 +52,6 @@ export const GenericConnect: React.FC<{ onClose: () => void }> = ({ onClose }) =
             setAisStreamApiKey(formData.apiKey);
         } else if (selectedProvider.id === 'nasa-01') {
             setNasaApiKey(formData.apiKey);
-        } else if (selectedProvider.id === 'opensky-01') {
-            setOpenSkyCredentials(formData.apiKey, formData.apiSecret);
         }
 
         addConnection(selectedProvider.id);

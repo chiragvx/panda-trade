@@ -72,7 +72,7 @@ export const DataTable: React.FC<Props> = ({ data }) => {
           </div>
         ) : (
           sortedData.map((d, i) => (
-            <div key={`${d.TIME_PERIOD}-${i}`} style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 2fr', gap: SPACE[2], padding: '8px 12px', borderBottom: BORDER.standard, '&:hover': { background: COLOR.bg.elevated } }}>
+            <div key={`${d.TIME_PERIOD}-${i}`} style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 2fr', gap: SPACE[2], padding: '8px 12px', borderBottom: BORDER.standard }} className="hover:bg-bg-elevated">
               <Text family="mono" size="sm">{d.TIME_PERIOD}</Text>
               <Text family="mono" size="sm" weight="bold">{Number(d.OBS_VALUE).toLocaleString(undefined, { maximumFractionDigits: 2 })}</Text>
               <Text family="mono" size="sm" color="muted">{d.REF_AREA}</Text>

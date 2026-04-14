@@ -65,7 +65,7 @@ export const IndicatorChart: React.FC<Props> = ({ data, chartType = 'line' }) =>
           <XAxis dataKey="year" stroke={COLOR.text.muted} fontSize={10} tickLine={false} axisLine={false} />
           <YAxis domain={['auto', 'auto']} stroke={COLOR.text.muted} fontSize={10} tickLine={false} axisLine={false} tickFormatter={(val) => val.toLocaleString()} />
           <Tooltip 
-            contentStyle={{ backgroundColor: COLOR.bg.floating, border: BORDER.standard, borderRadius: '4px', fontFamily: TYPE.family.mono, fontSize: '11px' }}
+            contentStyle={{ backgroundColor: COLOR.bg.elevated, border: BORDER.standard, borderRadius: '4px', fontFamily: TYPE.family.mono, fontSize: '11px' }}
             itemStyle={{ color: COLOR.text.primary }}
           />
           <Area type="monotone" dataKey={regions[0]} stroke={COLORS[0]} fillOpacity={1} fill="url(#colorValue)" />
@@ -76,7 +76,7 @@ export const IndicatorChart: React.FC<Props> = ({ data, chartType = 'line' }) =>
           <XAxis dataKey="year" stroke={COLOR.text.muted} fontSize={10} tickLine={false} axisLine={false} />
           <YAxis domain={['auto', 'auto']} stroke={COLOR.text.muted} fontSize={10} tickLine={false} axisLine={false} tickFormatter={(val) => val.toLocaleString()} />
           <Tooltip 
-            contentStyle={{ backgroundColor: COLOR.bg.floating, border: BORDER.standard, borderRadius: '4px', fontFamily: TYPE.family.mono, fontSize: '11px' }}
+            contentStyle={{ backgroundColor: COLOR.bg.elevated, border: BORDER.standard, borderRadius: '4px', fontFamily: TYPE.family.mono, fontSize: '11px' }}
             itemStyle={{ color: COLOR.text.primary }}
           />
           {isMulti && <Legend wrapperStyle={{ fontSize: '10px', paddingTop: '10px', fontFamily: TYPE.family.mono }} />}

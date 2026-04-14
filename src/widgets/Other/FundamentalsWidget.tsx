@@ -2,7 +2,7 @@ import React, { useMemo } from 'react';
 import axios from 'axios';
 import { useSelectionStore } from '../../store/useStore';
 import { useUpstoxStore } from '../../store/useUpstoxStore';
-import { COLOR, TYPE, BORDER, SPACE } from '../../ds/tokens';
+import { COLOR, TYPE, BORDER, SPACE, Text } from '../../ds';
 import { BarChart3, TrendingUp, Info, DollarSign, Activity, PieChart, Shield, AlertCircle, Search, Percent, TrendingDown, Target } from 'lucide-react';
 import { isIsin } from '../../utils/liveSymbols';
 import { WidgetSymbolSearch } from '../../components/WidgetSearch/WidgetSymbolSearch';

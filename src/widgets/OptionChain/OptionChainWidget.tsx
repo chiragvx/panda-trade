@@ -165,7 +165,7 @@ export const OptionChainWidget: React.FC = () => {
   }, [chain, currentSpot]);
 
   const columns = useMemo(() => {
-    const baseCols = [
+    const baseCols: any[] = [
       {
           key: 'strike',
           label: 'STRIKE',
