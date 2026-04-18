@@ -88,7 +88,7 @@ const AirTraffic: React.FC = () => {
     if (filterStatus === 'AIR') query += ` -inAir 1`;
     else if (filterStatus === 'GND') query += ` -inAir 0`;
     
-    const url = `/api/flightaware/flights/search?query=${encodeURIComponent(query)}&max_pages=34`;
+    const url = `/api/flightaware/flights/search?query=${encodeURIComponent(query)}&max_pages=3`;
 
     try {
       const r = await axios.get(url, { 
