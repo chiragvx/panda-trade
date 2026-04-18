@@ -1,5 +1,6 @@
 import React from 'react';
 import { COLOR, TYPE } from '../tokens';
+import { humanizeLabel } from '../textFormat';
 
 type TagVariant = 'up' | 'down' | 'info' | 'warning' | 'muted' | 'nse' | 'bse';
 
@@ -49,7 +50,7 @@ export const Tag: React.FC<TagProps> = ({ label, variant = 'muted', style, onCli
         ...style,
       }}
     >
-      {label}
+      {humanizeLabel(label)}
     </span>
   );
 };

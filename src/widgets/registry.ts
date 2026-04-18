@@ -1,7 +1,7 @@
 import { WidgetConfig } from './types';
+import { createWidgetPresentation } from './presentation';
 
 export const WIDGET_REGISTRY: Record<string, WidgetConfig> = {
-  // MARKET DATA
   watchlist: {
     id: 'watchlist',
     displayName: 'Watchlist',
@@ -9,6 +9,9 @@ export const WIDGET_REGISTRY: Record<string, WidgetConfig> = {
     shortcut: 'Alt+W',
     singleton: false,
     category: 'Market Data',
+    presentation: createWidgetPresentation('table', {
+      branding: { iconKey: 'List', tone: 'neutral' },
+    }),
   },
   trending: {
     id: 'trending',
@@ -17,6 +20,9 @@ export const WIDGET_REGISTRY: Record<string, WidgetConfig> = {
     shortcut: '',
     singleton: true,
     category: 'Market Data',
+    presentation: createWidgetPresentation('table', {
+      branding: { iconKey: 'Globe', tone: 'accent' },
+    }),
   },
   indices: {
     id: 'indices',
@@ -25,6 +31,9 @@ export const WIDGET_REGISTRY: Record<string, WidgetConfig> = {
     shortcut: '',
     singleton: true,
     category: 'Market Data',
+    presentation: createWidgetPresentation('table', {
+      branding: { iconKey: 'Activity', tone: 'accent' },
+    }),
   },
   'etf-scanner': {
     id: 'etf-scanner',
@@ -33,6 +42,9 @@ export const WIDGET_REGISTRY: Record<string, WidgetConfig> = {
     shortcut: '',
     singleton: true,
     category: 'Market Data',
+    presentation: createWidgetPresentation('table', {
+      branding: { iconKey: 'Search', tone: 'neutral' },
+    }),
   },
   'holdings-heatmap': {
     id: 'holdings-heatmap',
@@ -41,9 +53,12 @@ export const WIDGET_REGISTRY: Record<string, WidgetConfig> = {
     shortcut: '',
     singleton: true,
     category: 'Market Data',
+    presentation: createWidgetPresentation('canvas', {
+      header: { mode: 'minimal', icon: 'show', logo: 'hide', subtitle: 'show', actions: 'minimal' },
+      branding: { iconKey: 'Grid', tone: 'accent' },
+      emptyState: 'canvas',
+    }),
   },
-
-  // CHARTS & ANALYTICS
   chart: {
     id: 'chart',
     displayName: 'Chart',
@@ -51,6 +66,10 @@ export const WIDGET_REGISTRY: Record<string, WidgetConfig> = {
     shortcut: 'F8',
     singleton: false,
     category: 'Charts & Analytics',
+    presentation: createWidgetPresentation('chart', {
+      header: { mode: 'hidden' },
+      branding: { iconKey: 'LineChart', tone: 'accent' },
+    }),
   },
   'oi-graph': {
     id: 'oi-graph',
@@ -59,6 +78,9 @@ export const WIDGET_REGISTRY: Record<string, WidgetConfig> = {
     shortcut: 'Alt+G',
     singleton: false,
     category: 'Charts & Analytics',
+    presentation: createWidgetPresentation('chart', {
+      branding: { iconKey: 'BarChart2', tone: 'accent' },
+    }),
   },
   'vol-surface-3d': {
     id: 'vol-surface-3d',
@@ -67,6 +89,11 @@ export const WIDGET_REGISTRY: Record<string, WidgetConfig> = {
     shortcut: 'Alt+V',
     singleton: false,
     category: 'Charts & Analytics',
+    presentation: createWidgetPresentation('canvas', {
+      header: { mode: 'stacked', icon: 'show', logo: 'hide', subtitle: 'show', actions: 'minimal' },
+      branding: { iconKey: 'Mountain', tone: 'accent' },
+      emptyState: 'canvas',
+    }),
   },
   technicals: {
     id: 'technicals',
@@ -75,9 +102,10 @@ export const WIDGET_REGISTRY: Record<string, WidgetConfig> = {
     shortcut: 'Alt+T',
     singleton: false,
     category: 'Charts & Analytics',
+    presentation: createWidgetPresentation('table', {
+      branding: { iconKey: 'Cpu', tone: 'neutral' },
+    }),
   },
-
-  // OPTIONS
   'options-chain': {
     id: 'options-chain',
     displayName: 'Options Chain',
@@ -85,9 +113,10 @@ export const WIDGET_REGISTRY: Record<string, WidgetConfig> = {
     shortcut: 'Alt+O',
     singleton: false,
     category: 'Options',
+    presentation: createWidgetPresentation('table', {
+      branding: { iconKey: 'Link', tone: 'accent' },
+    }),
   },
-
-  // ACCOUNT
   portfolio: {
     id: 'portfolio',
     displayName: 'Portfolio',
@@ -95,6 +124,9 @@ export const WIDGET_REGISTRY: Record<string, WidgetConfig> = {
     shortcut: 'F12',
     singleton: true,
     category: 'Account',
+    presentation: createWidgetPresentation('account', {
+      branding: { iconKey: 'PieChart', tone: 'semantic' },
+    }),
   },
   positions: {
     id: 'positions',
@@ -103,6 +135,9 @@ export const WIDGET_REGISTRY: Record<string, WidgetConfig> = {
     shortcut: 'F4',
     singleton: true,
     category: 'Account',
+    presentation: createWidgetPresentation('account', {
+      branding: { iconKey: 'Shield', tone: 'semantic' },
+    }),
   },
   orders: {
     id: 'orders',
@@ -111,9 +146,10 @@ export const WIDGET_REGISTRY: Record<string, WidgetConfig> = {
     shortcut: 'F3',
     singleton: true,
     category: 'Account',
+    presentation: createWidgetPresentation('account', {
+      branding: { iconKey: 'Package', tone: 'semantic' },
+    }),
   },
-
-  // TOOLS
   fundamentals: {
     id: 'fundamentals',
     displayName: 'Fundamentals',
@@ -121,6 +157,9 @@ export const WIDGET_REGISTRY: Record<string, WidgetConfig> = {
     shortcut: '',
     singleton: false,
     category: 'Tools',
+    presentation: createWidgetPresentation('table', {
+      branding: { iconKey: 'BookOpen', tone: 'neutral' },
+    }),
   },
   'economic-calendar': {
     id: 'economic-calendar',
@@ -129,9 +168,10 @@ export const WIDGET_REGISTRY: Record<string, WidgetConfig> = {
     shortcut: '',
     singleton: true,
     category: 'Tools',
+    presentation: createWidgetPresentation('feed', {
+      branding: { iconKey: 'Calendar', tone: 'accent' },
+    }),
   },
-
-  // GAMES
   'world-bank-explorer': {
     id: 'world-bank-explorer',
     displayName: 'World Bank Macro',
@@ -139,6 +179,10 @@ export const WIDGET_REGISTRY: Record<string, WidgetConfig> = {
     shortcut: '',
     singleton: true,
     category: 'Tools',
+    presentation: createWidgetPresentation('utility', {
+      header: { mode: 'stacked', icon: 'show', logo: 'hide', subtitle: 'show', actions: 'minimal' },
+      branding: { iconKey: 'Globe', tone: 'accent' },
+    }),
   },
   snake: {
     id: 'snake',
@@ -147,6 +191,12 @@ export const WIDGET_REGISTRY: Record<string, WidgetConfig> = {
     shortcut: '',
     singleton: false,
     category: 'Take a Break',
+    presentation: createWidgetPresentation('marketing', {
+      density: 'compact',
+      header: { mode: 'minimal', icon: 'hide', logo: 'hide', subtitle: 'hide', actions: 'none' },
+      branding: { iconKey: 'Gamepad2', tone: 'neutral' },
+      emptyState: 'minimal',
+    }),
   },
   minesweeper: {
     id: 'minesweeper',
@@ -155,6 +205,12 @@ export const WIDGET_REGISTRY: Record<string, WidgetConfig> = {
     shortcut: '',
     singleton: false,
     category: 'Take a Break',
+    presentation: createWidgetPresentation('marketing', {
+      density: 'compact',
+      header: { mode: 'minimal', icon: 'hide', logo: 'hide', subtitle: 'hide', actions: 'none' },
+      branding: { iconKey: 'Bomb', tone: 'neutral' },
+      emptyState: 'minimal',
+    }),
   },
   wordle: {
     id: 'wordle',
@@ -163,9 +219,13 @@ export const WIDGET_REGISTRY: Record<string, WidgetConfig> = {
     shortcut: '',
     singleton: false,
     category: 'Take a Break',
+    presentation: createWidgetPresentation('marketing', {
+      density: 'compact',
+      header: { mode: 'minimal', icon: 'hide', logo: 'hide', subtitle: 'hide', actions: 'none' },
+      branding: { iconKey: 'Type', tone: 'neutral' },
+      emptyState: 'minimal',
+    }),
   },
-
-  // INSTITUTIONAL INTEL (Ecosystem Pack 2)
   'shipping-traffic': {
     id: 'shipping-traffic',
     displayName: 'Shipping Traffic',
@@ -173,6 +233,11 @@ export const WIDGET_REGISTRY: Record<string, WidgetConfig> = {
     shortcut: '',
     singleton: true,
     category: 'Institutional Intel',
+    presentation: createWidgetPresentation('canvas', {
+      header: { mode: 'stacked', icon: 'show', logo: 'hide', subtitle: 'show', actions: 'minimal' },
+      branding: { iconKey: 'Anchor', tone: 'accent' },
+      emptyState: 'canvas',
+    }),
   },
   'air-traffic': {
     id: 'air-traffic',
@@ -181,6 +246,11 @@ export const WIDGET_REGISTRY: Record<string, WidgetConfig> = {
     shortcut: '',
     singleton: true,
     category: 'Institutional Intel',
+    presentation: createWidgetPresentation('canvas', {
+      header: { mode: 'stacked', icon: 'show', logo: 'hide', subtitle: 'show', actions: 'minimal' },
+      branding: { iconKey: 'Radar', tone: 'accent' },
+      emptyState: 'canvas',
+    }),
   },
   'fire-map': {
     id: 'fire-map',
@@ -189,9 +259,12 @@ export const WIDGET_REGISTRY: Record<string, WidgetConfig> = {
     shortcut: '',
     singleton: true,
     category: 'Institutional Intel',
+    presentation: createWidgetPresentation('canvas', {
+      header: { mode: 'stacked', icon: 'show', logo: 'hide', subtitle: 'show', actions: 'minimal' },
+      branding: { iconKey: 'Flame', tone: 'accent' },
+      emptyState: 'canvas',
+    }),
   },
-
-  // NEW ACCOUNT WIDGETS
   holdings: {
     id: 'holdings',
     displayName: 'Holdings',
@@ -199,6 +272,8 @@ export const WIDGET_REGISTRY: Record<string, WidgetConfig> = {
     shortcut: 'Alt+H',
     singleton: true,
     category: 'Account',
-  }
+    presentation: createWidgetPresentation('account', {
+      branding: { iconKey: 'Briefcase', tone: 'semantic' },
+    }),
+  },
 };
-

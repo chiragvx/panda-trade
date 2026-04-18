@@ -1,12 +1,12 @@
-import React, { useState, useEffect, useRef, useMemo } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { Model } from 'flexlayout-react';
 import { motion, useAnimation } from 'framer-motion';
-import { useLayoutStore, useSelectionStore } from '../../store/useStore';
+import { useSelectionStore } from '../../store/useStore';
 import { useUpstoxStore } from '../../store/useUpstoxStore';
 import { WidgetDropdown } from '../WidgetDropdown/WidgetDropdown';
-import { COLOR, TYPE, BORDER, Text, Tooltip } from '../../ds';
+import { ActionWrapper, COLOR, Divider, LAYOUT, LogoWrapper, MetricWrapper, MOTION, NAV_BTN, StatusWrapper, Text, Tooltip, TYPE } from '../../ds';
 import { Change } from '../../ds/components/Change';
-import { Layout as LayoutIcon, Zap, Activity, Clock, ShieldAlert, Settings, Save, RotateCcw, Wallet, Plus, PlusSquare, MoreHorizontal } from 'lucide-react';
+import { Clock3, MoreHorizontal, Plus, RotateCcw, Save, Settings, ShieldAlert } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import logoSvg from '../../../svg/Pandatrade.svg';
 import { useContextMenuStore } from '../../store/useContextMenuStore';
@@ -23,15 +23,15 @@ const INDEX_ITEMS = [
   { sym: 'GOLD', key: 'MCX_FO|GOLD24JUNFUT' },
   { sym: 'SILVER', key: 'MCX_FO|SILVER24JULBIT' },
   { sym: 'CRUDE OIL', key: 'MCX_FO|CRUDEOIL24MAYFUT' },
-  { sym: 'DOW JONES', key: 'NYSE|DJI' }, 
+  { sym: 'DOW JONES', key: 'NYSE|DJI' },
 ];
 
 export const TopBar: React.FC<TopBarProps> = ({ model }) => {
   const [currentTime, setCurrentTime] = useState(new Date());
   const [isWidgetDropdownOpen, setIsWidgetDropdownOpen] = useState(false);
-  const widgetBtnRef = useRef<HTMLButtonElement>(null);
+  const widgetBtnRef = useRef<HTMLElement>(null);
 
-  const { status, checkTokenValidity, prices, funds, instrumentMeta } = useUpstoxStore();
+  const { status, checkTokenValidity, prices, funds, positions, instrumentMeta } = useUpstoxStore();
   const { setSelectedSymbol } = useSelectionStore();
   const controls = useAnimation();
   const navigate = useNavigate();
@@ -44,27 +44,17 @@ export const TopBar: React.FC<TopBarProps> = ({ model }) => {
 
   useEffect(() => {
     controls.start({
-      x: ["0%", "-33.33%"],
+      x: ['0%', '-33.33%'],
       transition: {
         x: {
           repeat: Infinity,
-          repeatType: "loop",
+          repeatType: 'loop',
           duration: 35,
-          ease: "linear",
+          ease: 'linear',
         },
       },
     });
   }, [controls]);
-
-  const cell: React.CSSProperties = {
-    display: 'flex',
-    alignItems: 'center',
-    gap: '8px',
-    padding: '0 12px',
-    borderRight: BORDER.standard,
-    height: '100%',
-    flexShrink: 0,
-  };
 
   const liveIndices = useMemo(
     () =>
@@ -80,182 +70,288 @@ export const TopBar: React.FC<TopBarProps> = ({ model }) => {
   );
 
   const margin = Number(funds?.available_margin ?? 0);
+  const totalPnl = positions.reduce((sum: number, p: any) => sum + (Number(p.pnl) || 0), 0);
+  const openCount = positions.filter((p: any) => Number(p.quantity) !== 0).length;
+  const pnlFormatted = `${totalPnl >= 0 ? '+' : ''}${totalPnl.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+
+  const railSection: React.CSSProperties = {
+    display: 'flex',
+    alignItems: 'center',
+    height: '100%',
+    flexShrink: 0,
+    padding: '0 14px',
+  };
 
   return (
     <header
       style={{
-        height: '40px',
+        height: LAYOUT.topbarH,
         display: 'flex',
         alignItems: 'stretch',
         background: COLOR.bg.base,
-        borderBottom: BORDER.standard,
+        borderBottom: `1px solid ${COLOR.bg.border}`,
         userSelect: 'none',
         position: 'relative',
         zIndex: 1000,
         flexShrink: 0,
       }}
     >
-        <div style={{ ...cell, background: 'transparent', gap: '6px', borderRight: BORDER.standard, padding: '0 16px' }}>
-          <img src={logoSvg} alt="PandaTrade" style={{ height: '17px', objectFit: 'contain', opacity: 1 }} />
-        </div>
-
-        <div style={{ flex: 1, position: 'relative', display: 'flex', alignItems: 'center', overflow: 'hidden' }}>
-          <motion.div 
-            animate={controls}
-            drag="x"
-            dragConstraints={{ left: -2000, right: 0 }}
-            onDragStart={() => controls.stop()}
-            onDragEnd={() => {
-              controls.start({
-                x: ["-33.33%"], 
-                transition: { repeat: Infinity, repeatType: "loop", duration: 35, ease: "linear" }
-              });
+      {/* Brand */}
+      <div
+        style={{
+          ...railSection,
+          minWidth: '160px',
+          padding: '0 12px',
+          background: COLOR.bg.surface,
+          borderRight: `1px solid ${COLOR.bg.border}`,
+        }}
+      >
+        <button
+          onClick={() => navigate('/app')}
+          title="Go to app"
+          aria-label="Go to app"
+          style={{
+            display: 'inline-flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            minHeight: '1.5rem',
+            height: '1.5rem',
+            padding: '0',
+            background: 'transparent',
+            border: 'none',
+            cursor: 'pointer',
+            outline: 'none',
+          }}
+        >
+          <LogoWrapper
+            tone="accent"
+            style={{
+              minHeight: '1.5rem',
+              height: '1.5rem',
+              padding: '0 8px',
+              background: 'transparent',
+              border: 'none',
             }}
-            style={{ display: 'flex', gap: '32px', padding: '0 20px', whiteSpace: 'nowrap', cursor: 'grab' }}
           >
-            {[...liveIndices, ...liveIndices, ...liveIndices].map((item, i) => (
-              <div 
-                key={`${item.sym}-${i}`} 
-                onClick={() => {
-                  const meta = Object.values(instrumentMeta).find(m => m.ticker === item.sym) || { ticker: item.sym, exchange: item.sym.includes('NIFTY') ? 'NSE' : 'MCX', name: item.sym };
-                  setSelectedSymbol({
-                    ticker: item.sym,
-                    name: meta.name,
-                    exchange: meta.exchange,
-                    instrument_key: INDEX_ITEMS.find(idx => idx.sym === item.sym)?.key || '',
-                    ltp: item.price,
-                    change: 0,
-                    changePct: item.pct,
-                    volume: 0,
-                    open: 0, high: 0, low: 0, close: 0
-                  });
-                }}
-                style={{ display: 'flex', alignItems: 'center', gap: '6px', fontFamily: TYPE.family.mono, cursor: 'pointer' }}
-              >
-                <Text size="xs" color="muted" weight="black">{item.sym}</Text>
-                <Text size="xs" weight="black" color="primary">{item.price.toFixed(2)}</Text>
-                <Change value={item.pct} format="percent" size="xs" weight="black" />
-              </div>
-            ))}
-          </motion.div>
-        </div>
+            <img src={logoSvg} alt="PandaTrade" style={{ height: '16px', objectFit: 'contain', display: 'block' }} />
+          </LogoWrapper>
+        </button>
+      </div>
 
-        {status === 'expired' && (
-          <div style={{ ...cell, background: `${COLOR.semantic.down}22`, borderRight: 'none', borderLeft: BORDER.standard, cursor: 'pointer' }} onClick={() => navigate('/api')}>
-            <ShieldAlert size={14} color={COLOR.semantic.down} />
-            <Text size="xs" color="down" weight="black">TOKEN_EXPIRED</Text>
+      <div
+        style={{
+          flex: 1,
+          minWidth: 0,
+          position: 'relative',
+          display: 'flex',
+          alignItems: 'center',
+          overflow: 'hidden',
+        }}
+      >
+        <motion.div
+          animate={controls}
+          drag="x"
+          dragConstraints={{ left: -2000, right: 0 }}
+          onDragStart={() => controls.stop()}
+          onDragEnd={() => {
+            controls.start({
+              x: ['-33.33%'],
+              transition: { repeat: Infinity, repeatType: 'loop', duration: 35, ease: 'linear' },
+            });
+          }}
+          style={{
+            display: 'flex',
+            gap: '20px',
+            padding: '0 12px',
+            whiteSpace: 'nowrap',
+            cursor: 'grab',
+          }}
+        >
+          {[...liveIndices, ...liveIndices, ...liveIndices].map((item, i) => (
+            <div
+              key={`${item.sym}-${i}`}
+              onClick={() => {
+                const meta = Object.values(instrumentMeta).find((m) => m.ticker === item.sym) || {
+                  ticker: item.sym,
+                  exchange: item.sym.includes('NIFTY') ? 'NSE' : 'MCX',
+                  name: item.sym,
+                };
+                setSelectedSymbol({
+                  ticker: item.sym,
+                  name: meta.name,
+                  exchange: meta.exchange,
+                  instrument_key: INDEX_ITEMS.find((idx) => idx.sym === item.sym)?.key || '',
+                  ltp: item.price,
+                  change: 0,
+                  changePct: item.pct,
+                  volume: 0,
+                  open: 0,
+                  high: 0,
+                  low: 0,
+                  close: 0,
+                });
+              }}
+              style={{ display: 'flex', alignItems: 'center', gap: '6px', cursor: 'pointer', flexShrink: 0 }}
+            >
+              <Text size="xs" color="muted" weight="medium">
+                {item.sym}
+              </Text>
+              <Text size="xs" color="primary" weight="bold">
+                {item.price.toFixed(2)}
+              </Text>
+              <Change value={item.pct} format="percent" size="xs" weight="bold" />
+            </div>
+          ))}
+        </motion.div>
+      </div>
+
+      <Divider orientation="vertical" length="8px" />
+
+      {status === 'expired' && (
+        <>
+          <div style={{ ...railSection, padding: '0 12px', cursor: 'pointer' }} onClick={() => navigate('/api')}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+              <ShieldAlert size={12} color={COLOR.semantic.down} />
+              <Text size="xs" color="down" weight="bold">Token expired</Text>
+            </div>
           </div>
-        )}
+          <Divider orientation="vertical" length="8px" />
+        </>
+      )}
 
-        <div style={{ ...cell, borderLeft: BORDER.standard }}>
-          <div style={{ width: '4px', height: '4px', background: status === 'connected' ? COLOR.semantic.up : COLOR.text.muted }} />
-          <Text size="xs" color={status === 'connected' ? 'up' : 'muted'} weight="black" family="mono">
-            {status === 'connected' ? 'LIVE' : 'OFFLINE'}
-          </Text>
-        </div>
+      {/* Live/Offline — bare, no box */}
+      <div style={{ ...railSection, padding: '0 12px', flexShrink: 0 }}>
+        <StatusWrapper
+          label={status === 'connected' ? 'Live' : 'Offline'}
+          tone={status === 'connected' ? 'up' : 'muted'}
+          bare
+        />
+      </div>
 
-        <div style={cell}>
-          <Clock size={12} color={COLOR.text.muted} />
-          <span style={{ fontSize: '11px', fontFamily: TYPE.family.mono, color: COLOR.text.secondary }}>
+      <Divider orientation="vertical" length="8px" />
+
+      {/* Clock — bare text */}
+      <div style={{ ...railSection, padding: '0 12px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <Clock3 size={12} color={COLOR.text.muted} />
+          <Text size="xs" color="secondary" weight="bold">
             {currentTime.toLocaleTimeString([], { hour12: false })}
-          </span>
-        </div>
-
-        <div style={cell}>
-          <Text size="xs" color="muted" weight="bold" style={{ marginRight: '4px' }}>FUNDS:</Text>
-          <Text size="sm" weight="black" color="primary" style={{ marginRight: '8px' }}>
-            ₹{margin.toLocaleString('en-IN', { maximumFractionDigits: 0 })}
           </Text>
-          <Tooltip content="ADD_FUNDS_PORTAL" position="bottom">
-            <button 
+        </div>
+      </div>
+
+      <Divider orientation="vertical" length="8px" />
+
+      {/* Right data — bare metrics, boxed actions */}
+      <div style={{ ...railSection, gap: '4px', padding: '0 10px', flexShrink: 0 }}>
+
+        {/* P&L — bare text */}
+        <MetricWrapper
+          bare
+          label="P&L"
+          value={
+            <span style={{ color: totalPnl >= 0 ? COLOR.semantic.up : COLOR.semantic.down }}>
+              {pnlFormatted}
+            </span>
+          }
+        />
+
+        <Divider orientation="vertical" length="8px" />
+
+        {/* Open — bare text */}
+        <MetricWrapper bare label="Open" value={String(openCount)} />
+
+        <Divider orientation="vertical" length="8px" />
+
+        {/* Funds — bare text + boxed action */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '0 8px' }}>
+          <span style={{ fontFamily: TYPE.family.mono, fontSize: TYPE.size.xs, fontWeight: TYPE.weight.bold, color: COLOR.text.muted, letterSpacing: TYPE.letterSpacing.caps }}>
+            Funds
+          </span>
+          <span style={{ fontFamily: TYPE.family.mono, fontSize: TYPE.size.xs, fontWeight: TYPE.weight.bold, color: COLOR.text.primary }}>
+            ₹{margin.toLocaleString('en-IN', { maximumFractionDigits: 0 })}
+          </span>
+          <Tooltip content="Add funds" position="bottom">
+            <ActionWrapper
               onClick={() => window.open('https://pro.upstox.com/funds/securities/wallet', '_blank')}
-              style={{ 
-                background: 'transparent', 
-                border: `1px solid ${COLOR.semantic.info}`, 
-                color: COLOR.semantic.info, 
-                padding: '2px 8px', 
-                cursor: 'pointer',
-                height: '24px',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                borderRadius: '2px'
-              }}
+              tone="accent"
+              style={{ width: NAV_BTN, height: NAV_BTN, flexShrink: 0 }}
             >
-              <Wallet size={14} />
-            </button>
+              <Plus size={11} />
+            </ActionWrapper>
           </Tooltip>
         </div>
 
-        <div style={{ ...cell, borderRight: BORDER.standard, padding: '0 8px' }}>
-          <Tooltip content="ADD_NEW_WIDGET" position="bottom">
-            <button
-              ref={widgetBtnRef}
-              onClick={() => setIsWidgetDropdownOpen((p) => !p)}
-              style={{
-                background: isWidgetDropdownOpen ? `${COLOR.semantic.info}22` : 'transparent',
-                border: `1px solid ${isWidgetDropdownOpen ? COLOR.semantic.info : COLOR.bg.border}`,
-                padding: '4px 8px',
-                cursor: 'pointer',
-                color: isWidgetDropdownOpen ? COLOR.semantic.info : COLOR.text.primary,
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                borderRadius: '2px',
-                height: '28px'
-              }}
-            >
-              <PlusSquare size={16} />
-            </button>
-          </Tooltip>
+        <Divider orientation="vertical" length="8px" />
+
+        {/* Widgets — boxed action button */}
+        <div ref={widgetBtnRef as React.RefObject<HTMLDivElement>} style={{ position: 'relative', flexShrink: 0 }}>
+          <button
+            onClick={() => setIsWidgetDropdownOpen((p) => !p)}
+            className="hover:bg-interactive-hover"
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              height: NAV_BTN,
+              padding: '0 12px',
+              background: isWidgetDropdownOpen ? COLOR.interactive.selected : 'transparent',
+              border: 'none',
+              cursor: 'pointer',
+              gap: '6px',
+              whiteSpace: 'nowrap',
+              fontFamily: TYPE.family.mono,
+              fontSize: TYPE.size.xs,
+              fontWeight: TYPE.weight.bold,
+              color: isWidgetDropdownOpen ? COLOR.semantic.info : COLOR.text.secondary,
+              transition: `background ${MOTION.duration.hover} linear, color ${MOTION.duration.hover} linear`,
+            }}
+          >
+            <Plus size={11} color={isWidgetDropdownOpen ? COLOR.semantic.info : COLOR.text.secondary} />
+            Widgets
+          </button>
           <WidgetDropdown isOpen={isWidgetDropdownOpen} onOpenChange={setIsWidgetDropdownOpen} anchorEl={widgetBtnRef.current} />
         </div>
 
-        <div style={{ ...cell, borderRight: 'none', padding: '0 12px' }}>
-           <Tooltip content="SYSTEM_CONTROLS" position="bottom">
-                <button
-                    onClick={(e) => {
-                        const rect = e.currentTarget.getBoundingClientRect();
-                        useContextMenuStore.getState().openContextMenu(rect.left - 120, rect.bottom + 4, [
-                            { 
-                                label: 'API_SETTINGS', 
-                                icon: <Settings size={14} />, 
-                                onClick: () => navigate('/api') 
-                            },
-                            { 
-                                label: 'RESET_VIEWPORT', 
-                                icon: <RotateCcw size={14} />, 
-                                onClick: () => {
-                                    localStorage.removeItem('opentrader_layout');
-                                    window.location.reload();
-                                } 
-                            },
-                            {
-                                label: 'SAVE_LAYOUT',
-                                icon: <Save size={14} />,
-                                onClick: () => {
-                                    localStorage.setItem('opentrader_layout', JSON.stringify(model.toJson()));
-                                }
-                            }
-                        ]);
-                    }}
-                    style={{
-                        background: 'transparent',
-                        border: `1px solid ${COLOR.bg.border}`,
-                        color: COLOR.text.secondary,
-                        cursor: 'pointer',
-                        padding: '0 8px',
-                        borderRadius: '2px',
-                        height: '28px',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                    }}
-                >
-                    <MoreHorizontal size={16} />
-                </button>
-           </Tooltip>
-        </div>
+      </div>
+
+      <Divider orientation="vertical" length="8px" />
+
+      {/* System controls — boxed action */}
+      <div style={{ ...railSection, padding: '0 8px' }}>
+        <Tooltip content="System controls" position="bottom">
+          <ActionWrapper
+            onClick={(e) => {
+              const rect = e.currentTarget.getBoundingClientRect();
+              useContextMenuStore.getState().openContextMenu(rect.left - 120, rect.bottom + 4, [
+                {
+                  label: 'API settings',
+                  icon: <Settings size={14} />,
+                  onClick: () => navigate('/api'),
+                },
+                {
+                  label: 'Reset viewport',
+                  icon: <RotateCcw size={14} />,
+                  onClick: () => {
+                    localStorage.removeItem('opentrader_layout');
+                    window.location.reload();
+                  },
+                },
+                {
+                  label: 'Save layout',
+                  icon: <Save size={14} />,
+                  onClick: () => {
+                    localStorage.setItem('opentrader_layout', JSON.stringify(model.toJson()));
+                  },
+                },
+              ]);
+            }}
+            style={{ width: NAV_BTN, height: NAV_BTN, color: COLOR.text.secondary }}
+          >
+            <MoreHorizontal size={14} />
+          </ActionWrapper>
+        </Tooltip>
+      </div>
+
     </header>
   );
 };

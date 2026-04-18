@@ -1,7 +1,7 @@
 import React from 'react';
 import { useSelectionStore, useWatchlistStore } from '../../store/useStore';
 import { useUpstoxStore } from '../../store/useUpstoxStore';
-import { buildSymbolFromFeed } from '../../utils/liveSymbols';
+import { buildSymbolFromFeed, getDisplayTicker } from '../../utils/liveSymbols';
 
 export const WatchlistPanel: React.FC = () => {
   const { watchlists, activeWatchlistId } = useWatchlistStore();
@@ -23,13 +23,19 @@ export const WatchlistPanel: React.FC = () => {
         ) : (
           symbols.map((symbol) => {
             const isSelected = selectedSymbol?.ticker === symbol.ticker;
+            const displaySymbol = getDisplayTicker({
+              ticker: symbol.ticker,
+              name: symbol.name,
+              instrumentKey: symbol.instrument_key,
+              fallback: '--',
+            });
             return (
               <button
                 key={symbol.instrument_key || symbol.ticker}
                 onClick={() => setSelectedSymbol(symbol)}
                 className={`w-full text-left px-3 py-2 border-b border-border/10 text-[11px] ${isSelected ? 'bg-bg-row-hover text-text-primary' : 'text-text-secondary hover:bg-bg-row-hover/50'}`}
               >
-                <div className="font-bold uppercase">{symbol.ticker}</div>
+                <div className="font-bold uppercase">{displaySymbol}</div>
                 <div className="font-mono text-[10px]">{symbol.ltp.toFixed(2)}</div>
               </button>
             );

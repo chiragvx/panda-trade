@@ -7,6 +7,7 @@ import { VARIANTS } from './animations/config';
 import { useMotionVariants } from './animations/useMotion';
 import { COLOR, TYPE, BORDER } from './ds/tokens';
 import 'flexlayout-react/style/dark.css';
+import * as Icons from 'lucide-react';
 
 import { WatchlistWidget } from './widgets/Watchlist/WatchlistWidget';
 import { ChartWidget } from './widgets/Chart/ChartWidget';
@@ -43,6 +44,9 @@ import WorldBankExplorer from './widgets/worldbank/WorldBankExplorer';
 
 import { useLayoutStore } from './store/useStore';
 import { WidgetStateWrapper } from './components/WidgetStateWrapper';
+import { WIDGET_REGISTRY } from './widgets/registry';
+import { resolveWidgetPresentation } from './widgets/presentation';
+import { KeyBadge, PanelShell, WidgetPresentationProvider } from './ds';
 
 const VolSurface3DWidget = React.lazy(() => import('./widgets/vol-surface/VolSurface3DWidget').then(m => ({ default: m.VolSurface3DWidget })));
 
@@ -172,23 +176,66 @@ export const LayoutManager: React.FC<LayoutManagerProps> = ({ model }) => {
   const factory = (node: TabNode) => {
     const widgetId = node.getComponent()!;
     const instanceKey = node.getId();
+    const widgetConfig = WIDGET_REGISTRY[widgetId] ?? {
+      id: widgetId,
+      displayName: node.getName() || widgetId,
+      icon: 'Box',
+      shortcut: '',
+      singleton: false,
+      category: 'Tools' as const,
+      presentation: {
+        archetype: 'table',
+        density: 'default',
+        header: { mode: 'stacked', icon: 'show', logo: 'hide', subtitle: 'auto', actions: 'standard' },
+        branding: { tone: 'neutral' as const },
+        emptyState: 'standard' as const,
+      },
+    };
+    const rawConfig = ((node as any).getConfig?.() ?? {}) as any;
+    const instanceOverride = (rawConfig.presentation ?? rawConfig) || undefined;
+    const resolvedPresentation = resolveWidgetPresentation(widgetConfig.presentation, instanceOverride);
+    const Icon = (Icons as any)[widgetConfig.icon] || Icons.Box;
+    const showIcon = resolvedPresentation.header.icon !== 'hide';
+    const subtitle =
+      resolvedPresentation.header.subtitle === 'hide'
+        ? undefined
+        : widgetConfig.category;
+    const meta = null;
 
     return (
-      <AnimatePresence mode="wait" initial={false}>
-        <motion.div
-           key={instanceKey}
-           {...variants.tabContent}
-           style={{ 
-             width: '100%', 
-             height: '100%',
-             willChange: 'transform, opacity, filter' 
-           }}
-        >
-          <WidgetStateWrapper id={widgetId}>
-            {renderWidget(widgetId, node)}
-          </WidgetStateWrapper>
-        </motion.div>
-      </AnimatePresence>
+      <WidgetPresentationProvider
+        value={{
+          widgetId,
+          config: widgetConfig,
+          instanceOverride,
+          resolved: resolvedPresentation,
+        }}
+      >
+        <AnimatePresence mode="wait" initial={false}>
+          <motion.div
+            key={instanceKey}
+            {...variants.tabContent}
+            style={{
+              width: '100%',
+              height: '100%',
+              willChange: 'transform, opacity, filter',
+            }}
+          >
+            <PanelShell
+              title={widgetConfig.displayName}
+              subtitle={subtitle}
+              icon={showIcon ? <Icon size={12} /> : undefined}
+              tone={resolvedPresentation.branding.tone || 'neutral'}
+              headerMode="hidden"
+              meta={meta}
+            >
+              <WidgetStateWrapper id={widgetId}>
+                {renderWidget(widgetId, node)}
+              </WidgetStateWrapper>
+            </PanelShell>
+          </motion.div>
+        </AnimatePresence>
+      </WidgetPresentationProvider>
     );
   };
 
@@ -280,7 +327,7 @@ export const LayoutManager: React.FC<LayoutManagerProps> = ({ model }) => {
   return (
     <div 
         ref={layoutContainerRef}
-        className="w-full h-full relative bg-bg-primary overflow-hidden"
+        className="w-full h-full relative bg-bg-border overflow-hidden"
     >
       <Layout 
         model={model} 

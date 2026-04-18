@@ -1,6 +1,7 @@
 import React from 'react';
 import { AlertCircle, CheckCircle2, Info } from 'lucide-react';
 import { COLOR, BORDER, TYPE } from '../tokens';
+import { humanizeLabel } from '../textFormat';
 
 interface StatusBannerProps {
   variant: 'disconnected' | 'warning' | 'info' | 'success';
@@ -75,7 +76,7 @@ export const StatusBanner: React.FC<StatusBannerProps> = ({
         
         fontFamily: TYPE.family.mono
       }}>
-        {message}
+        {humanizeLabel(message)}
       </span>
     </div>
   );

@@ -1,305 +1,283 @@
 import React from 'react';
 import { motion, useScroll, useTransform } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
-import { Zap, Anchor, Activity, ShieldCheck, Globe, Key, Command, ChevronRight, Play, Layout, Terminal } from 'lucide-react';
-import { COLOR, TYPE, BORDER, SPACE } from '../ds/tokens';
+import { Activity, Anchor, ChevronRight, Command, Layout, ShieldCheck, Zap } from 'lucide-react';
+import { BrandLockup, Button, COLOR, KeyBadge, MetricWrapper, SectionHeader, SPACE, StatusWrapper, Text, TYPE } from '../ds';
 import logoSvg from '../../svg/Pandatrade.svg';
 
 const LandingPage: React.FC = () => {
-    const navigate = useNavigate();
-    const { scrollYProgress } = useScroll();
-    const scale = useTransform(scrollYProgress, [0, 0.3], [1.3, 1.0]);
-    const y = useTransform(scrollYProgress, [0, 0.3], [100, 0]);
+  const navigate = useNavigate();
+  const { scrollYProgress } = useScroll();
+  const previewY = useTransform(scrollYProgress, [0, 0.3], [48, 0]);
 
-    return (
-        <div style={{ minHeight: '100vh', background: '#000', color: '#fff', fontFamily: TYPE.family.mono, overflowX: 'hidden' }}>
-            {/* Header / Nav */}
-            <nav className="nav-container" style={{ 
-                height: '72px', 
-                borderBottom: '1px solid rgba(255,255,255,0.05)', 
-                display: 'flex', 
-                alignItems: 'center', 
-                padding: '0 40px',
-                position: 'fixed',
-                top: 0, left: 0, right: 0,
-                background: 'rgba(0,0,0,0.8)',
-                backdropFilter: 'blur(20px)',
-                zIndex: 1000
-            }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                    <img src={logoSvg} alt="PandaTrade" style={{ height: '20px', objectFit: 'contain' }} />
-                </div>
+  return (
+    <div style={{ minHeight: '100vh', background: COLOR.bg.base, color: COLOR.text.primary, fontFamily: TYPE.family.mono, overflowX: 'hidden' }}>
+      <nav
+        className="nav-container"
+        style={{
+          minHeight: '4.5rem',
+          borderBottom: `1px solid ${COLOR.bg.border}`,
+          display: 'flex',
+          alignItems: 'center',
+          padding: '0 2rem',
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          background: 'rgba(5,5,5,0.96)',
+          zIndex: 1000,
+        }}
+      >
+        <BrandLockup
+          logo={<img src={logoSvg} alt="PandaTrade" style={{ height: '1.125rem', objectFit: 'contain' }} />}
+          title="Pandatrade"
+          subtitle="Terminal-native trading workspace"
+          tone="accent"
+        />
 
-                <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: '32px' }}>
-                    <button 
-                        onClick={() => navigate('/app')}
-                        style={{ 
-                            height: '38px', 
-                            padding: '0 20px', 
-                            background: '#fff', 
-                            color: '#000', 
-                            border: 'none', 
-                            borderRadius: '4px', 
-                            fontSize: '12px', 
-                            fontWeight: '900', 
-                            cursor: 'pointer',
-                            letterSpacing: '0.05em'
-                        }}
-                    >
-                        Open App
-                    </button>
-                </div>
-            </nav>
-
-            {/* Hero Section */}
-            <section className="hero-section" style={{ 
-                paddingTop: '140px', 
-                paddingBottom: '80px', 
-                textAlign: 'center', 
-                display: 'flex', 
-                flexDirection: 'column', 
-                alignItems: 'center' 
-            }}>
-                <motion.h1 
-                    className="hero-title"
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.1 }}
-                    style={{ 
-                        fontSize: '90px', 
-                        fontWeight: '500', 
-                        margin: '0 0 24px 0', 
-                        lineHeight: '0.92', 
-                        letterSpacing: '-0.02em',
-                        maxWidth: '1000px',
-                        color: COLOR.semantic.info,
-                        fontFamily: TYPE.family.mono
-                    }}
-                >
-                    Experimental trading <span style={{ color: '#444' }}>dashboard.</span>
-                </motion.h1>
-
-                <motion.p 
-                    className="hero-subtitle"
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    transition={{ delay: 0.2 }}
-                    style={{ 
-                        fontSize: '18px', 
-                        color: '#888', 
-                        maxWidth: '600px', 
-                        margin: '0 auto 48px auto', 
-                        lineHeight: '1.6' 
-                    }}
-                >
-                    A unified cockpit for institutional bridging, high-frequency execution, and modular data visualization.
-                </motion.p>
-
-                <motion.div 
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.3 }}
-                    style={{ display: 'flex', gap: '16px' }}
-                >
-                    <button 
-                        onClick={() => navigate('/app')}
-                        style={{ 
-                            height: '52px', 
-                            padding: '0 32px', 
-                            background: '#fff', 
-                            color: '#000', 
-                            border: 'none', 
-                            borderRadius: '4px', 
-                            fontSize: '14px', 
-                            fontWeight: '900', 
-                            cursor: 'pointer',
-                            display: 'flex',
-                            alignItems: 'center',
-                            gap: '12px'
-                        }}
-                    >
-                        START TRADING NOW <ChevronRight size={18} />
-                    </button>
-                </motion.div>
-
-                {/* App Preview Frame */}
-                <motion.div 
-                    className="preview-frame"
-                    style={{ 
-                        scale, 
-                        y,
-                        width: '1200px', 
-                        aspectRatio: '16 / 9',
-                        marginTop: '40px', 
-                        background: '#050505', 
-                        border: '1px solid #222', 
-                        borderRadius: '12px',
-                        boxShadow: '0 50px 100px rgba(0,0,0,0.8)',
-                        position: 'relative',
-                        padding: '8px',
-                        perspective: '1000px'
-                    }}
-                >
-                    <div style={{ width: '100%', height: '100%', background: '#000', borderRadius: '4px', overflow: 'hidden', position: 'relative' }}>
-                         {/* Terminal Screenshot */}
-                         <img 
-                            src="/terminal_preview.png" 
-                            alt="Panda Trade Terminal" 
-                            style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-                            onError={(e) => {
-                                // Fallback if image not found
-                                (e.currentTarget as HTMLImageElement).style.opacity = '0';
-                            }}
-                         />
-                    </div>
-                </motion.div>
-            </section>
-
-            {/* Feature Bento Grid */}
-            <section style={{ padding: '100px 40px', maxWidth: '1200px', margin: '0 auto' }}>
-                <div style={{ textAlign: 'center', marginBottom: '64px' }}>
-                    <h2 style={{ fontSize: '32px', fontWeight: '900', margin: '0 0 16px 0' }}>Infinite Data. One View.</h2>
-                    <p style={{ color: '#666', fontSize: '16px' }}>Every connector you need to gain an edge in global markets.</p>
-                </div>
-
-                <div className="feature-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '24px' }}>
-                    <FeatureCard 
-                        icon={<Zap size={24} color={COLOR.semantic.warning} />}
-                        title="Unified Control"
-                        desc="Bridge directly to institutional brokers for seamless execution and millisecond order placement."
-                    />
-                    <FeatureCard 
-                        icon={<Anchor size={24} color={COLOR.semantic.info} />}
-                        title="Live Telemetry"
-                        desc="Stream global data feeds in real-time. From market liquidity to alternative global indicators."
-                    />
-                    <FeatureCard 
-                        icon={<Activity size={24} color={COLOR.semantic.down} />}
-                        title="Advanced Scanners"
-                        desc="Monitor anomaly detection and technical crossovers with precision-engineered data scanners."
-                    />
-                    <FeatureCard 
-                        icon={<Command size={24} color="#fff" />}
-                        title="Modular OS"
-                        desc="High-performance terminal with dynamic layouts. Arrange your workspace your way."
-                    />
-                    <FeatureCard 
-                        icon={<ShieldCheck size={24} color={COLOR.semantic.up} />}
-                        title="Secure Bridge"
-                        desc="Enterprise-grade local encryption. Your authentication keys never leave your infrastructure."
-                    />
-                    <FeatureCard 
-                        icon={<Layout size={24} color="#888" />}
-                        title="Bento Workspaces"
-                        desc="Switch between specialized analytics suites and execution desks with zero operational latency."
-                    />
-                </div>
-            </section>
-
-            {/* CTA Banner */}
-            <section style={{ padding: '100px 40px', textAlign: 'center', background: '#050505', borderTop: '1px solid #111' }}>
-                <h2 style={{ fontSize: '48px', fontWeight: 'bold', marginBottom: '32px' }}>Ready to elevate your edge?</h2>
-                <button 
-                    onClick={() => navigate('/app')}
-                    style={{ 
-                        height: '60px', 
-                        padding: '0 48px', 
-                        background: '#fff', 
-                        color: '#000', 
-                        border: 'none', 
-                        borderRadius: '4px', 
-                        fontSize: '16px', 
-                        fontWeight: '900', 
-                        cursor: 'pointer'
-                    }}
-                >
-                    ENTER THE TERMINAL
-                </button>
-            </section>
-
-            <footer style={{ padding: '80px 40px', borderTop: '1px solid #111', background: '#030303' }}>
-                <div style={{ maxWidth: '1200px', margin: '0 auto', display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '48px', marginBottom: '80px' }} className="footer-grid">
-                    <div style={{ gridColumn: 'span 1' }}>
-                        <img src={logoSvg} alt="PandaTrade" style={{ height: '18px', objectFit: 'contain', marginBottom: '24px' }} />
-                        <p style={{ color: '#444', fontSize: '13px', lineHeight: '1.6' }}>
-                            The institutional cockpit for experimental trading and high-fidelity global data visualization.
-                        </p>
-                    </div>
-                    
-                    <div>
-                        <h4 style={{ color: '#fff', fontSize: '12px', fontWeight: 'bold',  letterSpacing: '0.1em', marginBottom: '20px' }}>Platform</h4>
-                        <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                            {['Infrastructure', 'Bento_UI', 'OS_v2.0', 'Latency_Metrics'].map(it => (
-                                <li key={it}><a href="#" style={{ color: '#666', fontSize: '13px', textDecoration: 'none' }} onMouseOver={e => e.currentTarget.style.color='#fff'} onMouseOut={e => e.currentTarget.style.color='#666'}>{it}</a></li>
-                            ))}
-                        </ul>
-                    </div>
-
-                    <div>
-                        <h4 style={{ color: '#fff', fontSize: '12px', fontWeight: 'bold',  letterSpacing: '0.1em', marginBottom: '20px' }}>Connectors</h4>
-                        <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                            {['Upstox_Bridge', 'AISStream_Global', 'NASA_FIRMS', 'TradingView_Core'].map(it => (
-                                <li key={it}><a href="#" style={{ color: '#666', fontSize: '13px', textDecoration: 'none' }} onMouseOver={e => e.currentTarget.style.color='#fff'} onMouseOut={e => e.currentTarget.style.color='#666'}>{it}</a></li>
-                            ))}
-                        </ul>
-                    </div>
-
-                    <div>
-                        <h4 style={{ color: '#fff', fontSize: '12px', fontWeight: 'bold',  letterSpacing: '0.1em', marginBottom: '20px' }}>System</h4>
-                        <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                            {['Protocol_Security', 'Privacy_Policy', 'Service_Terms', 'Node_Status'].map(it => (
-                                <li key={it}><a href="#" style={{ color: '#666', fontSize: '13px', textDecoration: 'none' }} onMouseOver={e => e.currentTarget.style.color='#fff'} onMouseOut={e => e.currentTarget.style.color='#666'}>{it}</a></li>
-                            ))}
-                        </ul>
-                    </div>
-                </div>
-
-                <div style={{ maxWidth: '1200px', margin: '0 auto', display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderTop: '1px solid rgba(255,255,255,0.03)', paddingTop: '32px' }}>
-                    <div style={{ color: '#333', fontSize: '11px', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                        <span>© 2026 PANDA_TRADE_SYSTEMS. ALL_PROTOCOL_RIGHTS_RESERVED.</span>
-                    </div>
-                    <div style={{ display: 'flex', gap: '24px', alignItems: 'center' }}>
-                         <span style={{ fontSize: '11px', color: '#222', letterSpacing: '0.2em', fontWeight: TYPE.weight.black }}>STABLE_BUILD_v2.0.431</span>
-                         <div style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#00d084', boxShadow: '0 0 10px #00d084' }} />
-                    </div>
-                </div>
-            </footer>
-
-            <style>{`
-                @media (max-width: 1024px) {
-                    .hero-title { font-size: 64px !important; }
-                    .preview-frame { width: 90% !important; margin-top: 60px !important; }
-                    .feature-grid { grid-template-columns: repeat(2, 1fr) !important; }
-                }
-                @media (max-width: 768px) {
-                    .hero-title { font-size: 42px !important; }
-                    .nav-container { padding: 0 20px !important; }
-                    .feature-grid { grid-template-columns: 1fr !important; }
-                    .footer-grid { grid-template-columns: 1fr !important; gap: 40px !important; }
-                    .preview-frame { width: 95% !important; margin-top: 40px !important; }
-                    .hero-section { padding-top: 120px !important; }
-                    .hero-subtitle { font-size: 16px !important; }
-                }
-                ::-webkit-scrollbar { width: 4px; }
-                ::-webkit-scrollbar-track { background: #000; }
-                ::-webkit-scrollbar-thumb { background: #222; border-radius: 10px; }
-            `}</style>
+        <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: SPACE[3] }}>
+          <StatusWrapper label="Base 16 system" tone="accent" />
+          <Button variant="accent" size="sm" onClick={() => navigate('/app')}>
+            Open app
+          </Button>
         </div>
-    );
+      </nav>
+
+      <section
+        className="hero-section"
+        style={{
+          paddingTop: '9rem',
+          paddingBottom: '5rem',
+          paddingLeft: '2rem',
+          paddingRight: '2rem',
+          maxWidth: '84rem',
+          margin: '0 auto',
+          display: 'grid',
+          gridTemplateColumns: 'minmax(0, 1fr)',
+          gap: '2rem',
+        }}
+      >
+        <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1.1fr) minmax(0, 0.9fr)', gap: '2rem', alignItems: 'start' }} className="hero-grid">
+          <div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: SPACE[2], marginBottom: SPACE[4], flexWrap: 'wrap' }}>
+              <KeyBadge keys="CTRL + K" />
+              <StatusWrapper label="Terminal-first design system" tone="accent" />
+            </div>
+
+            <motion.h1
+              className="hero-title"
+              initial={{ opacity: 0, y: 16 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.08 }}
+              style={{
+                fontSize: TYPE.size['4xl'],
+                fontWeight: TYPE.weight.bold,
+                margin: 0,
+                lineHeight: '1',
+                letterSpacing: TYPE.letterSpacing.tight,
+                maxWidth: '46rem',
+              }}
+            >
+              Trading terminal.
+              <br />
+              <span style={{ color: COLOR.semantic.info }}>System shell.</span>
+            </motion.h1>
+
+            <motion.p
+              className="hero-subtitle"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.16 }}
+              style={{
+                fontSize: TYPE.size.lg,
+                color: COLOR.text.secondary,
+                maxWidth: '36rem',
+                margin: `${SPACE[4]} 0 ${SPACE[5]} 0`,
+                lineHeight: TYPE.lineHeight.relaxed,
+              }}
+            >
+              A modular market workstation built around flat chrome, dense data, and registry-driven widget shells. No glossy cards. No soft UI. Just terminal-grade clarity.
+            </motion.p>
+
+            <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.24 }} style={{ display: 'flex', gap: SPACE[3], flexWrap: 'wrap' }}>
+              <Button variant="accent" size="md" onClick={() => navigate('/app')}>
+                Enter terminal <ChevronRight size={14} style={{ marginLeft: SPACE[1] }} />
+              </Button>
+              <Button variant="ghost" size="md" onClick={() => navigate('/api')}>
+                View connectivity
+              </Button>
+            </motion.div>
+          </div>
+
+          <div style={{ display: 'grid', gap: SPACE[3] }}>
+            <MetricWrapper label="Widget registry" value="Type + instance overrides" tone="accent" />
+            <MetricWrapper label="Typography" value="12 / 14 / 16 / 20 / 24 / 32 / 40" />
+            <MetricWrapper label="Spacing" value="2 / 4 / 8 / 12 / 16 / 20 / 24 / 32" />
+            <StatusWrapper label="Pure flat edges" tone="up" />
+          </div>
+        </div>
+
+        <motion.div
+          className="preview-frame"
+          style={{
+            y: previewY,
+            width: '100%',
+            aspectRatio: '16 / 9',
+            background: COLOR.bg.surface,
+            border: `1px solid ${COLOR.bg.border}`,
+            position: 'relative',
+            padding: SPACE[2],
+          }}
+        >
+          <div style={{ width: '100%', height: '100%', background: '#000', overflow: 'hidden', position: 'relative', border: `1px solid ${COLOR.bg.border}` }}>
+            <img
+              src="/terminal_preview.png"
+              alt="Panda Trade Terminal"
+              style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+              onError={(e) => {
+                (e.currentTarget as HTMLImageElement).style.opacity = '0';
+              }}
+            />
+          </div>
+        </motion.div>
+      </section>
+
+      <section style={{ padding: '4rem 2rem', maxWidth: '84rem', margin: '0 auto' }}>
+        <SectionHeader
+          title="System surfaces"
+          subtitle="One visual language across terminal widgets, provider utilities, and product-facing marketing."
+          actions={<Text size="xs" color="muted">Terminal marketing mode</Text>}
+        />
+
+        <div className="feature-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(3, minmax(0, 1fr))', gap: SPACE[4], marginTop: SPACE[5] }}>
+          <FeatureCard icon={<Zap size={20} color={COLOR.semantic.info} />} title="Unified Control" desc="Bridge directly to institutional brokers for execution and live market telemetry." />
+          <FeatureCard icon={<Anchor size={20} color={COLOR.semantic.warning} />} title="Live Telemetry" desc="Stream alternative feeds in the same shell grammar as core trading widgets." />
+          <FeatureCard icon={<Activity size={20} color={COLOR.semantic.down} />} title="Advanced Scanners" desc="Support anomaly workflows without breaking terminal density or interaction rhythm." />
+          <FeatureCard icon={<Command size={20} color={COLOR.text.primary} />} title="Command Surface" desc="Keyboard-first navigation and direct symbol access in a flat, system-level overlay." />
+          <FeatureCard icon={<ShieldCheck size={20} color={COLOR.semantic.up} />} title="Secure Bridge" desc="Provider setup surfaces inherit the same shell, wrappers, and semantic state model." />
+          <FeatureCard icon={<Layout size={20} color={COLOR.text.secondary} />} title="Modular Workspace" desc="Registry-driven widgets let presentation evolve without changing behavior or docking rules." />
+        </div>
+      </section>
+
+      <section style={{ padding: '4rem 2rem', borderTop: `1px solid ${COLOR.bg.border}`, borderBottom: `1px solid ${COLOR.bg.border}`, background: COLOR.bg.surface }}>
+        <div style={{ maxWidth: '72rem', margin: '0 auto', display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: SPACE[5], flexWrap: 'wrap' }}>
+          <div>
+            <Text size="3xl" weight="bold" color="primary">
+              Ready to enter the terminal?
+            </Text>
+            <div style={{ marginTop: SPACE[2] }}>
+              <Text size="sm" color="secondary">
+                Launch the app or move straight into provider setup without leaving the design system.
+              </Text>
+            </div>
+          </div>
+          <div style={{ display: 'flex', gap: SPACE[2] }}>
+            <Button variant="accent" size="md" onClick={() => navigate('/app')}>
+              Enter terminal
+            </Button>
+            <Button variant="ghost" size="md" onClick={() => navigate('/api')}>
+              Open setup
+            </Button>
+          </div>
+        </div>
+      </section>
+
+      <footer style={{ padding: '3rem 2rem', background: '#030303' }}>
+        <div style={{ maxWidth: '84rem', margin: '0 auto', display: 'grid', gridTemplateColumns: 'minmax(0, 1.4fr) repeat(3, minmax(0, 1fr))', gap: SPACE[6] }} className="footer-grid">
+          <div>
+            <BrandLockup
+              logo={<img src={logoSvg} alt="PandaTrade" style={{ height: '1rem', objectFit: 'contain' }} />}
+              title="Pandatrade"
+              subtitle="Institutional cockpit for modular market workflows"
+              tone="accent"
+            />
+            <p style={{ color: COLOR.text.muted, fontSize: TYPE.size.xs, lineHeight: '1.6', marginTop: SPACE[4], maxWidth: '20rem' }}>
+              The same flat, mono, border-led system powers the landing surface, utility pages, and trading workspace.
+            </p>
+          </div>
+
+          <FooterColumn title="Platform" items={['Infrastructure', 'Widget_Registry', 'Terminal_Shell', 'Latency_Metrics']} />
+          <FooterColumn title="Connectors" items={['Upstox_Bridge', 'AISStream_Global', 'NASA_FIRMS', 'RapidAPI_Feed']} />
+          <FooterColumn title="System" items={['Protocol_Security', 'Privacy_Policy', 'Service_Terms', 'Node_Status']} />
+        </div>
+
+        <div
+          style={{
+            maxWidth: '84rem',
+            margin: `${SPACE[6]} auto 0 auto`,
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            borderTop: `1px solid ${COLOR.bg.border}`,
+            paddingTop: SPACE[4],
+            gap: SPACE[3],
+            flexWrap: 'wrap',
+          }}
+        >
+          <span style={{ color: COLOR.text.muted, fontSize: TYPE.size.xs }}>© 2026 PANDA_TRADE_SYSTEMS. ALL_PROTOCOL_RIGHTS_RESERVED.</span>
+          <div style={{ display: 'flex', gap: SPACE[3], alignItems: 'center' }}>
+            <span style={{ fontSize: TYPE.size.xs, color: COLOR.text.muted, fontWeight: TYPE.weight.bold }}>
+              Stable build v2.0.431
+            </span>
+            <StatusWrapper label="Live" tone="up" />
+          </div>
+        </div>
+      </footer>
+
+      <style>{`
+        @media (max-width: 1024px) {
+          .hero-grid { grid-template-columns: 1fr !important; }
+          .feature-grid { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; }
+        }
+        @media (max-width: 768px) {
+          .nav-container { padding: 0 1rem !important; }
+          .hero-title { font-size: 2rem !important; }
+          .hero-subtitle { font-size: 1rem !important; }
+          .feature-grid { grid-template-columns: 1fr !important; }
+          .footer-grid { grid-template-columns: 1fr !important; gap: 2rem !important; }
+          .hero-section { padding-top: 7rem !important; }
+        }
+      `}</style>
+    </div>
+  );
 };
 
-const FeatureCard: React.FC<{ icon: React.ReactNode; title: string, desc: string }> = ({ icon, title, desc }) => (
-    <div style={{ 
-        background: '#0a0a0a', 
-        border: '1px solid #111', 
-        borderRadius: '8px', 
-        padding: '32px',
-        transition: 'all 0.2s linear'
-    }} onMouseOver={e => (e.currentTarget.style.borderColor = '#333')} onMouseOut={e => (e.currentTarget.style.borderColor = '#111')}>
-        <div style={{ marginBottom: '20px' }}>{icon}</div>
-        <h3 style={{ fontSize: '18px', fontWeight: 'bold', color: '#fff', margin: '0 0 12px 0' }}>{title}</h3>
-        <p style={{ fontSize: '14px', color: '#666', margin: 0, lineHeight: '1.6' }}>{desc}</p>
-    </div>
+const FeatureCard: React.FC<{ icon: React.ReactNode; title: string; desc: string }> = ({ icon, title, desc }) => (
+  <div
+    style={{
+      background: COLOR.bg.surface,
+      border: `1px solid ${COLOR.bg.border}`,
+      padding: '2rem',
+      transition: 'border-color 80ms linear, background 80ms linear',
+    }}
+    onMouseOver={(e) => {
+      e.currentTarget.style.borderColor = COLOR.semantic.info;
+      e.currentTarget.style.background = COLOR.interactive.selected;
+    }}
+    onMouseOut={(e) => {
+      e.currentTarget.style.borderColor = COLOR.bg.border;
+      e.currentTarget.style.background = COLOR.bg.surface;
+    }}
+  >
+    <div style={{ marginBottom: SPACE[4] }}>{icon}</div>
+    <h3 style={{ fontSize: TYPE.size.xl, fontWeight: TYPE.weight.bold, color: COLOR.text.primary, margin: `0 0 ${SPACE[2]} 0` }}>{title}</h3>
+    <p style={{ fontSize: TYPE.size.md, color: COLOR.text.secondary, margin: 0, lineHeight: TYPE.lineHeight.relaxed }}>{desc}</p>
+  </div>
+);
+
+const FooterColumn: React.FC<{ title: string; items: string[] }> = ({ title, items }) => (
+  <div>
+    <h4 style={{ color: COLOR.text.primary, fontSize: TYPE.size.xs, fontWeight: TYPE.weight.bold, marginBottom: SPACE[4] }}>{title}</h4>
+    <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: SPACE[2] }}>
+      {items.map((item) => (
+        <li key={item}>
+          <a href="#" style={{ color: COLOR.text.secondary, fontSize: TYPE.size.xs, textDecoration: 'none' }}>
+            {item}
+          </a>
+        </li>
+      ))}
+    </ul>
+  </div>
 );
 
 export default LandingPage;

@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import { isUselessTicker } from '../utils/liveSymbols';
+import { resolveInstrumentText } from '../utils/liveSymbols';
 
 export interface DepthLevel {
   price: number;
@@ -53,22 +53,20 @@ const buildInstrumentMetaMap = (rows: any[]): Record<string, InstrumentMeta> => 
     const instrumentKey = String(row?.instrument_token || row?.instrument_key || '').trim();
     if (!instrumentKey) return;
 
-    const candidates = [
+    const { ticker, name } = resolveInstrumentText({
+      instrumentKey,
+      candidates: [
         row?.trading_symbol,
         row?.tradingsymbol,
         row?.symbol,
         row?.short_name,
         row?.name,
         row?.company_name,
-        row?.description
-    ].map(v => String(v || '').trim().toUpperCase()).filter(v => v && v.length > 0);
+        row?.description,
+      ],
+    });
 
-    const usefulCandidates = candidates.filter(c => !isUselessTicker(c));
-    
-    const ticker = usefulCandidates[0] || candidates[0] || '';
     if (!ticker) return;
-
-    const name = usefulCandidates.find(c => c !== ticker) || usefulCandidates[0] || candidates.find(c => c !== ticker) || candidates[0] || ticker;
 
     out[instrumentKey] = {
       ticker,

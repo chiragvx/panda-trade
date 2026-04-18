@@ -1,5 +1,6 @@
 import React from 'react';
-import { COLOR, TYPE, BORDER } from '../tokens';
+import { COLOR, TYPE, BORDER, LAYOUT } from '../tokens';
+import { humanizeLabel } from '../textFormat';
 
 interface Option {
   label: string;
@@ -43,7 +44,7 @@ export const SegmentedControl: React.FC<SegmentedControlProps> = ({
             onClick={() => onChange(opt.value)}
             style={{ 
                 height: '100%',
-                padding: '0 12px', 
+                padding: `0 ${LAYOUT.cellPadH}`,
                 fontSize: TYPE.size.xs, 
                 fontWeight: TYPE.weight.black, 
                 background: isActive ? COLOR.interactive.selected : 'transparent',
@@ -63,7 +64,7 @@ export const SegmentedControl: React.FC<SegmentedControlProps> = ({
             className="hover:text-text-primary transition-colors"
           >
             {opt.icon}
-            {opt.label}
+            {humanizeLabel(opt.label)}
           </button>
         );
       })}

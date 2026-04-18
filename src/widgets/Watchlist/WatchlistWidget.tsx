@@ -1,5 +1,4 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
-import { isIsin } from '../../utils/liveSymbols';
 import { useSelectionStore, useLayoutStore, useWatchlistStore } from '../../store/useStore';
 import { useUpstoxStore } from '../../store/useUpstoxStore';
 import { useContextMenuStore } from '../../store/useContextMenuStore';
@@ -18,7 +17,7 @@ import {
   HoverActions
 } from '../../ds';
 import { motion, AnimatePresence } from 'framer-motion';
-import { buildSymbolFromFeed, isUselessTicker } from '../../utils/liveSymbols';
+import { buildSymbolFromFeed, getDisplayTicker, isUselessTicker } from '../../utils/liveSymbols';
 import { upstoxSearch } from '../../services/upstoxSearch';
 import { useToastStore } from '../../components/ToastContainer';
 import { Trash2, Plus, X, ArrowUpCircle, ArrowDownCircle, Info } from 'lucide-react';
@@ -139,9 +138,13 @@ export const WatchlistWidget: React.FC = () => {
   const handleRightClick = (e: React.MouseEvent, symbol: SymbolData) => {
     e.preventDefault();
     setSelectedSymbol(symbol);
-    
-    const tickerIsIsin = isIsin(symbol.ticker);
-    const displayTicker = tickerIsIsin ? (symbol.name || 'INSTRUMENT') : (symbol.ticker || '--');
+
+    const displayTicker = getDisplayTicker({
+      ticker: symbol.ticker,
+      name: symbol.name,
+      instrumentKey: symbol.instrument_key,
+      fallback: '--',
+    });
     const isIndex = symbol.instrument_key?.includes('_INDEX') || symbol.instrument_key?.includes('VIX');
 
     const options = [
@@ -179,8 +182,12 @@ export const WatchlistWidget: React.FC = () => {
       width: 140,
       sortable: true,
       render: (_: any, symbol: SymbolData, idx: number) => {
-        const useless = isUselessTicker(symbol.ticker);
-        const displaySymbol = useless ? (symbol.name || 'Instrument') : (symbol.ticker || '--');
+        const displaySymbol = getDisplayTicker({
+          ticker: symbol.ticker,
+          name: symbol.name,
+          instrumentKey: symbol.instrument_key,
+          fallback: '--',
+        });
         return (
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px', overflow: 'hidden', position: 'relative', width: '100%', height: '100%' }}>
             <Text weight="bold" size="sm" color="primary" block ellipsis style={{ maxWidth: '120px' }}>

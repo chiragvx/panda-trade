@@ -1,6 +1,7 @@
 import React from 'react';
 import { ChevronUp, ChevronDown } from 'lucide-react';
-import { COLOR, TYPE, BORDER, ROW_HEIGHT } from '../tokens';
+import { COLOR, LAYOUT, TYPE, BORDER, ROW_HEIGHT } from '../tokens';
+import { humanizeLabel } from '../textFormat';
 
 interface Column<T> {
   key: string;
@@ -64,7 +65,7 @@ export const DataTable = <T extends Record<string, any>>({
                   key={col.key}
                   onClick={() => col.sortable && onSort?.(col.key)}
                   style={{
-                    padding: '0 12px',
+                    padding: `0 ${LAYOUT.cellPadH}`,
                     fontSize: TYPE.size.xs,
                     fontWeight: TYPE.weight.bold,
                     color: isActive ? COLOR.text.primary : COLOR.text.muted,
@@ -89,7 +90,7 @@ export const DataTable = <T extends Record<string, any>>({
                 >
                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: col.align === 'right' ? 'flex-end' : col.align === 'center' ? 'center' : 'flex-start', gap: '4px' }}>
                     {col.align === 'right' && isActive && (sortDir === 'asc' ? <ChevronUp size={10} /> : <ChevronDown size={10} />)}
-                    <span>{col.label}</span>
+                    <span>{humanizeLabel(col.label)}</span>
                     {(col.align !== 'right' || !col.align) && isActive && (sortDir === 'asc' ? <ChevronUp size={10} /> : <ChevronDown size={10} />)}
                   </div>
                 </th>

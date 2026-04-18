@@ -17,7 +17,7 @@ import {
   Price
 } from '../../ds';
 import { useSelectionStore, useLayoutStore } from '../../store/useStore';
-import { buildSymbolFromFeed } from '../../utils/liveSymbols';
+import { buildSymbolFromFeed, getDisplayTicker } from '../../utils/liveSymbols';
 
 const UpstoxOrders: React.FC = () => {
     const { accessToken, status, prices, instrumentMeta } = useUpstoxStore();
@@ -90,15 +90,24 @@ const UpstoxOrders: React.FC = () => {
         { 
             key: 'trading_symbol', 
             label: 'Symbol', 
-            render: (val: string, item: any) => (
+            render: (val: string, item: any) => {
+                const meta = instrumentMeta[item.instrument_token];
+                const displaySymbol = getDisplayTicker({
+                    ticker: meta?.ticker || val,
+                    name: meta?.name || item.name,
+                    instrumentKey: item.instrument_token,
+                    fallback: val,
+                });
+
+                return (
                 <div style={{ display: 'flex', flexDirection: 'column' }}>
-                    <Text weight="bold" size="md" color="primary">{val}</Text>
+                    <Text weight="bold" size="md" color="primary">{displaySymbol}</Text>
                     <div style={{ display: 'flex', gap: '4px', alignItems: 'center' }}>
                         <Badge label={item.exchange} variant={item.exchange === 'NSE' ? 'exchange-nse' : 'exchange-bse'} />
                         <Text size="xs" color="muted" weight="medium">{item.order_type}</Text>
                     </div>
                 </div>
-            )
+            )}
         },
         { 
             key: 'transaction_type', 

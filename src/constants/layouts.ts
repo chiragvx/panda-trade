@@ -14,9 +14,32 @@ export const CASUAL_LAYOUT: IJsonModel = {
   layout: {
     type: "row",
     children: [
-      { type: "tabset", weight: 30, children: [{ type: "tab", name: "Watchlist", component: "watchlist" }] },
-      { type: "tabset", weight: 70, children: [{ type: "tab", name: "Main Chart", component: "chart" }] },
-      { type: "tabset", weight: 30, children: [{ type: "tab", name: "Orders", component: "orders" }] }
+      {
+        type: "tabset",
+        weight: 22,
+        children: [{ type: "tab", name: "Watchlist", component: "watchlist" }]
+      },
+      {
+        type: "column",
+        weight: 78,
+        children: [
+          {
+            type: "tabset",
+            weight: 64,
+            children: [{ type: "tab", name: "Main Chart", component: "chart" }]
+          },
+          {
+            type: "tabset",
+            weight: 36,
+            selected: 0,
+            children: [
+              { type: "tab", name: "Orders", component: "orders" },
+              { type: "tab", name: "Positions", component: "positions" },
+              { type: "tab", name: "Holdings", component: "holdings" }
+            ]
+          }
+        ]
+      }
     ]
   }
 };

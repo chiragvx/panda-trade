@@ -1,9 +1,10 @@
 import React from 'react';
 import { Loader2 } from 'lucide-react';
-import { COLOR, TYPE, ROW_HEIGHT } from '../tokens';
+import { COLOR, MOTION, SIZE, SPACE, TYPE } from '../tokens';
+import { humanizeLabel } from '../textFormat';
 
 interface ButtonProps {
-  variant?: 'ghost' | 'filled' | 'buy' | 'sell' | 'danger' | 'primary' | 'secondary' | 'outline';
+  variant?: 'ghost' | 'filled' | 'accent' | 'buy' | 'sell' | 'danger' | 'primary' | 'secondary' | 'outline';
   size?: 'xs' | 'sm' | 'md';
   disabled?: boolean;
   onClick?: (e: React.MouseEvent) => void;
@@ -15,9 +16,9 @@ interface ButtonProps {
 }
 
 const SIZE_STYLES = {
-  xs: { height: '18px', padding: '0 6px',  fontSize: TYPE.size.xs },
-  sm: { height: '22px', padding: '0 8px',  fontSize: TYPE.size.sm },
-  md: { height: '28px', padding: '0 12px', fontSize: TYPE.size.md },
+  xs: { height: '1.75rem', padding: `0 ${SPACE[3]}`, fontSize: TYPE.size.xs },
+  sm: { height: '2rem', padding: `0 ${SPACE[3]}`, fontSize: TYPE.size.sm },
+  md: { height: '2.25rem', padding: `0 ${SPACE[4]}`, fontSize: TYPE.size.md },
 };
 
 const BASE: React.CSSProperties = {
@@ -26,14 +27,14 @@ const BASE: React.CSSProperties = {
   justifyContent: 'center',
   borderRadius: '0',
   fontFamily: TYPE.family.mono,
-  fontWeight: TYPE.weight.medium,
+  fontWeight: TYPE.weight.bold,
   letterSpacing: TYPE.letterSpacing.wide,
   cursor: 'pointer',
-  border: 'none',
+  border: `1px solid ${COLOR.bg.border}`,
   outline: 'none',
   whiteSpace: 'nowrap',
   flexShrink: 0,
-  boxSizing: 'border-box'
+  boxSizing: 'border-box',
 };
 
 export const Button: React.FC<ButtonProps> = ({
@@ -48,6 +49,7 @@ export const Button: React.FC<ButtonProps> = ({
   loading,
 }) => {
   const [hovered, setHovered] = React.useState(false);
+  const renderedChildren = typeof children === 'string' ? humanizeLabel(children) : children;
 
   const variantStyle = (): React.CSSProperties => {
     switch (variant) {
@@ -63,6 +65,12 @@ export const Button: React.FC<ButtonProps> = ({
           border: `1px solid ${COLOR.bg.border}`,
           color: COLOR.text.primary,
         };
+      case 'accent':
+        return {
+          background: hovered ? COLOR.interactive.active : COLOR.semantic.info,
+          border: `1px solid ${COLOR.semantic.info}`,
+          color: COLOR.text.inverse,
+        };
       case 'buy':
         return {
           background: hovered ? COLOR.semantic.up : 'transparent',
@@ -77,7 +85,7 @@ export const Button: React.FC<ButtonProps> = ({
         };
       case 'danger':
         return {
-          background: hovered ? 'rgba(255,59,87,0.15)' : 'transparent',
+          background: hovered ? `${COLOR.semantic.down}18` : 'transparent',
           border: `1px solid ${COLOR.semantic.down}`,
           color: COLOR.semantic.down,
         };
@@ -117,13 +125,13 @@ export const Button: React.FC<ButtonProps> = ({
         ...variantStyle(),
         opacity: (disabled || loading) ? 0.4 : 1,
         cursor: (disabled || loading) ? 'not-allowed' : 'pointer',
-        transition: 'background 80ms linear, color 80ms linear, border-color 80ms linear',
+        transition: `background ${MOTION.duration.hover} ${MOTION.easing.standard}, color ${MOTION.duration.hover} ${MOTION.easing.standard}, border-color ${MOTION.duration.hover} ${MOTION.easing.standard}`,
         ...style,
       }}
       className={className}
     >
-      {loading ? <Loader2 className="animate-spin" size={14} style={{ marginRight: children ? '8px' : '0' }} /> : null}
-      {children}
+      {loading ? <Loader2 className="animate-spin" size={12} style={{ marginRight: children ? SPACE[2] : '0' }} /> : null}
+      {renderedChildren}
     </button>
   );
 };

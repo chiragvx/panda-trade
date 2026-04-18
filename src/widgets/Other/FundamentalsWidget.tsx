@@ -4,7 +4,7 @@ import { useSelectionStore } from '../../store/useStore';
 import { useUpstoxStore } from '../../store/useUpstoxStore';
 import { COLOR, TYPE, BORDER, SPACE, Text } from '../../ds';
 import { BarChart3, TrendingUp, Info, DollarSign, Activity, PieChart, Shield, AlertCircle, Search, Percent, TrendingDown, Target } from 'lucide-react';
-import { isIsin } from '../../utils/liveSymbols';
+import { getDisplayName, getDisplayTicker, isIsin } from '../../utils/liveSymbols';
 import { WidgetSymbolSearch } from '../../components/WidgetSearch/WidgetSymbolSearch';
 import { WidgetShell } from '../../ds/components/WidgetShell';
 import { Price } from '../../ds/components/Price';
@@ -45,14 +45,24 @@ export const FundamentalsWidget: React.FC = () => {
 
   const displayTicker = useMemo(() => {
     if (!activeSymbol) return '';
-    return isIsin(activeSymbol.ticker) ? (activeSymbol.name || 'INSTRUMENT') : activeSymbol.ticker;
+    return getDisplayTicker({
+      ticker: activeSymbol.ticker,
+      name: activeSymbol.name,
+      instrumentKey: activeSymbol.instrument_key,
+    });
   }, [activeSymbol]);
 
   const displayName = useMemo(() => {
     if (!activeSymbol) return '';
     if (isIsin(activeSymbol.ticker)) return 'EQUITY_INTELLIGENCE';
-    return activeSymbol.name || 'INSTRUMENT OVERVIEW';
-  }, [activeSymbol]);
+    const resolvedName = getDisplayName({
+      ticker: activeSymbol.ticker,
+      name: activeSymbol.name,
+      instrumentKey: activeSymbol.instrument_key,
+      fallback: 'INSTRUMENT OVERVIEW',
+    });
+    return resolvedName === displayTicker ? 'INSTRUMENT OVERVIEW' : resolvedName;
+  }, [activeSymbol, displayTicker]);
 
   const [data, setData] = React.useState<any>(null);
   const [isLoading, setIsLoading] = React.useState(false);

@@ -6,7 +6,7 @@ import { Change } from '../../ds/components/Change';
 import { Button } from '../../ds/components/Button';
 import { Badge } from '../../ds/components/Badge';
 import { Select } from '../../ds';
-import { buildSymbolFromFeed } from '../../utils/liveSymbols';
+import { buildSymbolFromFeed, getDisplayTicker } from '../../utils/liveSymbols';
 import { useToastStore } from '../../components/ToastContainer';
 import { useContextMenuStore, ContextMenuOption } from '../../store/useContextMenuStore';
 import { upstoxApi } from '../../services/upstoxApi';
@@ -28,6 +28,12 @@ const DenseRow: React.FC<{
 }> = ({ symbol, onBuy, onSell }) => {
   const [hovered, setHovered] = useState(false);
   const { setSelectedSymbol } = useSelectionStore();
+  const displaySymbol = getDisplayTicker({
+    ticker: symbol.ticker,
+    name: symbol.name,
+    instrumentKey: symbol.instrument_key,
+    fallback: '--',
+  });
   
   return (
     <div
@@ -47,7 +53,7 @@ const DenseRow: React.FC<{
       }}
     >
       <span style={{ flex: 1, fontFamily: TYPE.family.mono, fontSize: TYPE.size.sm, fontWeight: TYPE.weight.medium, color: COLOR.text.primary,  }}>
-        {symbol.ticker || '--'}
+        {displaySymbol}
       </span>
       <span style={{ width: '60px', textAlign: 'right', paddingRight: '6px', fontFamily: TYPE.family.mono, fontSize: TYPE.size.sm, color: COLOR.text.secondary }}>
         {symbol.ltp.toLocaleString('en-IN', { maximumFractionDigits: 2 })}
@@ -138,6 +144,7 @@ export const TrendingWidget: React.FC = () => {
 export const PositionsWidget: React.FC = () => {
   const positions = useUpstoxStore((s) => s.positions);
   const prices = useUpstoxStore((s) => s.prices);
+  const instrumentMeta = useUpstoxStore((s) => s.instrumentMeta);
 
   const normalizedPositions = useMemo(
     () =>
@@ -147,7 +154,14 @@ export const PositionsWidget: React.FC = () => {
         const avgPrice = toNumber(p?.buy_price, toNumber(p?.average_price));
         const quantity = toNumber(p?.quantity);
         const pnl = toNumber(p?.pnl, (ltp - avgPrice) * quantity);
-        const symbol = String(p?.trading_symbol || p?.tradingsymbol || p?.symbol || '--');
+        const rawSymbol = String(p?.trading_symbol || p?.tradingsymbol || p?.symbol || '');
+        const meta = instrumentMeta[instrumentKey];
+        const symbol = getDisplayTicker({
+          ticker: meta?.ticker || rawSymbol,
+          name: meta?.name || p?.name,
+          instrumentKey,
+          fallback: '--',
+        }) || '--';
 
         return {
           id: String(p?.instrument_token || `${symbol}-${index}`),
@@ -158,7 +172,7 @@ export const PositionsWidget: React.FC = () => {
           pnl,
         };
       }),
-    [positions, prices]
+    [instrumentMeta, positions, prices]
   );
 
   const totalPnl = normalizedPositions.reduce((acc, p) => acc + p.pnl, 0);
@@ -354,6 +368,7 @@ const OrdersRow: React.FC<{ order: any }> = ({ order }) => {
 
 export const OrdersWidget: React.FC = () => {
   const orders = useUpstoxStore((s) => s.orders);
+  const instrumentMeta = useUpstoxStore((s) => s.instrumentMeta);
   const { accessToken } = useUpstoxStore();
   const { addToast } = useToastStore();
   const headerRef = React.useRef<HTMLDivElement>(null);
@@ -402,7 +417,12 @@ export const OrdersWidget: React.FC = () => {
 
         return {
           id: String(o?.order_id || o?.guid || index),
-          symbol: String(o?.trading_symbol || o?.tradingsymbol || o?.symbol || '--'),
+          symbol: getDisplayTicker({
+            ticker: instrumentMeta[String(o?.instrument_token || '')]?.ticker || o?.trading_symbol || o?.tradingsymbol || o?.symbol,
+            name: instrumentMeta[String(o?.instrument_token || '')]?.name || o?.name,
+            instrumentKey: String(o?.instrument_token || ''),
+            fallback: '--',
+          }) || '--',
           side: String(o?.transaction_type || o?.side || '').toUpperCase() === 'SELL' ? 'SELL' : 'BUY',
           quantity: toNumber(o?.quantity),
           price: toNumber(o?.price, toNumber(o?.average_price)),
@@ -417,7 +437,7 @@ export const OrdersWidget: React.FC = () => {
           raw: o
         };
       }),
-    [orders]
+    [instrumentMeta, orders]
   );
 
   const cols = ['Time', 'Symbol', 'Side', 'Qty', 'Avg Px', 'Status'];

@@ -1,5 +1,6 @@
 import React from 'react';
 import { COLOR, TYPE } from '../tokens';
+import { humanizeLabel } from '../textFormat';
 
 type TextVariant = 'label' | 'value' | 'caption' | 'heading';
 type TextColor = 'primary' | 'secondary' | 'muted' | 'up' | 'down' | 'info' | 'warning' | 'purple';
@@ -59,6 +60,7 @@ interface TextProps {
   block?:     boolean;
   ellipsis?:  boolean;
   family?:    string;
+  preserveCase?: boolean;
   as?:        TextTag;
   className?: string;
   style?:     React.CSSProperties;
@@ -75,12 +77,14 @@ export const Text: React.FC<TextProps> = ({
   block,
   ellipsis,
   family,
+  preserveCase = false,
   as: Tag = 'span',
   className,
   style,
   children,
 }) => {
   const variantStyles = variant ? VARIANT_BASE[variant] : {};
+  const renderedChildren = typeof children === 'string' && !preserveCase ? humanizeLabel(children) : children;
 
   return (
     <Tag
@@ -92,7 +96,7 @@ export const Text: React.FC<TextProps> = ({
         ...(size    && { fontSize:      TYPE.size[size] }),
         ...(color   && { color:         COLOR_MAP[color] }),
         ...(weight  && { fontWeight:    TYPE.weight[weight] }),
-        ...(uppercase && { letterSpacing: TYPE.letterSpacing.caps }),
+        ...(uppercase && { textTransform: 'none' as const }),
         ...(noWrap  && { whiteSpace:    'nowrap' }),
         ...(block   && { display:       'block' }),
         ...(ellipsis && { 
@@ -105,7 +109,7 @@ export const Text: React.FC<TextProps> = ({
         ...style,
       }}
     >
-      {children}
+      {renderedChildren}
     </Tag>
   );
 };

@@ -1,24 +1,24 @@
 import React from 'react';
-import { COLOR, TYPE, BORDER } from '../tokens';
+import { BORDER, COLOR, MOTION, SPACE, TYPE } from '../tokens';
 
 type SelectSize = 'sm' | 'md' | 'lg';
 
 const HEIGHT: Record<SelectSize, string> = {
-  sm: '24px',
-  md: '32px',
-  lg: '40px',
+  sm: '2rem',
+  md: '2.25rem',
+  lg: '2.5rem',
 };
 
 const FONT_SIZE: Record<SelectSize, string> = {
   sm: TYPE.size.xs,
   md: TYPE.size.sm,
-  lg: TYPE.size.sm,
+  lg: TYPE.size.md,
 };
 
 const PADDING: Record<SelectSize, string> = {
-  sm: '0 22px 0 6px',
-  md: '0 24px 0 12px',
-  lg: '0 28px 0 16px',
+  sm: `0 1.75rem 0 ${SPACE[2]}`,
+  md: `0 2rem 0 ${SPACE[3]}`,
+  lg: `0 2rem 0 ${SPACE[4]}`,
 };
 
 interface SelectProps extends Omit<React.SelectHTMLAttributes<HTMLSelectElement>, 'size'> {
@@ -44,14 +44,14 @@ export const Select = React.forwardRef<HTMLSelectElement, SelectProps>(
           fontSize:     FONT_SIZE[selectSize],
           fontWeight:   TYPE.weight.bold,
           color:        COLOR.text.primary,
-          background:   COLOR.bg.elevated,
+          background:   COLOR.bg.surface,
           border:       BORDER.standard,
           borderRadius: 0,
           outline:      'none',
           width:        '100%',
           appearance:   'none',
           cursor:       'pointer',
-          transition:   'border-color 80ms linear',
+          transition:   `border-color ${MOTION.duration.hover} ${MOTION.easing.standard}, background ${MOTION.duration.hover} ${MOTION.easing.standard}`,
           ...style,
         }}
         onMouseEnter={e => (e.currentTarget.style.borderColor = COLOR.semantic.info + '66')}
@@ -68,7 +68,7 @@ export const Select = React.forwardRef<HTMLSelectElement, SelectProps>(
         fill="none"
         style={{
           position:      'absolute',
-          right:         '7px',
+          right:         SPACE[2],
           pointerEvents: 'none',
           flexShrink:    0,
         }}

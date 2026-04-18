@@ -12,6 +12,9 @@ export const getTickerFromInstrumentKey = (instrumentKey: string): string => {
   return rawTicker.trim().toUpperCase();
 };
 
+const normalizeSymbolText = (value: unknown): string =>
+  String(value || '').trim().toUpperCase();
+
 export const isIsin = (s: string): boolean => {
   if (!s) return false;
   const trimmed = s.trim().toUpperCase();
@@ -28,6 +31,82 @@ export const isNumericId = (s: string): boolean => {
 export const isUselessTicker = (s: string): boolean => {
   if (!s) return true;
   return isIsin(s) || isNumericId(s);
+};
+
+interface SymbolDisplayInput {
+  ticker?: string;
+  name?: string;
+  instrumentKey?: string;
+  fallback?: string;
+}
+
+interface InstrumentTextCandidates {
+  candidates: unknown[];
+  instrumentKey?: string;
+  fallback?: string;
+}
+
+export const resolveInstrumentText = ({
+  candidates,
+  instrumentKey,
+  fallback = '',
+}: InstrumentTextCandidates): { ticker: string; name: string } => {
+  const normalizedCandidates = candidates.map(normalizeSymbolText).filter(Boolean);
+  const usefulCandidates = normalizedCandidates.filter((candidate) => !isUselessTicker(candidate));
+  const derivedTicker = instrumentKey ? normalizeSymbolText(getTickerFromInstrumentKey(instrumentKey)) : '';
+  const normalizedFallback = normalizeSymbolText(fallback);
+  const preferredFallback = normalizedFallback && !isUselessTicker(normalizedFallback) ? normalizedFallback : '';
+  const identifierFallback = derivedTicker || normalizedCandidates[0] || normalizedFallback;
+
+  const ticker = usefulCandidates[0] || preferredFallback || identifierFallback;
+  const name = usefulCandidates.find((candidate) => candidate !== ticker) || '';
+
+  return {
+    ticker,
+    name: name || ticker,
+  };
+};
+
+export const getDisplayTicker = ({
+  ticker,
+  name,
+  instrumentKey,
+  fallback = '',
+}: SymbolDisplayInput): string => {
+  const normalizedTicker = normalizeSymbolText(ticker);
+  const normalizedName = normalizeSymbolText(name);
+  const derivedTicker = instrumentKey ? normalizeSymbolText(getTickerFromInstrumentKey(instrumentKey)) : '';
+  const normalizedFallback = normalizeSymbolText(fallback);
+
+  if (normalizedTicker && !isUselessTicker(normalizedTicker)) return normalizedTicker;
+  if (normalizedName && !isUselessTicker(normalizedName)) return normalizedName;
+  if (normalizedFallback && !isUselessTicker(normalizedFallback)) return normalizedFallback;
+
+  return derivedTicker || normalizedTicker || normalizedName || normalizedFallback;
+};
+
+export const getDisplayName = ({
+  ticker,
+  name,
+  instrumentKey,
+  fallback = '',
+}: SymbolDisplayInput): string => {
+  const displayTicker = getDisplayTicker({ ticker, name, instrumentKey, fallback });
+  const normalizedTicker = normalizeSymbolText(ticker);
+  const normalizedName = normalizeSymbolText(name);
+  const normalizedFallback = normalizeSymbolText(fallback);
+
+  if (normalizedName && !isUselessTicker(normalizedName) && normalizedName !== displayTicker) {
+    return normalizedName;
+  }
+
+  if (normalizedTicker && !isUselessTicker(normalizedTicker) && normalizedTicker !== displayTicker) {
+    return normalizedTicker;
+  }
+
+  if (normalizedFallback && !isUselessTicker(normalizedFallback)) return normalizedFallback;
+
+  return displayTicker || normalizedName || normalizedTicker;
 };
 
 export const buildSymbolFromFeed = (
@@ -58,16 +137,10 @@ export const buildSymbolFromFeed = (
   const volume = toNumber(feed?.volume);
   
   const derivedTicker = getTickerFromInstrumentKey(instrumentKey);
-  
-  // Clean up ISIN tickers
-  let ticker = String(meta?.ticker || derivedTicker).toUpperCase();
-  let name = String(meta?.name || ticker).toUpperCase();
-
-  if (isIsin(ticker) && name && !isIsin(name)) {
-    // If ticker is ISIN but name is a proper name, use name as ticker 
-    // or at least favor the name in UI (handled in components)
-    // But here we can swap if they are the same or ticker is just an ID
-  }
+  const rawTicker = normalizeSymbolText(meta?.ticker || derivedTicker);
+  const rawName = normalizeSymbolText(meta?.name || rawTicker);
+  const ticker = getDisplayTicker({ ticker: rawTicker, name: rawName, instrumentKey });
+  const name = getDisplayName({ ticker: rawTicker, name: rawName, instrumentKey, fallback: ticker });
 
   const exchange: string = meta?.exchange || (instrumentKey.startsWith('BSE') ? 'BSE' : 'NSE');
   const close = cp || ltp;

@@ -7,6 +7,7 @@ import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContai
 import { Activity, Filter, Info, RefreshCw } from 'lucide-react';
 import { NIFTY_50 } from '../../utils/defaultSymbol';
 import { WidgetSymbolSearch } from '../../components/WidgetSearch/WidgetSymbolSearch';
+import { getDisplayTicker } from '../../utils/liveSymbols';
 
 export const VolatilitySkew: React.FC = () => {
     const { selectedSymbol: globalSymbol } = useSelectionStore();
@@ -14,6 +15,12 @@ export const VolatilitySkew: React.FC = () => {
     const [localSymbol, setLocalSymbol] = useState<{ instrument_key: string, ticker: string } | null>(null);
     
     const activeSymbol = localSymbol || globalSymbol || NIFTY_50;
+    const displaySymbol = getDisplayTicker({
+        ticker: activeSymbol?.ticker,
+        name: (activeSymbol as any)?.name,
+        instrumentKey: activeSymbol?.instrument_key,
+        fallback: 'INDEX',
+    });
     const { data, isLoading, expiries, selectedExpiry, setSelectedExpiry } = useVolatilitySkew(activeSymbol?.instrument_key);
 
     return (
@@ -23,7 +30,7 @@ export const VolatilitySkew: React.FC = () => {
                     <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                         <Activity size={14} style={{ color: COLOR.semantic.info }} />
                         <Text size="xs" weight="black" style={{ letterSpacing: TYPE.letterSpacing.caps }}>
-                            IV_SKEW: {activeSymbol.ticker}
+                            IV_SKEW: {displaySymbol}
                         </Text>
                     </div>
                 </WidgetShell.Toolbar.Left>

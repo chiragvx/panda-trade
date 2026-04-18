@@ -2,6 +2,7 @@ import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { create } from 'zustand';
 import { COLOR, TYPE, BORDER } from '../ds/tokens';
+import { humanizeLabel } from '../ds/textFormat';
 
 interface Toast {
     id: string;
@@ -70,14 +71,14 @@ export const ToastContainer: React.FC = () => {
                                 color: TYPE_COLOR[toast.type], letterSpacing: TYPE.letterSpacing.caps,
                                 flexShrink: 0,
                             }}>
-                                [{TYPE_PREFIX[toast.type]}]
+                                [{humanizeLabel(TYPE_PREFIX[toast.type])}]
                             </span>
                             <span style={{
                                 flex: 1, fontFamily: TYPE.family.mono, fontSize: TYPE.size.sm,
                                 color: COLOR.text.primary, overflow: 'hidden',
                                 textOverflow: 'ellipsis', whiteSpace: 'nowrap',
                             }}>
-                                {toast.message}
+                                {humanizeLabel(toast.message)}
                             </span>
                             <button
                                 onClick={() => removeToast(toast.id)}

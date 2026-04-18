@@ -31,18 +31,17 @@ export const Badge: React.FC<BadgeProps> = ({ label, variant = 'default' }) => (
   <span style={{
     display: 'inline-flex',
     alignItems: 'center',
-    height: '14px',
-    padding: '0 3px',
+    height: '1rem',
+    padding: '0 0.25rem',
     border: `1px solid ${VARIANT_STYLES[variant].borderColor}`,
     borderRadius: '0',
     fontFamily: TYPE.family.mono,
     fontSize: TYPE.size.xs,
-    fontWeight: TYPE.weight.medium,
+    fontWeight: TYPE.weight.bold,
     letterSpacing: TYPE.letterSpacing.wide,
     color: VARIANT_STYLES[variant].color,
     background: 'transparent',
     whiteSpace: 'nowrap',
-    
     lineHeight: 1,
   }}>
     {label}

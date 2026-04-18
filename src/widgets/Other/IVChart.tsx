@@ -7,12 +7,19 @@ import { COLOR, TYPE, BORDER, SPACE } from '../../ds/tokens';
 import { TrendingUp, Activity, Filter, Info, Search } from 'lucide-react';
 import { NIFTY_50 } from '../../utils/defaultSymbol';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell } from 'recharts';
+import { getDisplayTicker } from '../../utils/liveSymbols';
 
 export const IVChart: React.FC = () => {
     const { selectedSymbol: globalSymbol } = useSelectionStore();
     const { accessToken } = useUpstoxStore();
     const [localSymbol, setLocalSymbol] = useState<any>(null);
     const activeSymbol = localSymbol || globalSymbol || NIFTY_50;
+    const displaySymbol = getDisplayTicker({
+        ticker: activeSymbol?.ticker,
+        name: activeSymbol?.name,
+        instrumentKey: activeSymbol?.instrument_key,
+        fallback: 'INDEX',
+    });
 
     const [expiries, setExpiries] = useState<string[]>([]);
     const [selectedExpiry, setSelectedExpiry] = useState('');
@@ -70,7 +77,7 @@ export const IVChart: React.FC = () => {
             <WidgetShell.Toolbar>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flex: 1 }}>
                     <TrendingUp size={14} color={COLOR.semantic.info} />
-                    <span style={{ fontSize: TYPE.size.xs, fontWeight: TYPE.weight.black, color: COLOR.text.primary, letterSpacing: TYPE.letterSpacing.caps }}>IV_PROFILE: {activeSymbol.ticker}</span>
+                    <span style={{ fontSize: TYPE.size.xs, fontWeight: TYPE.weight.black, color: COLOR.text.primary, letterSpacing: TYPE.letterSpacing.caps }}>IV_PROFILE: {displaySymbol}</span>
                 </div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                     <Filter size={12} color={COLOR.text.muted} />

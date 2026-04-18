@@ -1,8 +1,7 @@
 import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Button } from './Button';
 import { Info, BarChart3, Trash2 } from 'lucide-react';
-import { COLOR, BORDER, Z } from '../tokens';
+import { COLOR, LAYOUT, ROW_HEIGHT, SIZE, SPACE, Z } from '../tokens';
 
 interface HoverActionsProps {
   isVisible: boolean;
@@ -29,9 +28,13 @@ export const HoverActions: React.FC<HoverActionsProps> = ({
   className,
   style
 }) => {
+  const ICON_BOX = ROW_HEIGHT.compact;
+  const EXEC_BOX = '2rem';
+
   const itemStyle = (color: string, isExecution: boolean = false): React.CSSProperties => ({
-    width: isExecution ? '32px' : '32px',
-    height: isExecution ? '30px' : '100%',
+    width: isExecution ? EXEC_BOX : ICON_BOX,
+    minWidth: isExecution ? EXEC_BOX : ICON_BOX,
+    height: isExecution ? ICON_BOX : '100%',
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
@@ -40,10 +43,11 @@ export const HoverActions: React.FC<HoverActionsProps> = ({
     boxSizing: 'border-box',
     border: isExecution ? `1px solid ${color}` : 'none',
     borderRadius: '0', 
-    margin: isExecution ? '0 2px' : '0',
     color: color,
-    fontSize: '12px',
-    fontWeight: 900,
+    fontSize: SIZE.icon.xs,
+    fontWeight: 600,
+    lineHeight: 1,
+    letterSpacing: '0',
     background: 'transparent',
     padding: 0,
     outline: 'none',
@@ -69,7 +73,8 @@ export const HoverActions: React.FC<HoverActionsProps> = ({
             alignItems: 'center',
             background: COLOR.bg.surface,
             borderLeft: `1px solid ${COLOR.bg.border}`,
-            padding: '0 4px',
+            padding: `0 ${SPACE[1]}`,
+            gap: SPACE[1],
             zIndex: Z.overlay,
             ...style
           }}
@@ -80,7 +85,7 @@ export const HoverActions: React.FC<HoverActionsProps> = ({
                 style={itemStyle(COLOR.text.muted)}
                 title="View Fundamentals"
             >
-                <Info size={14} />
+                <Info size={14} strokeWidth={1.75} />
             </button>
           )}
           
@@ -90,17 +95,17 @@ export const HoverActions: React.FC<HoverActionsProps> = ({
                 style={itemStyle(COLOR.text.muted)}
                 title="Open Chart"
             >
-                <BarChart3 size={14} />
+                <BarChart3 size={14} strokeWidth={1.75} />
             </button>
           )}
 
           {extraActions && (
-             <div style={{ display: 'flex', alignItems: 'center', height: '100%' }}>
+             <div style={{ display: 'flex', alignItems: 'center', height: '100%', gap: SPACE[1] }}>
                 {extraActions}
              </div>
           )}
 
-          <div style={{ width: '1px', height: '14px', background: COLOR.bg.border, margin: '0 4px' }} />
+          <div style={{ width: '1px', height: '0.875rem', background: COLOR.bg.border, margin: `0 ${SPACE[1]}` }} />
 
           {onBuy && (
             <button 
@@ -142,7 +147,7 @@ export const HoverActions: React.FC<HoverActionsProps> = ({
                 style={itemStyle(COLOR.semantic.down)}
                 title="Remove"
              >
-                <Trash2 size={14} />
+                <Trash2 size={14} strokeWidth={1.75} />
              </button>
           )}
         </motion.div>

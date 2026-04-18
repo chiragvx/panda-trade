@@ -1,7 +1,8 @@
 import React, { useState, useRef, useLayoutEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { COLOR, TYPE, BORDER, Z } from '../tokens';
+import { BORDER, COLOR, MOTION, SPACE, TYPE, Z } from '../tokens';
+import { humanizeLabel } from '../textFormat';
 
 interface TooltipProps {
   children: React.ReactNode;
@@ -14,7 +15,7 @@ export const Tooltip: React.FC<TooltipProps> = ({
   children, 
   content, 
   position = 'bottom',
-  delay = 0.3
+  delay = 0.12
 }) => {
   const [isVisible, setIsVisible] = useState(false);
   const [coords, setCoords] = useState({ top: 0, left: 0 });
@@ -100,32 +101,31 @@ export const Tooltip: React.FC<TooltipProps> = ({
           {isVisible && (
             <motion.div
               ref={tooltipRef}
-              initial={{ opacity: 0, scale: 0.95 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.95 }}
-              transition={{ duration: 0.1, ease: 'easeOut' }}
+              initial={{ opacity: 0, y: -2 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -2 }}
+              transition={{ duration: 0.12, ease: 'linear' }}
               style={{
                 position: 'fixed', // Fixed is better for viewport-relative clamping
                 top: -9999, // Initially hidden while measuring
                 left: -9999,
                 zIndex: Z.tooltip,
-                background: '#111',
+                background: COLOR.bg.overlay,
                 border: BORDER.standard,
-                padding: '4px 8px',
-                borderRadius: '2px',
+                padding: `${SPACE[1]} ${SPACE[2]}`,
+                borderRadius: '0',
                 pointerEvents: 'none',
                 whiteSpace: 'nowrap',
-                boxShadow: '0 4px 12px rgba(0,0,0,0.5)',
               }}
             >
               <span style={{ 
                 fontSize: TYPE.size.xs, 
-                color: COLOR.text.primary, 
+                color: COLOR.text.secondary, 
                 fontWeight: TYPE.weight.bold,
                 fontFamily: TYPE.family.mono,
                 pointerEvents: 'none'
               }}>
-                {content}
+                {humanizeLabel(content)}
               </span>
             </motion.div>
           )}

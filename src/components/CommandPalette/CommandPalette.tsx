@@ -1,11 +1,20 @@
-import React, { useState, useEffect, useMemo, useRef } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
-import { useSelectionStore, useLayoutStore, useWatchlistStore } from '../../store/useStore';
+import { useSelectionStore, useWatchlistStore } from '../../store/useStore';
 import { useUpstoxStore } from '../../store/useUpstoxStore';
 import { buildSymbolFromFeed } from '../../utils/liveSymbols';
-import { COLOR, TYPE, BORDER, SPACE } from '../../ds/tokens';
-import { Search, Zap, ArrowRight, TrendingUp } from 'lucide-react';
+import {
+  COLOR,
+  CommandSurface,
+  FieldWrapper,
+  KeyBadge,
+  LAYOUT,
+  OverlayShell,
+  SPACE,
+  TYPE,
+} from '../../ds';
+import { ArrowRight, Search, TrendingUp, Zap } from 'lucide-react';
 
 export const CommandPalette: React.FC = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -19,7 +28,7 @@ export const CommandPalette: React.FC = () => {
   const { prices, instrumentMeta } = useUpstoxStore();
 
   const symbols = useMemo(() => {
-    const allKeys = Array.from(new Set(watchlists.flatMap(w => w.keys)));
+    const allKeys = Array.from(new Set(watchlists.flatMap((w) => w.keys)));
     return allKeys.map((key) => buildSymbolFromFeed(key, prices[key], instrumentMeta[key]));
   }, [watchlists, prices, instrumentMeta]);
 
@@ -29,8 +38,7 @@ export const CommandPalette: React.FC = () => {
     const symbol = symbols.find((s) => s.ticker === first);
 
     if (parts[1] === '<GO>' || parts[1] === 'GO') {
-      const target = first.toUpperCase();
-      if (target === 'API') navigate('/api');
+      if (first.toUpperCase() === 'API') navigate('/api');
       setIsOpen(false);
       return true;
     }
@@ -47,9 +55,7 @@ export const CommandPalette: React.FC = () => {
   const filtered = useMemo(() => {
     if (!query) return symbols.slice(0, 10);
     const q = query.split(' ')[0].toLowerCase();
-    return symbols
-      .filter((s) => s.ticker.toLowerCase().includes(q) || s.name.toLowerCase().includes(q))
-      .slice(0, 10);
+    return symbols.filter((s) => s.ticker.toLowerCase().includes(q) || s.name.toLowerCase().includes(q)).slice(0, 10);
   }, [symbols, query]);
 
   useEffect(() => {
@@ -95,111 +101,144 @@ export const CommandPalette: React.FC = () => {
   return (
     <AnimatePresence>
       {isOpen && (
-        <div style={{ position: 'fixed', inset: 0, zIndex: 9999, display: 'flex', alignItems: 'flex-start', justifyContent: 'center', paddingTop: '15vh' }}>
+        <OverlayShell onClick={() => setIsOpen(false)} style={{ alignItems: 'flex-start', paddingTop: '15vh' }}>
           <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            onClick={() => setIsOpen(false)}
-            style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.7)', backdropFilter: 'blur(4px)' }}
-          />
-
-          <motion.div
-            initial={{ opacity: 0, scale: 0.95, y: -20 }}
-            animate={{ opacity: 1, scale: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.95, y: -20 }}
-            transition={{ duration: 0.15, ease: 'easeOut' }}
-            style={{
-              width: '500px',
-              background: COLOR.bg.overlay,
-              border: BORDER.standard,
-              boxShadow: '0 32px 64px -12px rgba(0,0,0,0.8)',
-              overflow: 'hidden',
-              position: 'relative',
-            }}
+            initial={{ opacity: 0, y: -12 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -12 }}
+            transition={{ duration: 0.16, ease: 'linear' }}
+            onClick={(e) => e.stopPropagation()}
           >
-            <div style={{ display: 'flex', alignItems: 'center', padding: '16px', borderBottom: BORDER.standard, gap: '12px' }}>
-              <Search size={20} color={COLOR.semantic.info} />
-              <input
-                ref={inputRef}
-                value={query}
-                onChange={(e) => setQuery(e.target.value)}
-                onKeyDown={onKeyDown}
-                placeholder="Search symbols, commands (Ctrl + K)..."
-                style={{
-                  flex: 1,
-                  background: 'transparent',
-                  border: 'none',
-                  outline: 'none',
-                  color: COLOR.text.primary,
-                  fontFamily: TYPE.family.mono,
-                  fontSize: TYPE.size.lg,
-                }}
-              />
-              <div style={{ border: BORDER.standard, padding: '2px 6px', fontSize: TYPE.size.xs, color: COLOR.text.muted, fontFamily: TYPE.family.mono, fontWeight: TYPE.weight.black }}>ESC</div>
-            </div>
-
-            <div style={{ maxHeight: '400px', overflowY: 'auto', padding: '8px' }}>
-              <div style={{ padding: '0 8px 8px 8px', fontSize: TYPE.size.xs, color: COLOR.text.muted, fontFamily: TYPE.family.mono, fontWeight: TYPE.weight.black, letterSpacing: TYPE.letterSpacing.caps }}>SYMBOLS</div>
-              {filtered.map((s, idx) => {
-                const active = idx === selectedIndex;
-                return (
-                  <div
-                    key={`${s.instrument_key || s.ticker}-${idx}`}
-                    onClick={() => handleSelect(idx)}
-                    onMouseEnter={() => setSelectedIndex(idx)}
-                    style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'space-between',
-                      padding: '10px 12px',
-                      cursor: 'pointer',
-                      background: active ? COLOR.interactive.selected : 'transparent',
-                      transition: 'background 80ms linear',
-                      boxSizing: 'border-box',
-                      borderLeft: active ? BORDER.standard : 'none',
-                      borderRight: active ? BORDER.standard : 'none'
-                    }}
-                  >
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                      <div style={{ background: COLOR.bg.border, padding: '4px 8px', fontFamily: TYPE.family.mono, fontSize: '12px', fontWeight: 'bold' }}>{s.ticker || '--'}</div>
-                      <div style={{ display: 'flex', flexDirection: 'column' }}>
-                        <span style={{ fontSize: TYPE.size.sm, color: COLOR.text.primary, fontWeight: TYPE.weight.black }}>{s.name || s.ticker || '--'}</span>
-                        <span style={{ fontSize: TYPE.size.xs, color: COLOR.text.muted, fontFamily: TYPE.family.mono, fontWeight: TYPE.weight.bold }}>{s.exchange} • {s.instrument_key || '--'}</span>
-                      </div>
+            <CommandSurface
+              width="31.25rem"
+              header={
+                <div style={{ padding: SPACE[3], display: 'flex', alignItems: 'center', gap: SPACE[3] }}>
+                  <FieldWrapper prefix={<Search size={16} color={COLOR.semantic.info} />} suffix={<KeyBadge keys="ESC" />}>
+                    <input
+                      ref={inputRef}
+                      value={query}
+                      onChange={(e) => setQuery(e.target.value)}
+                      onKeyDown={onKeyDown}
+                      placeholder="Search symbols, commands (Ctrl + K)..."
+                      style={{
+                        width: '100%',
+                        height: LAYOUT.filterH,
+                        background: 'transparent',
+                        border: 'none',
+                        outline: 'none',
+                        color: COLOR.text.primary,
+                        fontFamily: TYPE.family.mono,
+                        fontSize: TYPE.size.lg,
+                        padding: `0 ${SPACE[3]}`,
+                      }}
+                    />
+                  </FieldWrapper>
+                </div>
+              }
+              footer={
+                <div
+                  style={{
+                    padding: `${SPACE[2]} ${SPACE[3]}`,
+                    background: COLOR.bg.elevated,
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'center',
+                    gap: SPACE[3],
+                  }}
+                >
+                  <div style={{ display: 'flex', gap: SPACE[3], alignItems: 'center', flexWrap: 'wrap' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: SPACE[1] }}>
+                      <TrendingUp size={12} color={COLOR.semantic.up} />
+                      <span style={{ fontSize: TYPE.size.xs, fontFamily: TYPE.family.mono, color: COLOR.text.muted, fontWeight: TYPE.weight.bold }}>
+                        Live data only
+                      </span>
                     </div>
-                    {active && (
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: COLOR.semantic.info }}>
-                        <span style={{ fontSize: TYPE.size.xs, fontFamily: TYPE.family.mono, fontWeight: TYPE.weight.black }}>SELECT</span>
-                        <ArrowRight size={14} />
-                      </div>
-                    )}
+                    <div style={{ display: 'flex', alignItems: 'center', gap: SPACE[1] }}>
+                      <Zap size={12} color={COLOR.semantic.info} />
+                      <span style={{ fontSize: TYPE.size.xs, fontFamily: TYPE.family.mono, color: COLOR.text.muted, fontWeight: TYPE.weight.bold }}>
+                        Ready
+                      </span>
+                    </div>
                   </div>
-                );
-              })}
-              {filtered.length === 0 && (
-                <div style={{ padding: '20px', textAlign: 'center', color: COLOR.text.muted, fontSize: '12px' }}>NO SYMBOLS AVAILABLE</div>
-              )}
-            </div>
-
-            <div style={{ padding: '10px 16px', background: COLOR.bg.elevated, borderTop: BORDER.standard, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-                  <TrendingUp size={12} color={COLOR.semantic.up} />
-                  <span style={{ fontSize: TYPE.size.xs, fontFamily: TYPE.family.mono, color: COLOR.text.muted, fontWeight: TYPE.weight.bold }}>LIVE DATA ONLY</span>
+                  <div style={{ fontSize: TYPE.size.xs, color: COLOR.text.muted, display: 'flex', gap: SPACE[3], fontFamily: TYPE.family.mono, fontWeight: TYPE.weight.bold }}>
+                    <span>↑↓ Navigate</span>
+                    <span>↵ Select</span>
+                  </div>
                 </div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-                  <Zap size={12} color={COLOR.semantic.info} />
-                  <span style={{ fontSize: TYPE.size.xs, fontFamily: TYPE.family.mono, color: COLOR.text.muted, fontWeight: TYPE.weight.bold }}>READY</span>
+              }
+            >
+              <div style={{ maxHeight: '25rem', overflowY: 'auto', padding: SPACE[2] }}>
+                <div
+                  style={{
+                    padding: `0 ${SPACE[2]} ${SPACE[2]} ${SPACE[2]}`,
+                    fontSize: TYPE.size.xs,
+                    color: COLOR.text.muted,
+                    fontFamily: TYPE.family.mono,
+                    fontWeight: TYPE.weight.bold,
+                    letterSpacing: TYPE.letterSpacing.caps,
+                  }}
+                >
+                  Symbols
                 </div>
+                {filtered.map((s, idx) => {
+                  const active = idx === selectedIndex;
+                  return (
+                    <div
+                      key={`${s.instrument_key || s.ticker}-${idx}`}
+                      onClick={() => handleSelect(idx)}
+                      onMouseEnter={() => setSelectedIndex(idx)}
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'space-between',
+                        minHeight: '2.25rem',
+                        padding: `${SPACE[2]} ${SPACE[3]}`,
+                        cursor: 'pointer',
+                        background: active ? COLOR.interactive.selected : 'transparent',
+                        transition: 'background 80ms linear',
+                        boxSizing: 'border-box',
+                        borderLeft: active ? `1px solid ${COLOR.semantic.info}` : '1px solid transparent',
+                      }}
+                    >
+                      <div style={{ display: 'flex', alignItems: 'center', gap: SPACE[3], minWidth: 0 }}>
+                        <div
+                          style={{
+                            background: COLOR.bg.surface,
+                            border: `1px solid ${COLOR.bg.border}`,
+                            padding: `${SPACE[1]} ${SPACE[2]}`,
+                            fontFamily: TYPE.family.mono,
+                            fontSize: TYPE.size.xs,
+                            fontWeight: TYPE.weight.bold,
+                            whiteSpace: 'nowrap',
+                          }}
+                        >
+                          {s.ticker || '--'}
+                        </div>
+                        <div style={{ display: 'flex', flexDirection: 'column', minWidth: 0 }}>
+                          <span style={{ fontSize: TYPE.size.md, color: COLOR.text.primary, fontWeight: TYPE.weight.bold, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                            {s.name || s.ticker || '--'}
+                          </span>
+                          <span style={{ fontSize: TYPE.size.xs, color: COLOR.text.muted, fontFamily: TYPE.family.mono, fontWeight: TYPE.weight.bold, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                            {s.exchange} • {s.instrument_key || '--'}
+                          </span>
+                        </div>
+                      </div>
+                      {active && (
+                        <div style={{ display: 'flex', alignItems: 'center', gap: SPACE[2], color: COLOR.semantic.info, flexShrink: 0 }}>
+                          <span style={{ fontSize: TYPE.size.xs, fontFamily: TYPE.family.mono, fontWeight: TYPE.weight.bold }}>Select</span>
+                          <ArrowRight size={14} />
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+                {filtered.length === 0 && (
+                  <div style={{ padding: SPACE[5], textAlign: 'center', color: COLOR.text.muted, fontSize: TYPE.size.xs }}>No symbols available</div>
+                )}
               </div>
-              <div style={{ fontSize: TYPE.size.xs, color: COLOR.text.muted, display: 'flex', gap: '10px', fontFamily: TYPE.family.mono, fontWeight: TYPE.weight.black }}>
-                <span>↑↓ NAVIGATE</span>
-                <span>↵ ENTER</span>
-              </div>
-            </div>
+            </CommandSurface>
           </motion.div>
-        </div>
+        </OverlayShell>
       )}
     </AnimatePresence>
   );

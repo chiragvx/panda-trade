@@ -1,5 +1,6 @@
 import React from 'react';
 import { COLOR, TYPE, BORDER, ROW_HEIGHT } from '../tokens';
+import { humanizeLabel, maybeHumanizeNode } from '../textFormat';
 
 type KVLayout     = 'inline' | 'stacked';
 type KVValueColor = 'primary' | 'secondary' | 'muted' | 'up' | 'down' | 'info' | 'warning';
@@ -62,7 +63,7 @@ export const KeyValue: React.FC<KeyValueProps> = ({
           ...style,
         }}
       >
-        <span style={LABEL_STYLE}>{label}</span>
+        <span style={LABEL_STYLE}>{humanizeLabel(label)}</span>
         <span
           style={{
             fontFamily: TYPE.family.mono,
@@ -72,7 +73,7 @@ export const KeyValue: React.FC<KeyValueProps> = ({
             lineHeight: TYPE.lineHeight.tight,
           }}
         >
-          {value}
+          {maybeHumanizeNode(value)}
         </span>
       </div>
     );
@@ -91,7 +92,7 @@ export const KeyValue: React.FC<KeyValueProps> = ({
         ...style,
       }}
     >
-      <span style={LABEL_STYLE}>{label}</span>
+      <span style={LABEL_STYLE}>{humanizeLabel(label)}</span>
       <span
         style={{
           fontFamily: TYPE.family.mono,
@@ -102,7 +103,7 @@ export const KeyValue: React.FC<KeyValueProps> = ({
           textAlign:  'right',
         }}
       >
-        {value}
+        {maybeHumanizeNode(value)}
       </span>
     </div>
   );

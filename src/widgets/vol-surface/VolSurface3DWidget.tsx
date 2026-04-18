@@ -4,7 +4,7 @@ import { useVolSurfaceData } from './useVolSurfaceData';
 import { VolSurface3DChart } from './VolSurface3DChart';
 import { VolSurfaceControls } from './VolSurfaceControls';
 import { COLOR, BORDER, TYPE, Button, Tooltip, WidgetShell } from '../../ds';
-import { isIsin } from '../../utils/liveSymbols';
+import { getDisplayTicker } from '../../utils/liveSymbols';
 import { WidgetSymbolSearch } from '../../components/WidgetSearch/WidgetSymbolSearch';
 import { useUpstoxStore } from '../../store/useUpstoxStore';
 import { NIFTY_50 } from '../../utils/defaultSymbol';
@@ -30,7 +30,12 @@ export const VolSurface3DWidget: React.FC = () => {
     }
   }, [surfaceData]);
 
-  const displayName = isIsin(activeSymbol?.ticker || '') ? activeSymbol?.name : activeSymbol?.ticker;
+  const displayName = getDisplayTicker({
+    ticker: activeSymbol?.ticker,
+    name: activeSymbol?.name,
+    instrumentKey: activeSymbol?.instrument_key,
+    fallback: 'INDEX',
+  });
 
   return (
     <WidgetShell>
@@ -97,7 +102,7 @@ export const VolSurface3DWidget: React.FC = () => {
              </div>
           ) : surfaceData.length === 0 ? (
              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%', color: COLOR.text.muted, fontSize: TYPE.size.xs, fontWeight: TYPE.weight.black, letterSpacing: TYPE.letterSpacing.caps }}>
-                NO_OPTION_CHAIN_DETECTED: {activeSymbol.ticker}
+                NO_OPTION_CHAIN_DETECTED: {displayName}
              </div>
           ) : (
             <>

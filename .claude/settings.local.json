@@ -1,0 +1,12 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(xargs wc:*)",
+      "Bash(python3 -c \"import sys,json; d=json.load\\(sys.stdin\\); [print\\(k,v\\) for k,v in {**d.get\\('dependencies',{}\\), **d.get\\('devDependencies',{}\\)}.items\\(\\)]\")",
+      "Bash(npx tsc:*)",
+      "Bash(C:/Users/Chirag/Documents/super-terminal/node_modules/.bin/tsc --noEmit --skipLibCheck)",
+      "Bash(npm run *)",
+      "Bash(xargs grep *)"
+    ]
+  }
+}

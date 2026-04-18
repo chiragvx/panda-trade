@@ -1,6 +1,7 @@
 import React, { useEffect, useRef } from 'react';
 import { useContextMenuStore, ContextMenuOption } from '../../store/useContextMenuStore';
-import { COLOR, TYPE } from '../../ds/tokens';
+import { BORDER, COLOR, MOTION, SPACE, TYPE, Z } from '../../ds/tokens';
+import { humanizeLabel } from '../textFormat';
 
 export const ContextMenu: React.FC = () => {
   const { isOpen, x, y, options, closeContextMenu } = useContextMenuStore();
@@ -30,21 +31,20 @@ export const ContextMenu: React.FC = () => {
         position: 'fixed',
         left: x,
         top: y,
-        zIndex: 100000,
-        background: '#0D0D0D',
-        border: `1px solid #222222`,
-        padding: '4px',
-        boxShadow: '0 10px 30px rgba(0,0,0,0.8), 0 0 0 1px rgba(255,255,255,0.05)',
+        zIndex: Z.modalTop,
+        background: COLOR.bg.overlay,
+        border: BORDER.standard,
+        padding: SPACE[1],
         minWidth: '160px',
-        borderRadius: '2px'
+        borderRadius: 0
       }}
     >
       {options.map((opt: ContextMenuOption, idx: number) => {
         const getColor = () => {
-            if (opt.variant === 'danger') return '#f43f5e';
-            if (opt.variant === 'primary') return '#FF7722';
-            if (opt.variant === 'info') return '#3b82f6';
-            if (opt.variant === 'muted') return '#666';
+            if (opt.variant === 'danger') return COLOR.semantic.down;
+            if (opt.variant === 'primary') return COLOR.semantic.info;
+            if (opt.variant === 'info') return COLOR.semantic.info;
+            if (opt.variant === 'muted') return COLOR.text.muted;
             return COLOR.text.primary;
         };
 
@@ -61,22 +61,21 @@ export const ContextMenu: React.FC = () => {
                 border: 'none',
                 display: 'flex',
                 alignItems: 'center',
-                gap: '8px',
-                padding: '8px 12px',
+                gap: SPACE[2],
+                padding: `${SPACE[2]} ${SPACE[3]}`,
                 color: getColor(),
-                fontSize: '11px',
-                fontWeight: 'bold',
+                fontSize: TYPE.size.xs,
+                fontWeight: TYPE.weight.bold,
                 fontFamily: TYPE.family.mono,
                 cursor: 'pointer',
                 textAlign: 'left',
-                
-                transition: 'background 0.1s linear'
+                transition: `background ${MOTION.duration.hover} ${MOTION.easing.standard}, color ${MOTION.duration.hover} ${MOTION.easing.standard}`
               }}
-              onMouseEnter={(e) => { e.currentTarget.style.background = '#FFFFFF0A'; }}
+              onMouseEnter={(e) => { e.currentTarget.style.background = COLOR.interactive.hover; }}
               onMouseLeave={(e) => { e.currentTarget.style.background = 'none'; }}
             >
               {opt.icon}
-              {opt.label}
+              {humanizeLabel(opt.label)}
             </button>
         );
       })}

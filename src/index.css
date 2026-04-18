@@ -5,55 +5,63 @@
 @tailwind components;
 @tailwind utilities;
 
-/* ─── CSS DESIGN TOKENS ──────────────────────────────────────────────────── */
 :root {
-  --bg-base:          #000000;
-  --bg-surface:       #000000;
-  --bg-elevated:      #000000;
-  --bg-overlay:       #050505;
-  --border:           #222222;
+  --bg-base: #050505;
+  --bg-surface: #0a0a0a;
+  --bg-elevated: #111111;
+  --bg-overlay: #161616;
+  --bg-subtle: #1b1b1b;
+  --border: #242424;
 
-  --text-primary:     #FFFFFF;
-  --text-secondary:   #CCCCCC;
-  --text-muted:       #666666;
-  --text-inverse:     #000000;
+  --text-primary: #f5f5f5;
+  --text-secondary: #b8b8b8;
+  --text-muted: #6a6a6a;
+  --text-inverse: #050505;
 
-  --color-up:         #00d084;
-  --color-down:       #ff3b57;
-  --color-warning:    #f5a623;
-  --color-info:       #FF7722;
-  --color-purple:     #b06aff;
+  --color-up: #00c978;
+  --color-down: #ff4d6d;
+  --color-warning: #c89b2c;
+  --color-info: #ff7a1a;
+  --color-purple: #9c6bff;
 
-  --interactive-hover:    #111111;
-  --interactive-selected: #1a110a;
-  --interactive-focus:    #FF7722;
+  --interactive-hover: #131313;
+  --interactive-selected: #1a1108;
+  --interactive-focus: #ff7a1a;
 
   --font-mono: "JetBrains Mono", monospace;
 
-  /* Typography scale — 11px floor */
-  --text-xs: 11px;
-  --text-sm: 12px;
-  --text-md: 12px;
-  --text-lg: 14px;
-  --text-xl: 16px;
+  --text-xs: 0.75rem;
+  --text-sm: 0.75rem;
+  --text-md: 0.875rem;
+  --text-lg: 1rem;
+  --text-xl: 1.25rem;
 
-  /* Row heights — user confirmed 32px */
-  --row-compact:  28px;
-  --row-default:  32px;
-  --row-relaxed:  36px;
-  --row-header:   32px;
-  --space-standard: 8px;
+  --row-compact: 1.625rem;
+  --row-default: 1.875rem;
+  --row-relaxed: 2.25rem;
+  --row-header: 1.375rem;
+  --space-standard: 0.5rem;
+
+  /* Nav button size — override to scale the entire navbar for accessibility */
+  --nav-btn-size: 2.75rem;
+
+  /* Tab bar strip — slightly lighter than content so selected tab (bg-base) recedes visually */
+  --bg-tabbar: #242424;
 }
 
-/* ─── BASE RESET ─────────────────────────────────────────────────────────── */
 @layer base {
   *, *::before, *::after { box-sizing: border-box; }
 
+  html {
+    font-size: 16px;
+  }
+
   body {
+    margin: 0;
     background: var(--bg-base);
     color: var(--text-primary);
     font-family: var(--font-mono);
-    font-size: 12px;
+    font-size: 1rem;
     line-height: 1.4;
     overflow-x: hidden;
     overflow-y: auto;
@@ -63,8 +71,15 @@
     -moz-osx-font-smoothing: grayscale;
   }
 
+  button,
+  input,
+  select,
+  textarea {
+    font: inherit;
+  }
+
   ::selection {
-    background: rgba(255, 119, 34, 0.25);
+    background: rgba(255, 122, 26, 0.25);
     color: var(--text-primary);
   }
 
@@ -74,39 +89,48 @@
   }
 }
 
-/* ─── SCROLLBAR ──────────────────────────────────────────────────────────── */
-::-webkit-scrollbar        { width: 3px; height: 3px; }
-::-webkit-scrollbar-track  { background: transparent; }
-::-webkit-scrollbar-thumb  { background: #333333; }
+::-webkit-scrollbar { width: 4px; height: 4px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--border); }
 ::-webkit-scrollbar-thumb:hover { background: var(--color-info); }
 
-/* ─── FLEXLAYOUT OVERRIDES ───────────────────────────────────────────────── */
+.no-scrollbar {
+  scrollbar-width: none;
+}
+
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
 .flexlayout__layout {
-  background: #000000 !important;
+  background: var(--bg-base) !important;
+  top: 4px !important;
+  left: 4px !important;
+  right: 4px !important;
+  bottom: 4px !important;
 }
 
 .flexlayout__tabset {
-  background: #000000 !important;
+  background: var(--bg-surface) !important;
   border: 1px solid var(--border) !important;
 }
 
 .flexlayout__tabset_header {
-  background: #000000 !important;
+  background: var(--bg-tabbar) !important;
   border-bottom: 1px solid var(--border) !important;
-  height: 32px !important;
-  min-height: 32px !important;
+  height: 28px !important;
+  min-height: 28px !important;
   padding: 0 !important;
 }
 
-.flexlayout__tabset_header--selected,
+/* Reset FlexLayout defaults — no background-color here so specific rules below take effect */
 div[class*="flexlayout__tabset_"] {
   background-image: none !important;
-  background-color: #000000 !important;
   box-shadow: none !important;
 }
 
 .flexlayout__tabset_header--selected {
-  background: #1c1c1c !important;
+  background: var(--bg-tabbar) !important;
 }
 
 .flexlayout__tabset_header_toolbar,
@@ -118,15 +142,17 @@ div[class*="flexlayout__tabset_"] {
   gap: 0 !important;
   margin: 0 !important;
   padding: 0 !important;
-  background: #000000 !important;
+  background: var(--bg-tabbar) !important;
   border: none !important;
 }
 
-/* Tabbar container bottom border - the header divider */
-.flexlayout__tabset_header,
+.flexlayout__tabset_header {
+  border-bottom: 1px solid var(--border) !important;
+}
+/* Tab bar: no bottom border — bg-tabbar vs bg-base contrast provides natural separation */
 .flexlayout__tabset_tabbar_outer_top,
 .flexlayout__tabset_tabbar_inner_tab_container {
-  border-bottom: 1px solid var(--border) !important;
+  border-bottom: none !important;
 }
 
 .flexlayout__tabset_tabbar_outer_top,
@@ -134,7 +160,7 @@ div[class*="flexlayout__tabset_"] {
   gap: 0 !important;
   margin: 0 !important;
   padding: 0 !important;
-  background: #000000 !important;
+  background: var(--bg-tabbar) !important;
   border-top: none !important;
   border-left: none !important;
   border-right: none !important;
@@ -154,7 +180,6 @@ div[class*="flexlayout__tabset_"] {
   outline: none !important;
 }
 
-/* Defeat dark.css nested specificity — force zero gap & padding on toolbars */
 html body :is(.flexlayout__tab_toolbar, .flexlayout__tabset_header_toolbar) {
   gap: 0 !important;
   padding: 0 !important;
@@ -186,14 +211,16 @@ div[class*="separator"] {
 .flexlayout__tabset_header_button,
 .flexlayout__tab_toolbar_button {
   background-color: transparent !important;
-  opacity: 1 !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
   color: inherit !important;
-  width: 32px !important;
-  height: 32px !important;
+  width: 28px !important;
+  height: 28px !important;
   display: flex !important;
   align-items: center !important;
   justify-content: center !important;
-  transition: all 120ms linear !important;
+  /* slow fade-out: 0.6s delay then 1.6s fade — feels like "a few seconds" */
+  transition: opacity 1.6s 0.6s linear, background 80ms linear !important;
   margin: 0 !important;
   padding: 0 !important;
   border-radius: 0 !important;
@@ -203,39 +230,56 @@ div[class*="separator"] {
   box-sizing: border-box !important;
 }
 
+/* Reveal instantly when hovering anywhere on the tab bar */
+.flexlayout__tabset_tabbar_outer_top:hover .flexlayout__tab_toolbar_button,
+.flexlayout__tabset_tabbar_outer_top:hover .flexlayout__tabset_header_button,
+.flexlayout__tabset_tabbar_outer:hover .flexlayout__tab_toolbar_button,
+.flexlayout__tabset_tabbar_outer:hover .flexlayout__tabset_header_button,
+.flexlayout__tabset_header:hover .flexlayout__tabset_header_button,
+.flexlayout__tabset_header:hover .flexlayout__tab_toolbar_button {
+  opacity: 1 !important;
+  pointer-events: auto !important;
+  transition: opacity 100ms linear !important;
+}
+
 .flexlayout__tabset_header_button:hover,
 .flexlayout__tab_toolbar_button:hover {
-  background-color: #111111 !important;
+  background-color: var(--interactive-hover) !important;
 }
 
 .flexlayout__tab_button {
-  height: 32px !important;
-  padding: 0 12px !important;
+  height: 28px !important;
+  padding: 0 10px !important;
   font-family: var(--font-mono) !important;
-  font-size: 12px !important;
-  font-weight: 700 !important;
-  letter-spacing: 0.02em !important;
+  font-size: 11px !important;
+  font-weight: 600 !important;
+  letter-spacing: 0.03em !important;
+  text-transform: none !important;
   color: var(--text-muted) !important;
   border: none !important;
   border-right: 1px solid var(--border) !important;
   border-radius: 0 !important;
   background: transparent !important;
-  transition: all 50ms linear !important;
+  transition: color 80ms linear, background 80ms linear !important;
 }
 
 .flexlayout__tab_button--selected {
-  color: #FFFFFF !important;
-  background: #1c1c1c !important;
+  color: var(--text-primary) !important;
+  background: var(--bg-base) !important;
   border-bottom: none !important;
+  border-right: none !important;
+  border-radius: 6px 6px 0 0 !important;
+  position: relative !important;
+  z-index: 1 !important;
 }
 
 .flexlayout__tab_button:hover:not(.flexlayout__tab_button--selected) {
   color: var(--text-primary) !important;
-  background: #080808 !important;
+  background: var(--interactive-hover) !important;
 }
 
 .flexlayout__tab_button_trailing {
-  opacity: 0 !important;
+  opacity: 0;
   color: var(--text-muted) !important;
   transition: opacity 80ms linear !important;
 }
@@ -246,24 +290,19 @@ div[class*="separator"] {
 }
 
 .flexlayout__tab {
-  background: #000000 !important;
+  background: var(--bg-base) !important;
   border: none !important;
   padding: 0 !important;
   overflow: hidden !important;
 }
 
 .flexlayout__splitter {
-  background: #111111 !important;
+  background: var(--border) !important;
   transition: background 80ms linear !important;
 }
 
-.flexlayout__splitter_vertical {
-  width: 2px !important;
-}
-
-.flexlayout__splitter_horizontal {
-  height: 2px !important;
-}
+.flexlayout__splitter_vertical { width: 2px !important; }
+.flexlayout__splitter_horizontal { height: 2px !important; }
 
 .flexlayout__splitter:hover,
 .flexlayout__splitter_drag {
@@ -271,43 +310,25 @@ div[class*="separator"] {
 }
 
 .flexlayout__drag_rect {
-  background: rgba(255, 119, 34, 0.06) !important;
+  background: rgba(255, 122, 26, 0.08) !important;
   border: 1px solid var(--color-info) !important;
   border-radius: 0 !important;
 }
 
-.flexlayout__tabset_header_inner {
-  padding: 0 !important;
-}
-
+.flexlayout__tabset_header_inner,
 .flexlayout__tabset_tabbar_inner_tab_container {
   padding: 0 !important;
 }
 
-/* ─── WINDOW CONTROL ICONS ──────────────────────────────────────────────── */
-/* Legacy block removed - styles now handled in the main FlexLayout overrides block above */
-
-/* Close button on tabs */
-.flexlayout__tab_button_trailing {
-  color: #FFFFFF !important;
-  opacity: 0.6 !important;
-}
-
-.flexlayout__tab_button:hover .flexlayout__tab_button_trailing {
-  opacity: 1 !important;
-}
-
-/* Tab insert animation */
 .flexlayout__tab_button--inserted {
-  animation: tabInsert 200ms cubic-bezier(0.0, 0.0, 0.2, 1.0) forwards;
+  animation: tabInsert 160ms linear forwards;
 }
 
 @keyframes tabInsert {
-  from { opacity: 0; transform: translateX(-6px); }
-  to   { opacity: 1; transform: translateX(0); }
+  from { opacity: 0; transform: translateX(-4px); }
+  to { opacity: 1; transform: translateX(0); }
 }
 
-/* ─── WATCHLIST ROW STYLES ───────────────────────────────────────────────── */
 .wl-row .row-actions {
   transform: translateX(100%);
   opacity: 0;
@@ -320,38 +341,40 @@ div[class*="separator"] {
   opacity: 1;
 }
 
-/* ─── PRICE FLASH ────────────────────────────────────────────────────────── */
 .price-flash-up {
-  animation: flashUp 600ms cubic-bezier(0.25, 0.1, 0.25, 1) forwards;
+  animation: flashUp 600ms linear forwards;
 }
+
 .price-flash-down {
-  animation: flashDown 600ms cubic-bezier(0.25, 0.1, 0.25, 1) forwards;
+  animation: flashDown 600ms linear forwards;
 }
 
 @keyframes flashUp {
-  0%   { color: #00d084; }
-  100% { color: inherit; }
-}
-@keyframes flashDown {
-  0%   { color: #ff3b57; }
+  0% { color: var(--color-up); }
   100% { color: inherit; }
 }
 
-/* ─── MOVERS TICKER ──────────────────────────────────────────────────────── */
+@keyframes flashDown {
+  0% { color: var(--color-down); }
+  100% { color: inherit; }
+}
+
 @keyframes marquee {
   from { transform: translateX(0); }
-  to   { transform: translateX(-33.333%); }
+  to { transform: translateX(-33.333%); }
+}
+
+.marquee-container,
+.ticker-scroll {
+  width: max-content;
+  display: flex;
+  gap: 0;
 }
 
 .marquee-container {
-  display: flex;
   animation: marquee 35s linear infinite;
-  width: max-content;
 }
 
 .ticker-scroll {
   animation: marquee 45s linear infinite;
-  width: max-content;
-  display: flex;
-  gap: 0;
 }

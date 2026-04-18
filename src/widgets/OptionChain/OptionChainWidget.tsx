@@ -379,7 +379,9 @@ export const OptionChainWidget: React.FC = () => {
                                         }} style={{ padding: '8px 12px', cursor: 'pointer', display: 'flex', justifyContent: 'space-between', boxSizing: 'border-box' }} className="hover:bg-interactive-hover transition-colors">
                                             <div style={{ display: 'flex', flexDirection: 'column' }}>
                                                 <span style={{ fontWeight: TYPE.weight.black, fontSize: TYPE.size.xs }}>{res.ticker}</span>
-                                                <span style={{ fontSize: TYPE.size.xs, color: COLOR.text.muted, fontWeight: TYPE.weight.bold }}>{res.name}</span>
+                                                {res.name && res.name !== res.ticker && (
+                                                  <span style={{ fontSize: TYPE.size.xs, color: COLOR.text.muted, fontWeight: TYPE.weight.bold }}>{res.name}</span>
+                                                )}
                                             </div>
                                             <Badge label={res.exchange} variant="exchange-nse" />
                                         </div>

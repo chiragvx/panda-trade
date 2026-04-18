@@ -1,143 +1,192 @@
-import React, { useEffect, useRef, useState, useLayoutEffect } from 'react';
-import { createChart, IChartApi, ColorType, ISeriesApi, PriceScaleMode } from 'lightweight-charts';
+import React, { useEffect, useRef, useState } from 'react';
+import { createChart, IChartApi, ColorType, ISeriesApi, PriceScaleMode, LineStyle } from 'lightweight-charts';
 import { COLOR, TYPE } from '../../ds/tokens';
 import { useContextMenuStore } from '../../store/useContextMenuStore';
-import { Copy, Pencil, Minus, Square, Type, Circle, Trash2 } from 'lucide-react';
+import { Copy } from 'lucide-react';
+
+const MARKET_TIMEZONE = 'Asia/Kolkata';
+
+const formatInMarketTz = (date: Date, options: Intl.DateTimeFormatOptions) =>
+  new Intl.DateTimeFormat('en-IN', { timeZone: MARKET_TIMEZONE, ...options }).format(date);
+
+const toUnixSeconds = (time: any): number => {
+  if (typeof time === 'number') return time;
+  if (time && typeof time === 'object' && 'timestamp' in time) return Number(time.timestamp);
+  return 0;
+};
+
+const isIntradayInterval = (interval: string) => interval.includes('minute');
+
+const buildTimeFormatter = (interval: string, range: string) => (time: any) => {
+  const date = new Date(toUnixSeconds(time) * 1000);
+
+  if (interval === 'month' || range === 'MAX' || range === '5Y') {
+    return formatInMarketTz(date, { month: 'short', year: 'numeric' });
+  }
+
+  if (!isIntradayInterval(interval)) {
+    return formatInMarketTz(date, { day: '2-digit', month: 'short', year: 'numeric' });
+  }
+
+  return formatInMarketTz(date, {
+    day: '2-digit',
+    month: 'short',
+    hour: '2-digit',
+    minute: '2-digit',
+    hour12: false,
+  });
+};
+
+const buildTickMarkFormatter = (interval: string, range: string) => (time: any) => {
+  const date = new Date(toUnixSeconds(time) * 1000);
+
+  if (interval === 'month' || range === 'MAX' || range === '5Y') {
+    return formatInMarketTz(date, { month: 'short', year: '2-digit' });
+  }
+
+  if (!isIntradayInterval(interval)) {
+    if (range === '1M') {
+      return formatInMarketTz(date, { day: 'numeric', month: 'short' });
+    }
+
+    if (range === '6M' || range === 'YTD' || range === '1Y') {
+      return formatInMarketTz(date, { month: 'short' });
+    }
+
+    return formatInMarketTz(date, { month: 'short', year: '2-digit' });
+  }
+
+  return formatInMarketTz(date, { hour: '2-digit', minute: '2-digit', hour12: false });
+};
 
 interface ComparisonSeriesData {
   id: string;
   ticker: string;
+  color: string;
   data: any[];
 }
 
 interface IndicatorSeriesData {
   id: string;
   type: string;
-  lines: { 
-    id: string; 
-    data: any[]; 
-    color: string; 
+  lines: {
+    id: string;
+    data: any[];
+    color: string;
     type?: 'line' | 'histogram';
     lineStyle?: number;
   }[];
   pane?: 'main' | 'own';
 }
-interface Drawing {
-  id: string;
-  type: 'line' | 'rect' | 'circle' | 'text';
-  points: { time: number; price: number }[];
-  color: string;
-}
 
 interface TradingViewChartProps {
-  data: any[]; // OHLCV
-  volumeData?: any[]; // { time, value, color }
+  data: any[];
+  volumeData?: any[];
   comparisonData?: ComparisonSeriesData[];
   indicators?: IndicatorSeriesData[];
   isLoading?: boolean;
   chartType: 'candle' | 'line';
+  interval: string;
+  range: string;
 }
 
-/**
- * TradingViewChart — native high-performance canvas chart.
- * - Supports OVERLAID comparison mode.
- * - Supports Volume Histograms (separate scale).
- * - Supports Dynamic Indicators (SMA, EMA, RSI).
- */
-export const TradingViewChart: React.FC<TradingViewChartProps> = ({ 
-  data, 
+export const TradingViewChart: React.FC<TradingViewChartProps> = ({
+  data,
   volumeData = [],
-  comparisonData = [], 
+  comparisonData = [],
   indicators = [],
-  isLoading, 
-  chartType 
+  isLoading,
+  chartType,
+  interval,
+  range,
 }) => {
   const chartContainerRef = useRef<HTMLDivElement>(null);
   const chartRef = useRef<IChartApi | null>(null);
-  const candlestickSeriesRef = useRef<ISeriesApi<"Candlestick"> | null>(null);
-  const areaSeriesRef = useRef<ISeriesApi<"Area"> | null>(null);
-  const volumeSeriesRef = useRef<ISeriesApi<"Histogram"> | null>(null);
-  const compareSeriesRefs = useRef<Map<string, ISeriesApi<"Line">>>(new Map());
-  const indicatorSeriesRefs = useRef<Map<string, ISeriesApi<"Line">>>(new Map());
-  
+  const candlestickSeriesRef = useRef<ISeriesApi<'Candlestick'> | null>(null);
+  const lineSeriesRef = useRef<ISeriesApi<'Line'> | null>(null);
+  const areaSeriesRef = useRef<ISeriesApi<'Area'> | null>(null);
+  const volumeSeriesRef = useRef<ISeriesApi<'Histogram'> | null>(null);
+  const compareSeriesRefs = useRef<Map<string, ISeriesApi<'Line'>>>(new Map());
+  const indicatorSeriesRefs = useRef<Map<string, ISeriesApi<'Line'>>>(new Map());
+
   const { openContextMenu } = useContextMenuStore();
   const [lastPriceUnderCursor, setLastPriceUnderCursor] = useState<number | null>(null);
 
-  // Initialize Chart
+  // ── Initialize chart (once) ────────────────────────────────────────────────
   useEffect(() => {
     if (!chartContainerRef.current) return;
 
     const chart = createChart(chartContainerRef.current, {
       layout: {
-        background: { type: ColorType.Solid, color: COLOR.bg.base },
+        background: { type: ColorType.Solid, color: '#000000' },
         textColor: COLOR.text.muted,
-        fontFamily: 'JetBrains Mono, Inter, system-ui',
+        fontFamily: TYPE.family.mono,
+        fontSize: 11,
       },
       grid: {
-        vertLines: { color: 'rgba(255, 255, 255, 0.07)', style: 1 }, // Dashed
-        horzLines: { color: 'rgba(255, 255, 255, 0.07)', style: 1 }, // Dashed
+        // Bloomberg: horizontal dashed only, no vertical grid
+        vertLines: { visible: false },
+        horzLines: { color: '#1a1a1a', style: LineStyle.Dashed },
       },
       width: chartContainerRef.current.clientWidth || 600,
       height: chartContainerRef.current.clientHeight || 400,
       localization: {
-          timeFormatter: (time: any) => {
-              const ts = typeof time === 'number' ? time : (time as any).timestamp;
-              const date = new Date(ts * 1000);
-              return date.toLocaleString('en-IN', {
-                  timeZone: 'Asia/Kolkata',
-                  hour: '2-digit', minute: '2-digit', hour12: false,
-                  day: '2-digit', month: 'short'
-              });
-          },
+        timeFormatter: buildTimeFormatter(interval, range),
       },
       timeScale: {
-        borderColor: COLOR.bg.border,
-        timeVisible: true,
+        borderColor: '#1e1e1e',
+        timeVisible: isIntradayInterval(interval),
         secondsVisible: false,
-        rightOffset: 12,
+        rightOffset: 14,
         shiftVisibleRangeOnNewBar: false,
-        tickMarkFormatter: (time: any) => {
-            const date = new Date(time * 1000);
-            return date.toLocaleString('en-IN', {
-                timeZone: 'Asia/Kolkata',
-                hour: '2-digit', minute: '2-digit', hour12: false
-            });
-        },
+        tickMarkFormatter: buildTickMarkFormatter(interval, range),
       },
       rightPriceScale: {
-        borderColor: COLOR.bg.border,
+        borderColor: '#1e1e1e',
         autoScale: true,
+        scaleMargins: { top: 0.05, bottom: 0.08 },
       },
       leftPriceScale: {
-        borderColor: COLOR.bg.border,
-        visible: false, // For oscillators or secondary data
+        borderColor: '#1e1e1e',
+        visible: false,
       },
       crosshair: {
         mode: 0,
-        vertLine: { labelBackgroundColor: COLOR.semantic.info, labelVisible: true },
-        horzLine: { labelBackgroundColor: COLOR.semantic.info, labelVisible: true },
+        vertLine: {
+          color: '#333333',
+          style: LineStyle.Dashed,
+          labelBackgroundColor: COLOR.semantic.info,
+          labelVisible: true,
+        },
+        horzLine: {
+          color: '#333333',
+          style: LineStyle.Dashed,
+          labelBackgroundColor: COLOR.semantic.info,
+          labelVisible: true,
+        },
       },
     });
 
     chartRef.current = chart;
 
     const resizeObserver = new ResizeObserver(entries => {
-        if (entries[0] && chartRef.current) {
-            const { width, height } = entries[0].contentRect;
-            chartRef.current.applyOptions({ width, height });
-        }
+      if (entries[0] && chartRef.current) {
+        const { width, height } = entries[0].contentRect;
+        chartRef.current.applyOptions({ width, height });
+      }
     });
     resizeObserver.observe(chartContainerRef.current);
 
-    chart.subscribeCrosshairMove((param) => {
-        let price = null;
-        if (param.point && param.seriesData) {
-            if (candlestickSeriesRef.current) {
-                const d = param.seriesData.get(candlestickSeriesRef.current) as any;
-                if (d) price = d.close;
-            }
+    chart.subscribeCrosshairMove(param => {
+      let price: number | null = null;
+      if (param.point && param.seriesData) {
+        const mainSeries = candlestickSeriesRef.current || areaSeriesRef.current || lineSeriesRef.current;
+        if (mainSeries) {
+          const d = param.seriesData.get(mainSeries) as any;
+          if (d) price = d.close ?? d.value ?? null;
         }
-        setLastPriceUnderCursor(price);
+      }
+      setLastPriceUnderCursor(price);
     });
 
     return () => {
@@ -147,160 +196,179 @@ export const TradingViewChart: React.FC<TradingViewChartProps> = ({
     };
   }, []);
 
-  // Handle All Data Series (Main, Volume, Compare, Indicators)
   useEffect(() => {
-     if (!chartRef.current) return;
-     const chart = chartRef.current;
-     const isComparing = (comparisonData && comparisonData.length > 0) || (indicators && indicators.some(i => i.pane === 'own'));
+    if (!chartRef.current) return;
 
-     // Switch to Percentage Scaling when comparing or multiple panes
-     chart.priceScale('right').applyOptions({
-         mode: isComparing ? PriceScaleMode.Percentage : PriceScaleMode.Normal
-     });
+    chartRef.current.applyOptions({
+      localization: {
+        timeFormatter: buildTimeFormatter(interval, range),
+      },
+      timeScale: {
+        timeVisible: isIntradayInterval(interval),
+        secondsVisible: false,
+        tickMarkFormatter: buildTickMarkFormatter(interval, range),
+      },
+    });
+  }, [interval, range]);
 
-     // 1. Candlestick / Area
-     try {
-       if (candlestickSeriesRef.current) { chart.removeSeries(candlestickSeriesRef.current); candlestickSeriesRef.current = null; }
-       if (areaSeriesRef.current) { chart.removeSeries(areaSeriesRef.current); areaSeriesRef.current = null; }
-     } catch (e) {}
+  // ── Rebuild series whenever data/type/comparisons change ───────────────────
+  useEffect(() => {
+    if (!chartRef.current) return;
+    const chart = chartRef.current;
+    const hasComparisons = comparisonData && comparisonData.length > 0;
+    const hasOwnPaneIndicators = indicators && indicators.some(i => i.pane === 'own');
+    const isNormalizedMode = hasComparisons || hasOwnPaneIndicators;
 
-     if (chartType === 'candle') {
-        const series = chart.addCandlestickSeries({
-            upColor: COLOR.semantic.up,
-            downColor: COLOR.semantic.down,
-            wickUpColor: COLOR.semantic.up,
-            wickDownColor: COLOR.semantic.down,
-            borderVisible: false,
+    // Switch price scale mode
+    chart.priceScale('right').applyOptions({
+      mode: isNormalizedMode ? PriceScaleMode.Percentage : PriceScaleMode.Normal,
+    });
+
+    // 1. Remove previous main series
+    try {
+      if (candlestickSeriesRef.current) { chart.removeSeries(candlestickSeriesRef.current); candlestickSeriesRef.current = null; }
+      if (areaSeriesRef.current) { chart.removeSeries(areaSeriesRef.current); areaSeriesRef.current = null; }
+      if (lineSeriesRef.current) { chart.removeSeries(lineSeriesRef.current); lineSeriesRef.current = null; }
+    } catch {}
+
+    // 2. Add main series
+    if (chartType === 'candle' && !hasComparisons) {
+      // Candlestick — only when not comparing (Bloomberg: line when normalized)
+      const series = chart.addCandlestickSeries({
+        upColor: COLOR.semantic.up,
+        downColor: COLOR.semantic.down,
+        wickUpColor: COLOR.semantic.up,
+        wickDownColor: COLOR.semantic.down,
+        borderVisible: false,
+      });
+      candlestickSeriesRef.current = series;
+      if (data?.length) series.setData(data);
+    } else if (hasComparisons) {
+      // Comparison mode: solid orange line for primary (Bloomberg style)
+      const series = chart.addLineSeries({
+        color: COLOR.semantic.info,
+        lineWidth: 2,
+        lastValueVisible: true,
+        priceLineVisible: false,
+        crosshairMarkerVisible: true,
+        crosshairMarkerRadius: 4,
+      });
+      lineSeriesRef.current = series;
+      if (data?.length) series.setData(data.map(d => ({ time: d.time, value: d.close })));
+    } else {
+      // Single line / area mode
+      const series = chart.addAreaSeries({
+        lineColor: COLOR.semantic.info,
+        topColor: `${COLOR.semantic.info}22`,
+        bottomColor: 'transparent',
+        lineWidth: 2,
+        lastValueVisible: true,
+        priceLineVisible: false,
+      });
+      areaSeriesRef.current = series;
+      if (data?.length) series.setData(data.map(d => ({ time: d.time, value: d.close })));
+    }
+
+    // 3. Volume histogram
+    if (volumeSeriesRef.current) {
+      try { chart.removeSeries(volumeSeriesRef.current); } catch {}
+      volumeSeriesRef.current = null;
+    }
+    if (volumeData?.length && !hasComparisons) {
+      const vSeries = chart.addHistogramSeries({
+        color: '#26a69a',
+        priceFormat: { type: 'volume' },
+        priceScaleId: 'volume',
+      });
+      chart.priceScale('volume').applyOptions({ scaleMargins: { top: 0.85, bottom: 0 } });
+      vSeries.setData(volumeData);
+      volumeSeriesRef.current = vSeries;
+    }
+
+    // 4. Comparison line series (Bloomberg blues)
+    compareSeriesRefs.current.forEach(s => { try { chart.removeSeries(s); } catch {} });
+    compareSeriesRefs.current.clear();
+    (comparisonData || []).forEach(cd => {
+      const series = chart.addLineSeries({
+        color: cd.color,
+        lineWidth: 1,
+        title: cd.ticker,
+        lastValueVisible: true,
+        priceLineVisible: false,
+        crosshairMarkerVisible: true,
+        crosshairMarkerRadius: 3,
+      });
+      series.setData(cd.data.map(d => ({ time: d.time, value: d.close })));
+      compareSeriesRefs.current.set(cd.id, series);
+    });
+
+    // 5. Technical indicators
+    indicatorSeriesRefs.current.forEach(s => { try { chart.removeSeries(s); } catch {} });
+    indicatorSeriesRefs.current.clear();
+    (indicators || []).forEach(ind => {
+      const priceScaleId = ind.pane === 'own' ? 'left' : 'right';
+      if (ind.pane === 'own') {
+        chart.priceScale('left').applyOptions({
+          visible: true,
+          scaleMargins: { top: 0.75, bottom: 0.05 },
+          borderColor: '#1e1e1e',
         });
-        candlestickSeriesRef.current = series;
-        if (data && data.length > 0) series.setData(data);
-     } else {
-        const series = chart.addAreaSeries({
-            lineColor: COLOR.semantic.info,
-            topColor: `${COLOR.semantic.info}33`,
-            bottomColor: 'transparent',
-            lineWidth: 2,
-        });
-        areaSeriesRef.current = series;
-        if (data && data.length > 0) series.setData(data.map(d => ({ time: d.time, value: d.close })));
-     }
+        chart.priceScale('right').applyOptions({ scaleMargins: { top: 0.05, bottom: 0.3 } });
+      }
+      ind.lines.forEach(line => {
+        if (line.type === 'histogram') {
+          const series = chart.addHistogramSeries({ priceScaleId });
+          series.setData(line.data);
+          indicatorSeriesRefs.current.set(`${ind.id}_${line.id}`, series as any);
+        } else {
+          const series = chart.addLineSeries({ color: line.color, lineWidth: 1, priceScaleId });
+          series.setData(line.data);
+          indicatorSeriesRefs.current.set(`${ind.id}_${line.id}`, series as any);
+        }
+      });
+    });
 
-     // 2. Volume
-     if (volumeSeriesRef.current) {
-         try { chart.removeSeries(volumeSeriesRef.current); } catch (e) {}
-         volumeSeriesRef.current = null;
-     }
-     if (volumeData && volumeData.length > 0) {
-         const vSeries = chart.addHistogramSeries({
-             color: '#26a69a',
-             priceFormat: { type: 'volume' },
-             priceScaleId: 'volume', // Hidden overlay scale
-         });
-         chart.priceScale('volume').applyOptions({
-             scaleMargins: { top: 0.8, bottom: 0 },
-         });
-         vSeries.setData(volumeData);
-         volumeSeriesRef.current = vSeries;
-     }
-
-     // 3. Comparisons
-     compareSeriesRefs.current.forEach(s => { try { chart.removeSeries(s); } catch (e) {} });
-     compareSeriesRefs.current.clear();
-     comparisonData.forEach((cd, idx) => {
-         const colors = ['#f59e0b', '#ec4899', '#8b5cf6', '#10b981'];
-         const series = chart.addLineSeries({ color: colors[idx % colors.length], lineWidth: 2, title: cd.ticker });
-         series.setData(cd.data.map(d => ({ time: d.time, value: d.close })));
-         compareSeriesRefs.current.set(cd.id, series);
-     });
-
-     // 4. Indicators
-     indicatorSeriesRefs.current.forEach(s => { try { chart.removeSeries(s); } catch (e) {} });
-     indicatorSeriesRefs.current.clear();
-
-     indicators.forEach(ind => {
-         const priceScaleId = ind.pane === 'own' ? 'left' : 'right';
-         
-         if (ind.pane === 'own') {
-             chart.priceScale('left').applyOptions({ 
-                 visible: true, 
-                 scaleMargins: { top: 0.75, bottom: 0.05 },
-                 borderColor: COLOR.bg.border,
-             });
-             // Push the main series up slightly when an oscillator is visible
-             chart.priceScale('right').applyOptions({
-                 scaleMargins: { top: 0.05, bottom: 0.3 }
-             });
-         }
-
-         ind.lines.forEach(line => {
-             if (line.type === 'histogram') {
-                 const series = chart.addHistogramSeries({
-                     priceScaleId: priceScaleId,
-                 });
-                 series.setData(line.data);
-                 indicatorSeriesRefs.current.set(`${ind.id}_${line.id}`, series as any);
-             } else {
-                  const series = chart.addLineSeries({
-                      color: line.color,
-                      lineWidth: 2,
-                      priceScaleId: priceScaleId,
-                  });
-                 series.setData(line.data);
-                 indicatorSeriesRefs.current.set(`${ind.id}_${line.id}`, series as any);
-             }
-         });
-     });
-
-     // Reset right scale if no oscillators
-     if (!indicators.some(i => i.pane === 'own')) {
-         chart.priceScale('left').applyOptions({ visible: false });
-         chart.priceScale('right').applyOptions({
-             scaleMargins: { top: 0.05, bottom: 0.05 }
-         });
-     }
-
-     // Only auto-fit once if requested or on major data change
-     // Moving fitContent out of the data dependency to prevent "locking" on updates
+    // Reset scales when no oscillators
+    if (!(indicators || []).some(i => i.pane === 'own')) {
+      chart.priceScale('left').applyOptions({ visible: false });
+      chart.priceScale('right').applyOptions({ scaleMargins: { top: 0.05, bottom: 0.05 } });
+    }
   }, [chartType, data, volumeData, comparisonData, indicators]);
 
-  // Initial Auto-Fit only when container or major scale changes
+  // Auto-fit on first data load
   useEffect(() => {
     if (chartRef.current && data.length > 0) {
-        chartRef.current.timeScale().fitContent();
+      chartRef.current.timeScale().fitContent();
     }
-  }, [data.length === 0]); 
+  }, [data.length === 0]);
 
   const handleContextMenu = (e: React.MouseEvent) => {
     e.preventDefault();
     openContextMenu(e.clientX, e.clientY, [
       {
-          label: `COPY PRICE ${lastPriceUnderCursor?.toFixed(2) || ''}`,
-          icon: <Copy size={14} />,
-          onClick: () => {
-              if (lastPriceUnderCursor) {
-                  navigator.clipboard.writeText(lastPriceUnderCursor.toFixed(2));
-              }
-          }
+        label: `COPY PRICE ${lastPriceUnderCursor?.toFixed(2) ?? ''}`,
+        icon: <Copy size={14} />,
+        onClick: () => { if (lastPriceUnderCursor) navigator.clipboard.writeText(lastPriceUnderCursor.toFixed(2)); },
       },
       {
-          label: 'RESET SCALE',
-          onClick: () => chartRef.current?.timeScale().fitContent()
-      }
+        label: 'RESET SCALE',
+        onClick: () => chartRef.current?.timeScale().fitContent(),
+      },
     ]);
   };
 
   return (
-    <div 
-        style={{ position: 'relative', width: '100%', height: '100%', display: 'flex' }}
-        onContextMenuCapture={handleContextMenu}
+    <div
+      style={{ position: 'relative', width: '100%', height: '100%', display: 'flex' }}
+      onContextMenuCapture={handleContextMenu}
     >
       <div style={{ flex: 1, position: 'relative' }}>
-          <div ref={chartContainerRef} style={{ width: '100%', height: '100%' }} />
-          {isLoading && (
-              <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(0,0,0,0.2)', zIndex: 10, backdropFilter: 'blur(1px)' }}>
-                  <div style={{ width: '16px', height: '16px', border: '2px solid rgba(255,255,255,0.1)', borderTopColor: COLOR.semantic.info, borderRadius: '50%', animation: 'spin 1s linear infinite' }} />
-              </div>
-          )}
+        <div ref={chartContainerRef} style={{ width: '100%', height: '100%' }} />
+        {isLoading && (
+          <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(0,0,0,0.4)', zIndex: 10 }}>
+            <div style={{ width: '16px', height: '16px', border: '2px solid rgba(255,255,255,0.1)', borderTopColor: COLOR.semantic.info, borderRadius: '50%', animation: 'spin 1s linear infinite' }} />
+          </div>
+        )}
       </div>
     </div>
   );
