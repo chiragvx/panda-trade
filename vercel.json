@@ -5,6 +5,10 @@
       "destination": "https://firms.modaps.eosdis.nasa.gov/data/active_fire/viirs-snpp-nrt/csv/VNP14IMGTDL_NRT_Global_24h.csv"
     },
     {
+      "source": "/api/flightaware/:path*",
+      "destination": "https://aeroapi.flightaware.com/aeroapi/:path*"
+    },
+    {
       "source": "/(.*)",
       "destination": "/index.html"
     }

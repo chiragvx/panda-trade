@@ -70,6 +70,8 @@ const AirTraffic: React.FC = () => {
   const [statusFilter, setStatusFilter] = useState<'AIR' | 'GND' | 'ALL'>('AIR');
   const [mapBounds, setMapBounds] = useState<MapBounds | null>(null);
   const isFetchingRef = useRef(false);
+  const mapBoundsRef = useRef<MapBounds | null>(null);
+  const statusFilterRef = useRef<'AIR' | 'GND' | 'ALL'>('AIR');
 
   const fetchFlights = useCallback(async (bounds: MapBounds, filterStatus: string) => {
     const key = (flightAwareApiKey || '').trim();
@@ -86,7 +88,7 @@ const AirTraffic: React.FC = () => {
     if (filterStatus === 'AIR') query += ` -inAir 1`;
     else if (filterStatus === 'GND') query += ` -inAir 0`;
     
-    const url = `/api/flightaware/flights/search?query=${encodeURIComponent(query)}&max_pages=1`;
+    const url = `/api/flightaware/flights/search?query=${encodeURIComponent(query)}&max_pages=34`;
 
     try {
       const r = await axios.get(url, { 
@@ -97,6 +99,7 @@ const AirTraffic: React.FC = () => {
       if (r.data?.flights) {
         const mapped: AircraftState[] = r.data.flights.map((f: any) => {
             const pos = f.last_position || f;
+            const rawAlt = pos.altitude ?? pos.alt ?? 0;
             return {
               fa_flight_id: f.fa_flight_id || f.faFlightId,
               ident: f.ident || 'UNK',
@@ -104,7 +107,7 @@ const AirTraffic: React.FC = () => {
               aircraft_type: f.aircraft_type || 'TBD',
               longitude: pos.longitude || pos.lon || 0,
               latitude: pos.latitude || pos.lat || 0,
-              altitude: (pos.altitude || pos.alt || 0) * (pos.altitude < 1000 ? 100 : 1),
+              altitude: rawAlt * (rawAlt < 1000 ? 100 : 1),
               groundspeed: pos.groundspeed || pos.gs || 0,
               heading: pos.heading || 0,
               origin: f.origin?.code || f.origin || 'N/A',
@@ -129,12 +132,25 @@ const AirTraffic: React.FC = () => {
     }
   }, [flightAwareApiKey]);
 
+  useEffect(() => { mapBoundsRef.current = mapBounds; }, [mapBounds]);
+  useEffect(() => { statusFilterRef.current = statusFilter; }, [statusFilter]);
+
   useEffect(() => {
     if (flightAwareApiKey && mapBounds) {
-        const timer = setTimeout(() => fetchFlights(mapBounds, statusFilter), 800);
-        return () => clearTimeout(timer);
+      const timer = setTimeout(() => fetchFlights(mapBounds, statusFilter), 800);
+      return () => clearTimeout(timer);
     }
   }, [flightAwareApiKey, mapBounds, statusFilter, fetchFlights]);
+
+  useEffect(() => {
+    if (!flightAwareApiKey) return;
+    const id = setInterval(() => {
+      if (document.visibilityState === 'visible' && mapBoundsRef.current) {
+        fetchFlights(mapBoundsRef.current, statusFilterRef.current);
+      }
+    }, 30_000);
+    return () => clearInterval(id);
+  }, [flightAwareApiKey, fetchFlights]);
 
   const filteredFlights = useMemo(() =>
     flights.filter(f => f.ident.toLowerCase().includes(search.toLowerCase())),

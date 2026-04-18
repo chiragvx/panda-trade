@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { motion, useScroll, useTransform } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { Activity, Anchor, ChevronRight, Command, Layout, ShieldCheck, Zap } from 'lucide-react';
@@ -9,6 +9,40 @@ const LandingPage: React.FC = () => {
   const navigate = useNavigate();
   const { scrollYProgress } = useScroll();
   const previewY = useTransform(scrollYProgress, [0, 0.3], [48, 0]);
+
+  useEffect(() => {
+    document.title = 'PandaTrade | Upstox API Trading Terminal for Indian Markets';
+
+    const ensureMeta = (name: string, content: string, property = false) => {
+      const selector = property ? `meta[property="${name}"]` : `meta[name="${name}"]`;
+      let tag = document.head.querySelector(selector) as HTMLMetaElement | null;
+      if (!tag) {
+        tag = document.createElement('meta');
+        if (property) {
+          tag.setAttribute('property', name);
+        } else {
+          tag.setAttribute('name', name);
+        }
+        document.head.appendChild(tag);
+      }
+      tag.setAttribute('content', content);
+    };
+
+    ensureMeta(
+      'description',
+      'PandaTrade is an Upstox API trading terminal for Indian markets with live watchlists, charts, options chain, orders, positions, holdings, and desktop-first workflows.'
+    );
+    ensureMeta(
+      'keywords',
+      'Upstox API, Upstox trading terminal, Upstox API trading app, Indian stock market terminal, options chain Upstox, trading dashboard India, watchlist orders positions holdings'
+    );
+    ensureMeta('og:title', 'PandaTrade | Upstox API Trading Terminal for Indian Markets', true);
+    ensureMeta(
+      'og:description',
+      'Desktop-first trading terminal built around the Upstox API with watchlists, charts, options chain, orders, positions, and holdings.',
+      true
+    );
+  }, []);
 
   return (
     <div style={{ minHeight: '100vh', background: COLOR.bg.base, color: COLOR.text.primary, fontFamily: TYPE.family.mono, overflowX: 'hidden' }}>
@@ -31,12 +65,12 @@ const LandingPage: React.FC = () => {
         <BrandLockup
           logo={<img src={logoSvg} alt="PandaTrade" style={{ height: '1.125rem', objectFit: 'contain' }} />}
           title="Pandatrade"
-          subtitle="Terminal-native trading workspace"
+          subtitle="Upstox API trading terminal"
           tone="accent"
         />
 
         <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: SPACE[3] }}>
-          <StatusWrapper label="Base 16 system" tone="accent" />
+          <StatusWrapper label="Built for Indian markets" tone="accent" />
           <Button variant="accent" size="sm" onClick={() => navigate('/app')}>
             Open app
           </Button>
@@ -61,7 +95,7 @@ const LandingPage: React.FC = () => {
           <div>
             <div style={{ display: 'flex', alignItems: 'center', gap: SPACE[2], marginBottom: SPACE[4], flexWrap: 'wrap' }}>
               <KeyBadge keys="CTRL + K" />
-              <StatusWrapper label="Terminal-first design system" tone="accent" />
+              <StatusWrapper label="Built around the Upstox API" tone="accent" />
             </div>
 
             <motion.h1
@@ -78,9 +112,9 @@ const LandingPage: React.FC = () => {
                 maxWidth: '46rem',
               }}
             >
-              Trading terminal.
+              Upstox API
               <br />
-              <span style={{ color: COLOR.semantic.info }}>System shell.</span>
+              <span style={{ color: COLOR.semantic.info }}>trading terminal.</span>
             </motion.h1>
 
             <motion.p
@@ -91,12 +125,12 @@ const LandingPage: React.FC = () => {
               style={{
                 fontSize: TYPE.size.lg,
                 color: COLOR.text.secondary,
-                maxWidth: '36rem',
+                maxWidth: '38rem',
                 margin: `${SPACE[4]} 0 ${SPACE[5]} 0`,
                 lineHeight: TYPE.lineHeight.relaxed,
               }}
             >
-              A modular market workstation built around flat chrome, dense data, and registry-driven widget shells. No glossy cards. No soft UI. Just terminal-grade clarity.
+              PandaTrade is a desktop-first trading terminal for Indian markets with Upstox API connectivity, live watchlists, charting, options chain workflows, and fast access to orders, positions, and holdings.
             </motion.p>
 
             <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.24 }} style={{ display: 'flex', gap: SPACE[3], flexWrap: 'wrap' }}>
@@ -104,16 +138,16 @@ const LandingPage: React.FC = () => {
                 Enter terminal <ChevronRight size={14} style={{ marginLeft: SPACE[1] }} />
               </Button>
               <Button variant="ghost" size="md" onClick={() => navigate('/api')}>
-                View connectivity
+                Login with Upstox
               </Button>
             </motion.div>
           </div>
 
           <div style={{ display: 'grid', gap: SPACE[3] }}>
-            <MetricWrapper label="Widget registry" value="Type + instance overrides" tone="accent" />
-            <MetricWrapper label="Typography" value="12 / 14 / 16 / 20 / 24 / 32 / 40" />
-            <MetricWrapper label="Spacing" value="2 / 4 / 8 / 12 / 16 / 20 / 24 / 32" />
-            <StatusWrapper label="Pure flat edges" tone="up" />
+            <MetricWrapper label="Broker connectivity" value="Upstox API login + session flow" tone="accent" />
+            <MetricWrapper label="Workspace" value="Watchlist, chart, orders, positions, holdings" />
+            <MetricWrapper label="Market tools" value="Options chain, symbol search, terminal widgets" />
+            <StatusWrapper label="Desktop-first trading workflow" tone="up" />
           </div>
         </div>
 
@@ -132,7 +166,7 @@ const LandingPage: React.FC = () => {
           <div style={{ width: '100%', height: '100%', background: '#000', overflow: 'hidden', position: 'relative', border: `1px solid ${COLOR.bg.border}` }}>
             <img
               src="/terminal_preview.png"
-              alt="Panda Trade Terminal"
+              alt="PandaTrade Upstox API trading terminal preview"
               style={{ width: '100%', height: '100%', objectFit: 'cover' }}
               onError={(e) => {
                 (e.currentTarget as HTMLImageElement).style.opacity = '0';
@@ -144,18 +178,18 @@ const LandingPage: React.FC = () => {
 
       <section style={{ padding: '4rem 2rem', maxWidth: '84rem', margin: '0 auto' }}>
         <SectionHeader
-          title="System surfaces"
-          subtitle="One visual language across terminal widgets, provider utilities, and product-facing marketing."
-          actions={<Text size="xs" color="muted">Terminal marketing mode</Text>}
+          title="Upstox API workflow"
+          subtitle="A single desktop trading surface for market monitoring, chart analysis, and account actions in Indian markets."
+          actions={<Text size="xs" color="muted">SEO landing mode</Text>}
         />
 
         <div className="feature-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(3, minmax(0, 1fr))', gap: SPACE[4], marginTop: SPACE[5] }}>
-          <FeatureCard icon={<Zap size={20} color={COLOR.semantic.info} />} title="Unified Control" desc="Bridge directly to institutional brokers for execution and live market telemetry." />
-          <FeatureCard icon={<Anchor size={20} color={COLOR.semantic.warning} />} title="Live Telemetry" desc="Stream alternative feeds in the same shell grammar as core trading widgets." />
-          <FeatureCard icon={<Activity size={20} color={COLOR.semantic.down} />} title="Advanced Scanners" desc="Support anomaly workflows without breaking terminal density or interaction rhythm." />
-          <FeatureCard icon={<Command size={20} color={COLOR.text.primary} />} title="Command Surface" desc="Keyboard-first navigation and direct symbol access in a flat, system-level overlay." />
-          <FeatureCard icon={<ShieldCheck size={20} color={COLOR.semantic.up} />} title="Secure Bridge" desc="Provider setup surfaces inherit the same shell, wrappers, and semantic state model." />
-          <FeatureCard icon={<Layout size={20} color={COLOR.text.secondary} />} title="Modular Workspace" desc="Registry-driven widgets let presentation evolve without changing behavior or docking rules." />
+          <FeatureCard icon={<Zap size={20} color={COLOR.semantic.info} />} title="Upstox API Login" desc="Authenticate your Upstox API session from the terminal and move straight into live market workflows." />
+          <FeatureCard icon={<Anchor size={20} color={COLOR.semantic.warning} />} title="Live Watchlists" desc="Track Indian market symbols with hover actions, fast navigation, and compact quote density." />
+          <FeatureCard icon={<Activity size={20} color={COLOR.semantic.down} />} title="Chart + Options Chain" desc="Review price action and options chain data inside the same Upstox trading workspace." />
+          <FeatureCard icon={<Command size={20} color={COLOR.text.primary} />} title="Orders + Positions" desc="Keep orders, positions, and holdings grouped together for account monitoring and quick review." />
+          <FeatureCard icon={<ShieldCheck size={20} color={COLOR.semantic.up} />} title="Secure Broker Bridge" desc="Provider setup follows the same terminal shell while keeping the Upstox API flow clear and accessible." />
+          <FeatureCard icon={<Layout size={20} color={COLOR.text.secondary} />} title="Desktop Trading Layout" desc="A modular layout keeps the watchlist, chart, and account stack visible without wasting screen space." />
         </div>
       </section>
 
@@ -163,11 +197,11 @@ const LandingPage: React.FC = () => {
         <div style={{ maxWidth: '72rem', margin: '0 auto', display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: SPACE[5], flexWrap: 'wrap' }}>
           <div>
             <Text size="3xl" weight="bold" color="primary">
-              Ready to enter the terminal?
+              Ready to trade through the Upstox API?
             </Text>
             <div style={{ marginTop: SPACE[2] }}>
               <Text size="sm" color="secondary">
-                Launch the app or move straight into provider setup without leaving the design system.
+                Launch the trading terminal or move directly into Upstox API login and configuration.
               </Text>
             </div>
           </div>
@@ -188,17 +222,17 @@ const LandingPage: React.FC = () => {
             <BrandLockup
               logo={<img src={logoSvg} alt="PandaTrade" style={{ height: '1rem', objectFit: 'contain' }} />}
               title="Pandatrade"
-              subtitle="Institutional cockpit for modular market workflows"
+              subtitle="Upstox API terminal for Indian market workflows"
               tone="accent"
             />
             <p style={{ color: COLOR.text.muted, fontSize: TYPE.size.xs, lineHeight: '1.6', marginTop: SPACE[4], maxWidth: '20rem' }}>
-              The same flat, mono, border-led system powers the landing surface, utility pages, and trading workspace.
+              PandaTrade combines a terminal-style interface with Upstox API connectivity for watchlists, charts, options chain review, and account actions.
             </p>
           </div>
 
-          <FooterColumn title="Platform" items={['Infrastructure', 'Widget_Registry', 'Terminal_Shell', 'Latency_Metrics']} />
-          <FooterColumn title="Connectors" items={['Upstox_Bridge', 'AISStream_Global', 'NASA_FIRMS', 'RapidAPI_Feed']} />
-          <FooterColumn title="System" items={['Protocol_Security', 'Privacy_Policy', 'Service_Terms', 'Node_Status']} />
+          <FooterColumn title="Platform" items={['Upstox_API_Terminal', 'Trading_Layout', 'Charting_Workspace', 'Account_Monitoring']} />
+          <FooterColumn title="Core flows" items={['Upstox_Login', 'Watchlists', 'Options_Chain', 'Orders_Positions_Holdings']} />
+          <FooterColumn title="System" items={['Broker_Config', 'Privacy_Policy', 'Service_Terms', 'Terminal_Status']} />
         </div>
 
         <div
@@ -214,7 +248,7 @@ const LandingPage: React.FC = () => {
             flexWrap: 'wrap',
           }}
         >
-          <span style={{ color: COLOR.text.muted, fontSize: TYPE.size.xs }}>© 2026 PANDA_TRADE_SYSTEMS. ALL_PROTOCOL_RIGHTS_RESERVED.</span>
+          <span style={{ color: COLOR.text.muted, fontSize: TYPE.size.xs }}>© 2026 PANDA_TRADE_SYSTEMS. ALL_RIGHTS_RESERVED.</span>
           <div style={{ display: 'flex', gap: SPACE[3], alignItems: 'center' }}>
             <span style={{ fontSize: TYPE.size.xs, color: COLOR.text.muted, fontWeight: TYPE.weight.bold }}>
               Stable build v2.0.431
@@ -270,10 +304,8 @@ const FooterColumn: React.FC<{ title: string; items: string[] }> = ({ title, ite
     <h4 style={{ color: COLOR.text.primary, fontSize: TYPE.size.xs, fontWeight: TYPE.weight.bold, marginBottom: SPACE[4] }}>{title}</h4>
     <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: SPACE[2] }}>
       {items.map((item) => (
-        <li key={item}>
-          <a href="#" style={{ color: COLOR.text.secondary, fontSize: TYPE.size.xs, textDecoration: 'none' }}>
-            {item}
-          </a>
+        <li key={item} style={{ color: COLOR.text.secondary, fontSize: TYPE.size.xs }}>
+          {item}
         </li>
       ))}
     </ul>
