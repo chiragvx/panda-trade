@@ -1,8 +1,8 @@
 import React, { useMemo, useState, useEffect, useCallback, useRef } from 'react';
-import { Plane, Search, RefreshCw, Loader2, Radar, ShieldAlert } from 'lucide-react';
+import { Plane, Search, RefreshCw, Loader2, Radar, ShieldAlert, SlidersHorizontal, X } from 'lucide-react';
 import { MapContainer, TileLayer, Marker, Popup, useMap, ZoomControl } from 'react-leaflet';
 import L from 'leaflet';
-import { COLOR, TYPE, BORDER, SPACE, Text, Badge, WidgetShell, SegmentedControl, EmptyState } from '../../ds';
+import { COLOR, TYPE, BORDER, SPACE, Text, Badge, WidgetShell, EmptyState } from '../../ds';
 import { useSettingsStore } from '../../store/useSettingsStore';
 import axios from 'axios';
 
@@ -25,7 +25,7 @@ interface AircraftState {
 interface FlightDetails {
   registration?: string;
   progress_percent?: number;
-  altitude_change?: string; // 'C' climbing | 'D' descending | 'L' level
+  altitude_change?: string;
   squawk?: string;
   diverted?: boolean;
   cancelled?: boolean;
@@ -43,6 +43,18 @@ interface FlightDetails {
 
 interface MapBounds { latMin: number; latMax: number; lonMin: number; lonMax: number; }
 
+interface FilterOption { value: string; label: string; count?: number; }
+
+interface ActiveFilters {
+  aircraftType: string;
+  operator: string;
+  origin: string;
+  destination: string;
+  flightStatus: string;
+}
+
+const EMPTY_FILTERS: ActiveFilters = { aircraftType: '', operator: '', origin: '', destination: '', flightStatus: '' };
+
 const classifyAircraft = (ident: string, operator: string): 'MILITARY' | 'CIVILIAN' | 'OTHER' => {
   const id = (ident || '').toUpperCase();
   const op = (operator || '').toUpperCase();
@@ -54,6 +66,15 @@ const classifyAircraft = (ident: string, operator: string): 'MILITARY' | 'CIVILI
 
 const catColor = (category: string) =>
   category === 'MILITARY' ? COLOR.semantic.down : category === 'CIVILIAN' ? COLOR.semantic.info : COLOR.semantic.warning;
+
+const normalizeStatus = (status: string): string => {
+  const s = (status || '').toLowerCase();
+  if (s.includes('cancel')) return 'CANCELLED';
+  if (s.includes('delay')) return 'DELAYED';
+  if (s.includes('divert')) return 'DIVERTED';
+  if (s.includes('land') || s.includes('arrived') || s.includes('taxi')) return 'LANDED';
+  return 'ACTIVE';
+};
 
 const getPlaneIcon = (course: number, category: string) => {
   const color = catColor(category);
@@ -81,6 +102,146 @@ const BoundsReporter: React.FC<{ onBoundsChange: (b: MapBounds) => void }> = ({ 
   return null;
 };
 
+// ── Searchable filter dropdown ──────────────────────────────────────────────
+const FilterDropdown: React.FC<{
+  label: string;
+  options: FilterOption[];
+  value: string;
+  onChange: (v: string) => void;
+}> = ({ label, options, value, onChange }) => {
+  const [open, setOpen] = useState(false);
+  const [search, setSearch] = useState('');
+  const ref = useRef<HTMLDivElement>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    if (!open) return;
+    const handler = (e: MouseEvent) => {
+      if (ref.current && !ref.current.contains(e.target as Node)) {
+        setOpen(false);
+        setSearch('');
+      }
+    };
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, [open]);
+
+  useEffect(() => {
+    if (open) setTimeout(() => inputRef.current?.focus(), 0);
+  }, [open]);
+
+  const filtered = useMemo(() =>
+    options.filter(o => o.label.toLowerCase().includes(search.toLowerCase())),
+    [options, search]
+  );
+
+  const activeLabel = value ? (options.find(o => o.value === value)?.label ?? value) : null;
+
+  return (
+    <div ref={ref} style={{ position: 'relative' }}>
+      <button
+        onClick={() => { setOpen(o => !o); setSearch(''); }}
+        style={{
+          display: 'flex', alignItems: 'center', gap: '4px',
+          padding: '3px 7px',
+          background: value ? `${COLOR.semantic.info}18` : COLOR.bg.surface,
+          border: `1px solid ${value ? COLOR.semantic.info + '55' : COLOR.bg.border}`,
+          color: value ? COLOR.semantic.info : COLOR.text.muted,
+          fontSize: '10px', fontFamily: TYPE.family.mono, fontWeight: 600,
+          cursor: 'pointer', letterSpacing: '0.05em', whiteSpace: 'nowrap',
+          transition: 'all 80ms linear',
+        }}
+      >
+        <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: '90px' }}>
+          {activeLabel ?? label}
+        </span>
+        {value ? (
+          <span
+            onClick={e => { e.stopPropagation(); onChange(''); }}
+            style={{ marginLeft: '1px', lineHeight: 1, opacity: 0.8, fontSize: '12px' }}
+          >×</span>
+        ) : (
+          <span style={{ marginLeft: '1px', fontSize: '8px', opacity: 0.5 }}>▾</span>
+        )}
+      </button>
+
+      {open && (
+        <div style={{
+          position: 'absolute', top: 'calc(100% + 3px)', left: 0, zIndex: 2000,
+          background: COLOR.bg.elevated, border: BORDER.standard,
+          minWidth: '200px', maxWidth: '260px',
+          boxShadow: '0 12px 40px rgba(0,0,0,0.9)',
+        }}>
+          <div style={{ padding: '6px', borderBottom: BORDER.standard }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', background: COLOR.bg.surface, border: BORDER.standard, padding: '4px 8px' }}>
+              <Search size={10} color={COLOR.text.muted} />
+              <input
+                ref={inputRef}
+                value={search}
+                onChange={e => setSearch(e.target.value)}
+                placeholder="Search..."
+                style={{
+                  background: 'transparent', border: 'none', outline: 'none',
+                  color: COLOR.text.primary, fontFamily: TYPE.family.mono,
+                  fontSize: '10px', width: '100%',
+                }}
+              />
+            </div>
+          </div>
+          <div style={{ maxHeight: '220px', overflowY: 'auto' }} className="custom-scrollbar">
+            <FilterOption
+              label="ALL"
+              count={options.reduce((s, o) => s + (o.count ?? 0), 0)}
+              active={!value}
+              onClick={() => { onChange(''); setOpen(false); setSearch(''); }}
+            />
+            {filtered.map(o => (
+              <FilterOption
+                key={o.value}
+                label={o.label}
+                count={o.count}
+                active={value === o.value}
+                onClick={() => { onChange(o.value); setOpen(false); setSearch(''); }}
+              />
+            ))}
+            {filtered.length === 0 && (
+              <div style={{ padding: '14px 10px', fontSize: '10px', color: COLOR.text.muted, textAlign: 'center', fontFamily: TYPE.family.mono }}>
+                NO MATCHES
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
+
+const FilterOption: React.FC<{ label: string; count?: number; active: boolean; onClick: () => void }> = ({ label, count, active, onClick }) => {
+  const [hovered, setHovered] = useState(false);
+  return (
+    <div
+      onClick={onClick}
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
+      style={{
+        padding: '6px 10px', display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+        cursor: 'pointer', borderBottom: BORDER.standard,
+        background: active ? `${COLOR.semantic.info}12` : hovered ? COLOR.bg.overlay : 'transparent',
+      }}
+    >
+      <span style={{ fontSize: '10px', fontFamily: TYPE.family.mono, fontWeight: active ? 700 : 400, color: active ? COLOR.semantic.info : COLOR.text.secondary, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+        {label}
+      </span>
+      {count !== undefined && (
+        <span style={{ fontSize: '9px', color: COLOR.text.muted, marginLeft: '10px', flexShrink: 0, fontFamily: TYPE.family.mono }}>
+          {count}
+        </span>
+      )}
+    </div>
+  );
+};
+
+// ── Main Component ──────────────────────────────────────────────────────────
 const AirTraffic: React.FC = () => {
   const { flightAwareApiKey } = useSettingsStore();
   const [flights, setFlights] = useState<AircraftState[]>([]);
@@ -93,11 +254,22 @@ const AirTraffic: React.FC = () => {
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState<'AIR' | 'GND' | 'ALL'>('AIR');
   const [mapBounds, setMapBounds] = useState<MapBounds | null>(null);
+  const [filters, setFilters] = useState<ActiveFilters>(EMPTY_FILTERS);
+  const [filtersOpen, setFiltersOpen] = useState(true);
+
   const isFetchingRef = useRef(false);
   const mapBoundsRef = useRef<MapBounds | null>(null);
   const statusFilterRef = useRef<'AIR' | 'GND' | 'ALL'>('AIR');
   const lastFetchTimeRef = useRef<number>(0);
   const retryDelayRef = useRef<number>(0);
+
+  const setFilter = useCallback(<K extends keyof ActiveFilters>(key: K, val: ActiveFilters[K]) => {
+    setFilters(prev => ({ ...prev, [key]: val }));
+  }, []);
+
+  const activeFilterCount = useMemo(() =>
+    Object.values(filters).filter(Boolean).length + (statusFilter !== 'AIR' ? 1 : 0),
+    [filters, statusFilter]);
 
   const fetchFlights = useCallback(async (bounds: MapBounds, filterStatus: string) => {
     const key = (flightAwareApiKey || '').trim();
@@ -220,9 +392,45 @@ const AirTraffic: React.FC = () => {
     else setFlightDetails(null);
   }, [selectedFlight, fetchFlightDetails]);
 
-  const filteredFlights = useMemo(() =>
-    flights.filter(f => f.ident.toLowerCase().includes(search.toLowerCase())),
-    [flights, search]);
+  // ── Filter options derived from fetched data ────────────────────────────
+  const filterOptions = useMemo(() => {
+    const typeCounts = new Map<string, number>();
+    const opCounts = new Map<string, number>();
+    const originCounts = new Map<string, number>();
+    const destCounts = new Map<string, number>();
+    const statusCounts = new Map<string, number>();
+
+    flights.forEach(f => {
+      if (f.aircraft_type && f.aircraft_type !== 'TBD') typeCounts.set(f.aircraft_type, (typeCounts.get(f.aircraft_type) ?? 0) + 1);
+      if (f.operator && f.operator !== 'UNKNOWN') opCounts.set(f.operator, (opCounts.get(f.operator) ?? 0) + 1);
+      if (f.origin && f.origin !== 'N/A') originCounts.set(f.origin, (originCounts.get(f.origin) ?? 0) + 1);
+      if (f.destination && f.destination !== 'N/A') destCounts.set(f.destination, (destCounts.get(f.destination) ?? 0) + 1);
+      const ns = normalizeStatus(f.status);
+      statusCounts.set(ns, (statusCounts.get(ns) ?? 0) + 1);
+    });
+
+    const toOpts = (m: Map<string, number>): FilterOption[] =>
+      Array.from(m.entries()).sort((a, b) => b[1] - a[1]).map(([value, count]) => ({ value, label: value, count }));
+
+    return {
+      aircraftTypes: toOpts(typeCounts),
+      operators: toOpts(opCounts),
+      origins: toOpts(originCounts),
+      destinations: toOpts(destCounts),
+      statuses: toOpts(statusCounts),
+    };
+  }, [flights]);
+
+  // ── Apply all filters ───────────────────────────────────────────────────
+  const filteredFlights = useMemo(() => flights.filter(f => {
+    if (search && !f.ident.toLowerCase().includes(search.toLowerCase())) return false;
+    if (filters.aircraftType && f.aircraft_type !== filters.aircraftType) return false;
+    if (filters.operator && f.operator !== filters.operator) return false;
+    if (filters.origin && f.origin !== filters.origin) return false;
+    if (filters.destination && f.destination !== filters.destination) return false;
+    if (filters.flightStatus && normalizeStatus(f.status) !== filters.flightStatus) return false;
+    return true;
+  }), [flights, search, filters]);
 
   if (!flightAwareApiKey) {
     return (
@@ -253,19 +461,107 @@ const AirTraffic: React.FC = () => {
       </WidgetShell.Toolbar>
 
       <div style={{ display: 'flex', flex: 1, minHeight: 0 }}>
+        {/* ── Sidebar ─────────────────────────────────────────────────── */}
         <div style={{ width: '280px', borderRight: BORDER.standard, display: 'flex', flexDirection: 'column', background: COLOR.bg.surface }}>
-          <div style={{ padding: SPACE[3], background: COLOR.bg.elevated, borderBottom: BORDER.standard, display: 'flex', flexDirection: 'column', gap: SPACE[3] }}>
+
+          {/* Search */}
+          <div style={{ padding: SPACE[3], background: COLOR.bg.elevated, borderBottom: BORDER.standard }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: SPACE[2], background: COLOR.bg.surface, border: BORDER.standard, padding: '6px 10px', borderRadius: '2px' }}>
               <Search size={13} color={COLOR.text.muted} />
               <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Ident Filter..." style={{ background: 'transparent', border: 'none', outline: 'none', color: COLOR.text.primary, fontSize: TYPE.size.xs, width: '100%', fontFamily: TYPE.family.mono }} />
             </div>
-            <SegmentedControl
-              options={[{ label: 'Airborne', value: 'AIR' }, { label: 'Ground', value: 'GND' }, { label: 'Global', value: 'ALL' }]}
-              value={statusFilter}
-              onChange={(v) => setStatusFilter(v as any)}
-            />
           </div>
 
+          {/* Advanced filters toggle bar */}
+          <div
+            onClick={() => setFiltersOpen(o => !o)}
+            style={{
+              height: '28px', display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+              padding: '0 12px', borderBottom: BORDER.standard, cursor: 'pointer',
+              background: filtersOpen ? COLOR.bg.overlay : 'transparent',
+            }}
+          >
+            <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+              <SlidersHorizontal size={11} color={activeFilterCount > 0 ? COLOR.semantic.info : COLOR.text.muted} />
+              <Text size="xs" weight="black" color={activeFilterCount > 0 ? 'primary' : 'muted'}>
+                FILTERS
+              </Text>
+              {activeFilterCount > 0 && (
+                <span style={{
+                  fontSize: '9px', fontFamily: TYPE.family.mono, fontWeight: 700,
+                  background: COLOR.semantic.info, color: COLOR.bg.base,
+                  padding: '1px 5px', letterSpacing: '0.04em',
+                }}>
+                  {activeFilterCount}
+                </span>
+              )}
+            </div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+              {activeFilterCount > 0 && (
+                <button
+                  onClick={e => { e.stopPropagation(); setFilters(EMPTY_FILTERS); setStatusFilter('AIR'); }}
+                  style={{ background: 'none', border: 'none', color: COLOR.text.muted, cursor: 'pointer', display: 'flex', alignItems: 'center', padding: '2px' }}
+                  title="Clear all filters"
+                >
+                  <X size={10} />
+                </button>
+              )}
+              <span style={{ fontSize: '9px', color: COLOR.text.muted, fontFamily: TYPE.family.mono }}>
+                {filtersOpen ? '▲' : '▼'}
+              </span>
+            </div>
+          </div>
+
+          {/* Filter chips panel */}
+          {filtersOpen && (
+            <div style={{
+              padding: '8px 10px', borderBottom: BORDER.standard,
+              background: COLOR.bg.base, display: 'flex', flexWrap: 'wrap', gap: '6px',
+            }}>
+              <FilterDropdown
+                label="AIRBORNE"
+                options={[
+                  { value: 'AIR', label: 'AIRBORNE' },
+                  { value: 'GND', label: 'GROUND' },
+                  { value: 'ALL', label: 'GLOBAL' },
+                ]}
+                value={statusFilter === 'AIR' ? '' : statusFilter}
+                onChange={v => setStatusFilter((v || 'AIR') as any)}
+              />
+              <FilterDropdown
+                label="AIRCRAFT"
+                options={filterOptions.aircraftTypes}
+                value={filters.aircraftType}
+                onChange={v => setFilter('aircraftType', v)}
+              />
+              <FilterDropdown
+                label="OPERATOR"
+                options={filterOptions.operators}
+                value={filters.operator}
+                onChange={v => setFilter('operator', v)}
+              />
+              <FilterDropdown
+                label="ORIGIN"
+                options={filterOptions.origins}
+                value={filters.origin}
+                onChange={v => setFilter('origin', v)}
+              />
+              <FilterDropdown
+                label="DEST"
+                options={filterOptions.destinations}
+                value={filters.destination}
+                onChange={v => setFilter('destination', v)}
+              />
+              <FilterDropdown
+                label="STATUS"
+                options={filterOptions.statuses}
+                value={filters.flightStatus}
+                onChange={v => setFilter('flightStatus', v)}
+              />
+            </div>
+          )}
+
+          {/* Flight list */}
           <div style={{ flex: 1, overflowY: 'auto' }} className="custom-scrollbar">
             {error ? (
               <EmptyState icon={<ShieldAlert size={48} color={COLOR.semantic.down} strokeWidth={1} />} message="API_REJECTION" subMessage={error} />
@@ -282,11 +578,17 @@ const AirTraffic: React.FC = () => {
               ))
             )}
           </div>
-          <div style={{ height: '32px', display: 'flex', alignItems: 'center', paddingLeft: '12px', borderTop: BORDER.standard }}>
+
+          {/* Footer */}
+          <div style={{ height: '32px', display: 'flex', alignItems: 'center', paddingLeft: '12px', paddingRight: '12px', borderTop: BORDER.standard, justifyContent: 'space-between' }}>
             <Text size="xs" weight="black" color="muted">TRACKS: {filteredFlights.length}</Text>
+            {filteredFlights.length !== flights.length && (
+              <Text size="xs" color="muted" family="mono">/ {flights.length} total</Text>
+            )}
           </div>
         </div>
 
+        {/* ── Map ─────────────────────────────────────────────────────── */}
         <div style={{ flex: 1, position: 'relative' }}>
           <MapContainer center={[20, 78]} zoom={4} style={{ height: '100%', width: '100%' }} zoomControl={false}>
             <TileLayer url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png" attribution="© CARTO" />
@@ -327,6 +629,7 @@ const AirTraffic: React.FC = () => {
   );
 };
 
+// ── FlightRow ───────────────────────────────────────────────────────────────
 const FlightRow: React.FC<{ flight: AircraftState; active: boolean; onClick: () => void }> = ({ flight, active, onClick }) => {
   const color = catColor(flight.category);
   return (
@@ -343,6 +646,7 @@ const FlightRow: React.FC<{ flight: AircraftState; active: boolean; onClick: () 
   );
 };
 
+// ── Popup helpers ───────────────────────────────────────────────────────────
 const fmtTime = (iso?: string) => {
   if (!iso) return '--:--';
   return new Date(iso).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false });
@@ -372,15 +676,13 @@ const PopupContent: React.FC<{ flight: AircraftState; details: FlightDetails | n
 
   return (
     <div style={{ background: COLOR.bg.base, color: COLOR.text.primary, minWidth: '300px', fontFamily: TYPE.family.mono }}>
-
-      {/* Header */}
       <div style={{ padding: '12px 14px 10px', borderBottom: BORDER.standard, background: COLOR.bg.elevated, display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
         <div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '3px' }}>
             <span style={{ fontSize: TYPE.size.lg, fontWeight: 700, color }}>{flight.ident}</span>
             <span style={{ fontSize: '9px', padding: '2px 5px', border: `1px solid ${color}`, color, letterSpacing: '0.06em' }}>{flight.category}</span>
-            {(details?.diverted) && <span style={{ fontSize: '9px', padding: '2px 5px', border: `1px solid ${COLOR.semantic.warning}`, color: COLOR.semantic.warning }}>DIVERTED</span>}
-            {(details?.cancelled) && <span style={{ fontSize: '9px', padding: '2px 5px', border: `1px solid ${COLOR.semantic.down}`, color: COLOR.semantic.down }}>CNCL</span>}
+            {details?.diverted && <span style={{ fontSize: '9px', padding: '2px 5px', border: `1px solid ${COLOR.semantic.warning}`, color: COLOR.semantic.warning }}>DIVERTED</span>}
+            {details?.cancelled && <span style={{ fontSize: '9px', padding: '2px 5px', border: `1px solid ${COLOR.semantic.down}`, color: COLOR.semantic.down }}>CNCL</span>}
           </div>
           <div style={{ fontSize: TYPE.size.xs, color: COLOR.text.muted }}>{flight.operator}</div>
         </div>
@@ -390,7 +692,6 @@ const PopupContent: React.FC<{ flight: AircraftState; details: FlightDetails | n
         </div>
       </div>
 
-      {/* Route + Progress */}
       <div style={{ padding: '12px 14px', borderBottom: BORDER.standard }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: progress != null ? '10px' : 0 }}>
           <div>
@@ -413,16 +714,11 @@ const PopupContent: React.FC<{ flight: AircraftState; details: FlightDetails | n
         )}
         <div style={{ marginTop: '8px', display: 'flex', alignItems: 'center', gap: '6px' }}>
           <span style={{ fontSize: '10px', color: statusColor, fontWeight: 600, letterSpacing: '0.05em' }}>{flight.status.toUpperCase()}</span>
-          {details?.route_distance && (
-            <span style={{ fontSize: '10px', color: COLOR.text.muted }}>· {details.route_distance.toLocaleString()} NM</span>
-          )}
-          {details?.filed_altitude && (
-            <span style={{ fontSize: '10px', color: COLOR.text.muted }}>· FL{details.filed_altitude}</span>
-          )}
+          {details?.route_distance && <span style={{ fontSize: '10px', color: COLOR.text.muted }}>· {details.route_distance.toLocaleString()} NM</span>}
+          {details?.filed_altitude && <span style={{ fontSize: '10px', color: COLOR.text.muted }}>· FL{details.filed_altitude}</span>}
         </div>
       </div>
 
-      {/* Telemetry */}
       <div style={{ padding: '10px 14px', borderBottom: BORDER.standard, display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '10px' }}>
         <DataCell label="ALTITUDE" value={
           <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
@@ -439,7 +735,6 @@ const PopupContent: React.FC<{ flight: AircraftState; details: FlightDetails | n
         } />
       </div>
 
-      {/* Times */}
       {details && (details.scheduled_out || details.scheduled_in) && (
         <div style={{ padding: '10px 14px', borderBottom: BORDER.standard, display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
           <div>
@@ -471,7 +766,6 @@ const PopupContent: React.FC<{ flight: AircraftState; details: FlightDetails | n
         </div>
       )}
 
-      {/* Details loading indicator */}
       {loading && (
         <div style={{ padding: '8px 14px', display: 'flex', alignItems: 'center', gap: '8px', borderBottom: BORDER.standard }}>
           <Loader2 size={11} style={{ animation: 'spin 1s linear infinite', color: COLOR.text.muted }} />
@@ -479,7 +773,6 @@ const PopupContent: React.FC<{ flight: AircraftState; details: FlightDetails | n
         </div>
       )}
 
-      {/* Footer */}
       <div style={{ padding: '8px 14px', background: COLOR.bg.elevated }}>
         <div style={{ fontSize: '9px', color: COLOR.text.muted, marginBottom: '2px', letterSpacing: '0.05em' }}>FLIGHT ID</div>
         <div style={{ fontSize: '10px', color: COLOR.text.muted, wordBreak: 'break-all' }}>{flight.fa_flight_id}</div>

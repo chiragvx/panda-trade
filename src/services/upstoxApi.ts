@@ -315,7 +315,6 @@ export const upstoxApi = {
               if (SHIFT_DAYS > 0) {
                   d.setDate(d.getDate() + SHIFT_DAYS);
               }
-              // Return Unix timestamp (seconds) for consistent chart parsing
               return [Math.floor(d.getTime() / 1000), c[1], c[2], c[3], c[4], c[5], c[6]];
           }).filter((c: any) => c[0] <= Math.floor(Date.now() / 1000));
       }

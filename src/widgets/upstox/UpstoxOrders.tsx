@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { useUpstoxStore } from '../../store/useUpstoxStore';
 import { upstoxApi } from '../../services/upstoxApi';
 import { RefreshCw, ShoppingBag, Clock, Tag, ArrowUpCircle, ArrowDownCircle } from 'lucide-react';
@@ -26,6 +26,23 @@ const UpstoxOrders: React.FC = () => {
     const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
     const [orders, setOrders] = useState<any[]>([]);
     const [loading, setLoading] = useState(false);
+    const [sortCol, setSortCol] = useState<string | null>(null);
+    const [sortDir, setSortDir] = useState<'asc' | 'desc'>('desc');
+
+    const handleSort = (col: string) => {
+        if (sortCol === col) setSortDir(d => d === 'asc' ? 'desc' : 'asc');
+        else { setSortCol(col); setSortDir('desc'); }
+    };
+
+    const sortedOrders = useMemo(() => {
+        if (!sortCol) return orders;
+        return [...orders].sort((a, b) => {
+            let av: any = sortCol === 'price' ? (a.price || a.average_price || 0) : a[sortCol];
+            let bv: any = sortCol === 'price' ? (b.price || b.average_price || 0) : b[sortCol];
+            if (typeof av === 'string') return sortDir === 'asc' ? av.localeCompare(bv) : bv.localeCompare(av);
+            return sortDir === 'asc' ? (av ?? 0) - (bv ?? 0) : (bv ?? 0) - (av ?? 0);
+        });
+    }, [orders, sortCol, sortDir]);
 
     useEffect(() => {
         if (accessToken && status === 'connected') {
@@ -73,10 +90,11 @@ const UpstoxOrders: React.FC = () => {
     };
 
     const columns = [
-        { 
-            key: 'order_timestamp', 
-            label: 'Time', 
+        {
+            key: 'order_timestamp',
+            label: 'Time',
             width: 90,
+            sortable: true,
             render: (val: string) => {
                 const timeStr = val?.split(' ')[1] || '--:--:--';
                 return (
@@ -87,9 +105,10 @@ const UpstoxOrders: React.FC = () => {
                 );
             }
         },
-        { 
-            key: 'trading_symbol', 
-            label: 'Symbol', 
+        {
+            key: 'trading_symbol',
+            label: 'Symbol',
+            sortable: true,
             render: (val: string, item: any) => {
                 const meta = instrumentMeta[item.instrument_token];
                 const displaySymbol = getDisplayTicker({
@@ -109,32 +128,35 @@ const UpstoxOrders: React.FC = () => {
                 </div>
             )}
         },
-        { 
-            key: 'transaction_type', 
-            label: 'Side', 
+        {
+            key: 'transaction_type',
+            label: 'Side',
             width: 60,
+            sortable: true,
             render: (val: string) => (
                 <Text weight="bold" color={val === 'BUY' ? 'up' : 'down'} size="sm">
                     {val}
                 </Text>
             )
         },
-        { key: 'quantity', label: 'Qty', align: 'right' as const, width: 80, render: (val: number) => <Text weight="medium" size="sm">{val}</Text> },
-        { 
-            key: 'price', 
-            label: 'Avg Px', 
-            align: 'right' as const, 
+        { key: 'quantity', label: 'Qty', align: 'right' as const, width: 80, sortable: true, render: (val: number) => <Text weight="medium" size="sm">{val}</Text> },
+        {
+            key: 'price',
+            label: 'Avg Px',
+            align: 'right' as const,
             width: 90,
+            sortable: true,
             render: (val: any, item: any) => {
                 const px = val || item.average_price || 0;
                 return px > 0 ? <Price value={px} size="sm" weight="bold" /> : <Text color="muted" size="sm">--</Text>;
             }
         },
-        { 
-            key: 'status', 
-            label: 'Status', 
-            align: 'right' as const, 
+        {
+            key: 'status',
+            label: 'Status',
+            align: 'right' as const,
             width: 140,
+            sortable: true,
             render: (val: string, item: any, idx: number) => (
                 <div style={{ position: 'relative', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'flex-end' }}
                      onMouseEnter={() => setHoveredIndex(idx)}
@@ -194,9 +216,12 @@ const UpstoxOrders: React.FC = () => {
                     </WidgetShell.Toolbar>
 
                     <div style={{ flex: 1, overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
-                        <DataTable 
-                            data={orders}
+                        <DataTable
+                            data={sortedOrders}
                             columns={columns}
+                            sortCol={sortCol}
+                            sortDir={sortDir}
+                            onSort={handleSort}
                             onRowClick={handleSelect}
                             stickyFirstColumn
                         />

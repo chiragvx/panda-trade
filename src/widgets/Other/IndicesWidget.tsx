@@ -16,18 +16,36 @@ export const IndicesWidget: React.FC = () => {
   const { setSelectedSymbol } = useSelectionStore();
   const [hoveredRow, setHoveredRow] = useState<number | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
+  const [sortCol, setSortCol] = useState<string | null>(null);
+  const [sortDir, setSortDir] = useState<'asc' | 'desc'>('desc');
+
+  const handleSort = (col: string) => {
+    if (sortCol === col) setSortDir(d => d === 'asc' ? 'desc' : 'asc');
+    else { setSortCol(col); setSortDir('desc'); }
+  };
 
   const filteredData = useMemo(() => {
-    return indices.filter(i => 
+    return indices.filter(i =>
         i.ticker.toLowerCase().includes(searchTerm.toLowerCase())
     );
   }, [indices, searchTerm]);
+
+  const sortedData = useMemo(() => {
+    if (!sortCol) return filteredData;
+    return [...filteredData].sort((a, b) => {
+      const av = (a as any)[sortCol];
+      const bv = (b as any)[sortCol];
+      if (typeof av === 'string') return sortDir === 'asc' ? av.localeCompare(bv) : bv.localeCompare(av);
+      return sortDir === 'asc' ? (av ?? 0) - (bv ?? 0) : (bv ?? 0) - (av ?? 0);
+    });
+  }, [filteredData, sortCol, sortDir]);
 
   const columns = useMemo(() => [
     {
       key: 'ticker',
       label: 'INDEX_SYMBOL',
       width: 140,
+      sortable: true,
       render: (val: string, item: any) => (
         <span style={{ fontWeight: TYPE.weight.bold, color: COLOR.text.primary, fontFamily: TYPE.family.mono }}>{val}</span>
       )
@@ -37,6 +55,7 @@ export const IndicesWidget: React.FC = () => {
       label: 'PRICE',
       align: 'right' as const,
       width: 90,
+      sortable: true,
       render: (val: number) => <Price value={val} size="sm" />
     },
     {
@@ -44,6 +63,7 @@ export const IndicesWidget: React.FC = () => {
       label: '%CHG',
       align: 'right' as const,
       width: 80,
+      sortable: true,
       render: (val: number) => <Change value={val} format="percent" size="sm" />
     },
     {
@@ -141,10 +161,13 @@ export const IndicesWidget: React.FC = () => {
       </WidgetShell.Toolbar>
 
       <div style={{ flex: 1, display: 'flex', flexDirection: 'column', background: COLOR.bg.surface }}>
-        <DataTable 
-          data={filteredData} 
+        <DataTable
+          data={sortedData}
           columns={columns}
           rowHeight="relaxed"
+          sortCol={sortCol}
+          sortDir={sortDir}
+          onSort={handleSort}
           onRowMouseEnter={(_, idx) => setHoveredRow(idx)}
           onRowMouseLeave={() => setHoveredRow(null)}
           stickyLastColumn={true}

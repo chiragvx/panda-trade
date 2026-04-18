@@ -69,7 +69,7 @@ export const Button: React.FC<ButtonProps> = ({
         return {
           background: hovered ? COLOR.interactive.active : COLOR.semantic.info,
           border: `1px solid ${COLOR.semantic.info}`,
-          color: COLOR.text.inverse,
+          color: hovered ? COLOR.text.primary : COLOR.text.inverse,
         };
       case 'buy':
         return {
@@ -91,8 +91,8 @@ export const Button: React.FC<ButtonProps> = ({
         };
       case 'primary':
         return {
-          background: hovered ? COLOR.interactive.hover : COLOR.bg.overlay,
-          border: `1px solid ${COLOR.bg.border}`,
+          background: hovered ? COLOR.bg.subtle : COLOR.bg.overlay,
+          border: `1px solid ${hovered ? COLOR.text.muted : COLOR.bg.border}`,
           color: COLOR.text.primary,
         };
       case 'secondary':

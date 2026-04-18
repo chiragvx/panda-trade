@@ -211,7 +211,6 @@ const App: React.FC = () => {
 
   const apiFailures = useMemo(() => {
     const fails: string[] = [];
-    if (enabledConnections.includes('aisstream-01') && !aisStreamApiKey) fails.push('AISSTREAM_FEED');
     if (enabledConnections.includes('nasa-01') && !nasaApiKey) fails.push('NASA_FIRMS_SCANNER');
     return fails.filter((f) => !dismissedApis.includes(f));
   }, [aisStreamApiKey, nasaApiKey, enabledConnections, dismissedApis]);

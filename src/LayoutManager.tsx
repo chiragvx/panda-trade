@@ -82,7 +82,7 @@ const renderWidget = (id: string, node: TabNode) => {
         
         // Intelligence Widgets
         case 'shipping-traffic':
-        case 'marine-map': return <ShippingTraffic />;
+        case 'marine-map': return null;
         case 'air-traffic': 
         case 'flight-map': return <AirTraffic />;
         case 'fire-map': return <FireMap />;

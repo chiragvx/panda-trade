@@ -466,9 +466,12 @@ export const ChartWidget: React.FC = () => {
         try {
           const res = await upstoxApi.getHistoricalData(accessToken, sym.instrument_key, interval, fromDate, toDate);
           if (res.status === 'success' && res.data?.candles) {
+            const isIntraday = interval.includes('minute');
+            const toChartTime = (unix: number) => isIntraday ? unix
+              : new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Kolkata', year: 'numeric', month: '2-digit', day: '2-digit' }).format(new Date(unix * 1000));
             const mapped = res.data.candles
-              .map((c: any) => ({ time: c[0], open: c[1], high: c[2], low: c[3], close: c[4], volume: c[5] }))
-              .sort((a: any, b: any) => a.time - b.time);
+              .map((c: any) => ({ time: toChartTime(c[0]), open: c[1], high: c[2], low: c[3], close: c[4], volume: c[5] }))
+              .sort((a: any, b: any) => a.time < b.time ? -1 : a.time > b.time ? 1 : 0);
             const deduped: any[] = [];
             for (let i = 0; i < mapped.length; i++) {
               if (i === 0 || mapped[i].time > mapped[i - 1].time) deduped.push(mapped[i]);
@@ -555,7 +558,9 @@ export const ChartWidget: React.FC = () => {
     });
   }, [isComparing, displayTicker, chartData, compareSymbols, compareDataMap]);
 
-  const startDate = chartData.length > 0 ? format(new Date(chartData[0].time * 1000), 'dd/MM/yyyy') : '';
+  const startDate = chartData.length > 0
+    ? format(typeof chartData[0].time === 'string' ? new Date(chartData[0].time) : new Date(chartData[0].time * 1000), 'dd/MM/yyyy')
+    : '';
 
   // ─── render ───────────────────────────────────────────────────────────────────
 

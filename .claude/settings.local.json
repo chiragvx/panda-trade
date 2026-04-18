@@ -6,7 +6,8 @@
       "Bash(npx tsc:*)",
       "Bash(C:/Users/Chirag/Documents/super-terminal/node_modules/.bin/tsc --noEmit --skipLibCheck)",
       "Bash(npm run *)",
-      "Bash(xargs grep *)"
+      "Bash(xargs grep *)",
+      "Bash(grep -E \"\\\\.\\(tsx?|jsx?\\)$\")"
     ]
   }
 }

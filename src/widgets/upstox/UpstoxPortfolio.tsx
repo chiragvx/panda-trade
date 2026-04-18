@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { useUpstoxStore } from '../../store/useUpstoxStore';
 import { upstoxApi } from '../../services/upstoxApi';
 import { upstoxWebSocket } from '../../services/upstoxWebSocket';
@@ -82,6 +82,39 @@ const UpstoxPortfolio: React.FC = () => {
 
     const totalPnL = calculatePnL();
 
+    const [sortCol, setSortCol] = useState<string | null>(null);
+    const [sortDir, setSortDir] = useState<'asc' | 'desc'>('desc');
+
+    const handleSort = (col: string) => {
+        if (sortCol === col) setSortDir(d => d === 'asc' ? 'desc' : 'asc');
+        else { setSortCol(col); setSortDir('desc'); }
+    };
+
+    const sortedData = useMemo(() => {
+        const base = activeTab === 'positions' ? positions : holdings;
+        if (!sortCol) return base;
+        return [...base].sort((a, b) => {
+            let av: any, bv: any;
+            if (sortCol === 'ltp') {
+                av = prices[a.instrument_token]?.ltp || a.last_price || 0;
+                bv = prices[b.instrument_token]?.ltp || b.last_price || 0;
+            } else if (sortCol === 'pnl') {
+                const ltpA = prices[a.instrument_token]?.ltp || a.last_price || 0;
+                const ltpB = prices[b.instrument_token]?.ltp || b.last_price || 0;
+                av = activeTab === 'positions' ? (ltpA - a.buy_price) * a.quantity : a.quantity * ltpA;
+                bv = activeTab === 'positions' ? (ltpB - b.buy_price) * b.quantity : b.quantity * ltpB;
+            } else if (sortCol === 'trading_symbol') {
+                av = a.trading_symbol || '';
+                bv = b.trading_symbol || '';
+                return sortDir === 'asc' ? av.localeCompare(bv) : bv.localeCompare(av);
+            } else {
+                av = a[sortCol] ?? 0;
+                bv = b[sortCol] ?? 0;
+            }
+            return sortDir === 'asc' ? av - bv : bv - av;
+        });
+    }, [activeTab, positions, holdings, sortCol, sortDir, prices]);
+
     const handleSelect = (item: any) => {
         const meta = instrumentMeta[item.instrument_token] || {
             ticker: item.trading_symbol,
@@ -98,9 +131,10 @@ const UpstoxPortfolio: React.FC = () => {
     };
 
     const columns = [
-        { 
-            key: 'trading_symbol', 
-            label: 'Symbol', 
+        {
+            key: 'trading_symbol',
+            label: 'Symbol',
+            sortable: true,
             render: (val: string, item: any) => {
                 const meta = instrumentMeta[item.instrument_token];
                 const displaySymbol = getDisplayTicker({
@@ -124,22 +158,24 @@ const UpstoxPortfolio: React.FC = () => {
                 </div>
             )}
         },
-        { key: 'quantity', label: 'Qty', align: 'right' as const, width: 80, render: (val: number) => <Text weight="medium">{val}</Text> },
-        { 
-            key: 'ltp', 
-            label: 'LTP', 
-            align: 'right' as const, 
+        { key: 'quantity', label: 'Qty', align: 'right' as const, width: 80, sortable: true, render: (val: number) => <Text weight="medium">{val}</Text> },
+        {
+            key: 'ltp',
+            label: 'LTP',
+            align: 'right' as const,
             width: 90,
+            sortable: true,
             render: (_: any, item: any) => {
                 const ltp = prices[item.instrument_token]?.ltp || item.last_price;
                 return <Price value={ltp} size="sm" weight="bold" />;
             }
         },
-        { 
-            key: 'pnl', 
-            label: activeTab === 'positions' ? 'Unrlzd P&L' : 'Cur Value', 
-            align: 'right' as const, 
+        {
+            key: 'pnl',
+            label: activeTab === 'positions' ? 'Unrlzd P&L' : 'Cur Value',
+            align: 'right' as const,
             width: 140,
+            sortable: true,
             render: (_: any, item: any, idx: number) => {
                 const ltp = prices[item.instrument_token]?.ltp || item.last_price;
                 const pnlOrValue = activeTab === 'positions' 
@@ -171,7 +207,6 @@ const UpstoxPortfolio: React.FC = () => {
         }
     ];
 
-    const data = activeTab === 'positions' ? positions : holdings;
 
     return (
         <WidgetShell>
@@ -182,7 +217,7 @@ const UpstoxPortfolio: React.FC = () => {
                 />
             )}
 
-            {data.length === 0 ? (
+            {sortedData.length === 0 ? (
                 <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
                     <EmptyState 
                         icon={<Wallet size={48} color={COLOR.text.muted} strokeWidth={1} />} 
@@ -244,15 +279,18 @@ const UpstoxPortfolio: React.FC = () => {
                     </WidgetShell.Toolbar>
 
                     <div style={{ flex: 1, overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
-                        <DataTable 
-                            data={data}
+                        <DataTable
+                            data={sortedData}
                             columns={columns}
+                            sortCol={sortCol}
+                            sortDir={sortDir}
+                            onSort={handleSort}
                             onRowClick={handleSelect}
                             stickyFirstColumn
                         />
                     </div>
 
-                    {activeTab === 'positions' && positions.length > 0 && (
+                    {activeTab === 'positions' && sortedData.length > 0 && (
                         <div style={{ padding: SPACE[2], borderTop: BORDER.strong, background: COLOR.bg.surface }}>
                             <button style={{ 
                                 width: '100%',

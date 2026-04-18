@@ -95,11 +95,13 @@ const ShippingTraffic: React.FC = () => {
   const [selectedVessel, setSelectedVessel] = useState<VesselState | null>(null);
   const [search, setSearch] = useState('');
   const [filters, setFilters] = useState({ MILITARY: true, CIVILIAN: true, OTHER: true });
-  const [status, setStatus] = useState<'IDLE' | 'CONNECTING' | 'LIVE' | 'ERROR'>('IDLE');
+  const [status, setStatus] = useState<'IDLE' | 'CONNECTING' | 'LIVE' | 'NO DATA' | 'ERROR'>('IDLE');
+  const [rawMsgCount, setRawMsgCount] = useState(0);
 
   const wsRef = useRef<WebSocket | null>(null);
   const bufferRef = useRef<Record<number, VesselState>>({});
   const lastSyncRef = useRef<number>(0);
+  const rawMsgCountRef = useRef(0);
 
   useEffect(() => {
     let isMounted = true;
@@ -119,18 +121,25 @@ const ShippingTraffic: React.FC = () => {
       wsRef.current = ws;
 
       ws.onopen = () => {
+        console.log('[AIS] onopen, readyState:', ws.readyState, 'isMounted:', isMounted);
         if (!isMounted || ws.readyState !== WebSocket.OPEN) { ws.close(); return; }
         setStatus('LIVE');
-        ws.send(JSON.stringify({
-          APIKey: aisStreamApiKey,
-          BoundingBoxes: [[[-10, 40], [30, 100]]]
-        }));
+        const sub = { APIKey: aisStreamApiKey, BoundingBoxes: [[[-10, 40], [30, 100]]] };
+        console.log('[AIS] sending subscription:', JSON.stringify(sub));
+        ws.send(JSON.stringify(sub));
+        // If no messages arrive within 15s the key likely has no stream access
+        const noDataTimer = setTimeout(() => {
+          if (isMounted && rawMsgCountRef.current === 0) setStatus('NO DATA');
+        }, 15000);
+        ws.addEventListener('message', () => clearTimeout(noDataTimer), { once: true });
       };
 
       ws.onmessage = async (event) => {
         if (!isMounted) return;
         let messageData = event.data;
         if (messageData instanceof Blob) messageData = await messageData.text();
+        rawMsgCountRef.current += 1;
+        if (rawMsgCountRef.current <= 3) console.log('[AIS] raw msg:', messageData);
         try {
           const data = JSON.parse(messageData);
           const mType = data.MessageType;
@@ -180,6 +189,7 @@ const ShippingTraffic: React.FC = () => {
                 });
                 return next;
               });
+              setRawMsgCount(rawMsgCountRef.current);
               lastSyncRef.current = now;
             }
           } else if (mType === 'ShipStaticData') {
@@ -206,24 +216,20 @@ const ShippingTraffic: React.FC = () => {
 
             if (bufferRef.current[mmsi]) {
               Object.assign(bufferRef.current[mmsi], patch);
-            } else {
-              bufferRef.current[mmsi] = {
-                mmsi,
-                name: stat.Name?.trim() || 'UNKNOWN',
-                lat: 0, lon: 0, course: 0, speed: 0,
-                lastSeen: Date.now(),
-                country: data.MetaData?.Country || 'N/A',
-                destination: stat.Destination?.trim() || '---',
-                ...patch,
-              };
             }
           }
-        } catch (_) {}
+        } catch (err) {
+          console.error('[AIS] parse error:', err, 'raw:', messageData);
+        }
       };
 
-      ws.onerror = () => { if (isMounted) setStatus('ERROR'); };
+      ws.onerror = (e) => {
+        console.error('[AIS] ws error:', e);
+        if (isMounted) setStatus('ERROR');
+      };
 
-      ws.onclose = () => {
+      ws.onclose = (e) => {
+        console.warn('[AIS] ws closed — code:', e.code, '| reason:', e.reason || '(none)', '| wasClean:', e.wasClean);
         if (isMounted && wsRef.current === ws) {
           setStatus('CONNECTING');
           reconnectTimeout = setTimeout(connect, 5000);
@@ -266,7 +272,7 @@ const ShippingTraffic: React.FC = () => {
     );
   }
 
-  const statusDot = status === 'LIVE' ? COLOR.semantic.up : status === 'ERROR' ? COLOR.semantic.danger : COLOR.semantic.warning;
+  const statusDot = status === 'LIVE' ? COLOR.semantic.up : status === 'ERROR' || status === 'NO DATA' ? COLOR.semantic.danger : COLOR.semantic.warning;
 
   return (
     <WidgetShell>
@@ -276,6 +282,7 @@ const ShippingTraffic: React.FC = () => {
         </WidgetShell.Toolbar.Left>
         <WidgetShell.Toolbar.Right>
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            {rawMsgCount > 0 && <Text family="mono" size="xs" color="muted">MSGS: {rawMsgCount}</Text>}
             <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: statusDot, boxShadow: status === 'LIVE' ? `0 0 8px ${COLOR.semantic.up}` : 'none' }} />
             <Text family="mono" size="xs" weight="black" color="muted">{status}</Text>
           </div>
@@ -331,7 +338,7 @@ const ShippingTraffic: React.FC = () => {
             <TileLayer url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png" attribution="© CARTO" />
             <ZoomControl position="bottomright" />
             <MapController center={selectedVessel ? [selectedVessel.lat, selectedVessel.lon] : undefined} />
-            {filteredVessels.map(v => (
+            {filteredVessels.filter(v => v.lat !== 0 || v.lon !== 0).map(v => (
               <Marker key={v.mmsi} position={[v.lat, v.lon]} icon={getShipIcon(v.course, v.category)} eventHandlers={{ click: () => setSelectedVessel(v) }}>
                 <Popup className="ship-popup" maxWidth={340}>
                   <VesselPopupContent vessel={v} />

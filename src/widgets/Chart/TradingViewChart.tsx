@@ -11,7 +11,14 @@ const formatInMarketTz = (date: Date, options: Intl.DateTimeFormatOptions) =>
 
 const toUnixSeconds = (time: any): number => {
   if (typeof time === 'number') return time;
-  if (time && typeof time === 'object' && 'timestamp' in time) return Number(time.timestamp);
+  if (typeof time === 'string') return new Date(`${time}T00:00:00+05:30`).getTime() / 1000;
+  if (time && typeof time === 'object') {
+    if ('timestamp' in time) return Number(time.timestamp);
+    if ('year' in time) {
+      const { year, month, day } = time as { year: number; month: number; day: number };
+      return new Date(`${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}T00:00:00+05:30`).getTime() / 1000;
+    }
+  }
   return 0;
 };
 
@@ -335,12 +342,12 @@ export const TradingViewChart: React.FC<TradingViewChartProps> = ({
     }
   }, [chartType, data, volumeData, comparisonData, indicators]);
 
-  // Auto-fit on first data load
+  // Auto-fit whenever data changes (new timeframe or symbol)
   useEffect(() => {
     if (chartRef.current && data.length > 0) {
       chartRef.current.timeScale().fitContent();
     }
-  }, [data.length === 0]);
+  }, [data]);
 
   const handleContextMenu = (e: React.MouseEvent) => {
     e.preventDefault();

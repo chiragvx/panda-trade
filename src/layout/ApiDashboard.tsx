@@ -1,23 +1,22 @@
 import React, { useMemo, useState } from 'react';
-import { Activity, Anchor, Globe, Plane, Plus, RotateCcw, Search, Server, Settings2, Trash2, X, Zap } from 'lucide-react';
+import { Activity, Globe, Plane, Plus, Server, Settings2, Trash2, X, Zap } from 'lucide-react';
 import { useUpstoxStore } from '../store/useUpstoxStore';
 import { useSettingsStore } from '../store/useSettingsStore';
 import {
   ActionWrapper,
+  BrandLockup,
   Button,
   COLOR,
-  FieldWrapper,
-  Input,
+  EmptyState,
   MetricWrapper,
   ModalShell,
   OverlayShell,
   SectionHeader,
-  Select,
   SPACE,
   StatusWrapper,
   Tag,
   Text,
-  TYPE,
+  Toolbar,
 } from '../ds';
 import { ApiConfigModal } from '../components/ApiConfigModal';
 
@@ -46,9 +45,6 @@ export const ApiDashboard: React.FC = () => {
     removeConnection,
   } = useSettingsStore();
 
-  const [searchQuery, setSearchQuery] = useState('');
-  const [statusFilter, setStatusFilter] = useState<'ALL' | 'CONNECTED' | 'DISCONNECTED'>('ALL');
-  const [typeFilter, setTypeFilter] = useState<'ALL' | 'BROKER' | 'DATA_FEED'>('ALL');
   const [activeModal, setActiveModal] = useState<'UPSTOX' | 'AISSTREAM' | 'NASA' | 'FLIGHTAWARE' | 'RAPIDAPI' | 'SELECT' | null>(null);
 
   const masterConnections: ConnectionMeta[] = useMemo(
@@ -62,16 +58,6 @@ export const ApiDashboard: React.FC = () => {
         icon: <Zap size={18} />,
         status: upstoxStatus === 'connected' ? 'connected' : upstoxKey ? 'pending' : 'disconnected',
         lastActivity: upstoxStatus === 'connected' ? 'Live Now' : '2h ago',
-      },
-      {
-        id: 'aisstream-01',
-        type: 'DATA_FEED',
-        provider: 'AISSTREAM',
-        displayName: 'AISStream Marine Protocol',
-        description: 'Live global AIS vessel positions and maritime intelligence.',
-        icon: <Anchor size={18} />,
-        status: aisStreamApiKey ? 'connected' : 'disconnected',
-        lastActivity: aisStreamApiKey ? 'Live Now' : 'Never',
       },
       {
         id: 'nasa-01',
@@ -124,117 +110,43 @@ export const ApiDashboard: React.FC = () => {
     }
   };
 
-  const filteredConnections = connections.filter((c) => {
-    const matchesSearch = c.displayName.toLowerCase().includes(searchQuery.toLowerCase()) || c.provider.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesStatus =
-      statusFilter === 'ALL' ||
-      (statusFilter === 'CONNECTED' && c.status === 'connected') ||
-      (statusFilter === 'DISCONNECTED' && c.status === 'disconnected');
-    const matchesType = typeFilter === 'ALL' || c.type === typeFilter;
-    return matchesSearch && matchesStatus && matchesType;
-  });
-
   const hasAnyConnection = connections.some((c) => c.status !== 'disconnected');
   const providerOptions = [
     { id: 'UPSTOX', title: 'Upstox Bridge', desc: 'Secure broker API for trade execution and live Nifty streams.', icon: <Zap size={18} /> },
-    { id: 'AISSTREAM', title: 'AIS Marine Feed', desc: 'Real-time WebSocket feed for global maritime vessel tracking.', icon: <Anchor size={18} /> },
     { id: 'NASA', title: 'NASA FIRMS Sat', desc: 'Thermal anomaly satellite data for global fire monitoring.', icon: <Activity size={18} /> },
     { id: 'FLIGHTAWARE', title: 'FlightAware Radar', desc: 'High-fidelity flight tracking and airline intelligence.', icon: <Plane size={18} /> },
     { id: 'RAPIDAPI', title: 'RapidAPI Stream', desc: 'Global economic events and macro-calendar data stream.', icon: <Globe size={18} /> },
   ];
 
   return (
-    <div style={{ height: '100%', width: '100%', background: COLOR.bg.base, display: 'flex', flexDirection: 'column', gap: SPACE[4] }}>
-      <div
-        style={{
-          minHeight: '3.5rem',
-          border: `1px solid ${COLOR.bg.border}`,
-          background: COLOR.bg.surface,
-          display: 'flex',
-          alignItems: 'center',
-          padding: SPACE[4],
-          gap: SPACE[3],
-          flexWrap: 'wrap',
-        }}
-      >
-        <FieldWrapper prefix={<Search size={14} color={COLOR.text.muted} />} style={{ maxWidth: '20rem' }}>
-          <Input
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="Search infrastructure..."
-            inputSize="md"
-            variant="ghost"
-            style={{ border: 'none', height: '100%' }}
+    <div style={{ height: '100%', width: '100%', background: COLOR.bg.base, display: 'flex', flexDirection: 'column' }}>
+      <Toolbar style={{ padding: SPACE[6], height: 'auto', minHeight: 'auto' }}>
+        <Toolbar.Left>
+          <BrandLockup
+            icon={<Server size={14} />}
+            title="INFRASTRUCTURE"
+            subtitle="Cloud backends & data protocols"
           />
-        </FieldWrapper>
-
-        <Select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value as any)} selectSize="md" style={{ width: '9rem' }}>
-          <option value="ALL">All statuses</option>
-          <option value="CONNECTED">Connected</option>
-          <option value="DISCONNECTED">Disconnected</option>
-        </Select>
-
-        <Select value={typeFilter} onChange={(e) => setTypeFilter(e.target.value as any)} selectSize="md" style={{ width: '9rem' }}>
-          <option value="ALL">All types</option>
-          <option value="BROKER">Broker</option>
-          <option value="DATA_FEED">Data feed</option>
-        </Select>
-
-        <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: SPACE[2] }}>
-          <ActionWrapper
-            onClick={() => {
-              setSearchQuery('');
-              setStatusFilter('ALL');
-              setTypeFilter('ALL');
-            }}
-          >
-            <RotateCcw size={14} />
-          </ActionWrapper>
-          <Button variant="accent" size="md" onClick={() => setActiveModal('SELECT')}>
-            <Plus size={14} style={{ marginRight: '6px' }} />
-            CONNECT_INFRASTRUCTURE
+        </Toolbar.Left>
+        <Toolbar.Right>
+          <MetricWrapper label="ACTIVE" value={String(connections.length)} bare />
+          <MetricWrapper label="CONNECTED" value={String(connections.filter((c) => c.status === 'connected').length)} tone="accent" bare />
+          <StatusWrapper label={hasAnyConnection ? 'INFRA_HEALTH_OPTIMAL' : 'NO_ACTIVE_LINKS'} tone={hasAnyConnection ? 'up' : 'warning'} bare />
+          <Button variant="accent" size="sm" onClick={() => setActiveModal('SELECT')}>
+            <Plus size={12} style={{ marginRight: '6px' }} />
+            CONNECT
           </Button>
-        </div>
-      </div>
+        </Toolbar.Right>
+      </Toolbar>
 
-      <div style={{ display: 'flex', gap: SPACE[3], flexWrap: 'wrap' }}>
-        <MetricWrapper label="ACTIVE" value={String(filteredConnections.length)} />
-        <MetricWrapper label="CONNECTED" value={String(filteredConnections.filter((c) => c.status === 'connected').length)} tone="accent" />
-        <StatusWrapper label={hasAnyConnection ? 'INFRA_HEALTH_OPTIMAL' : 'NO_ACTIVE_LINKS'} tone={hasAnyConnection ? 'up' : 'warning'} />
-      </div>
-
-      <div style={{ flex: 1, overflowY: 'auto', paddingRight: SPACE[1] }} className="custom-scrollbar">
-        {!hasAnyConnection && searchQuery === '' && statusFilter === 'ALL' && typeFilter === 'ALL' ? (
-          <div
-            style={{
-              width: '100%',
-              maxWidth: '50rem',
-              margin: '4rem auto 0 auto',
-              background: COLOR.bg.overlay,
-              border: `1px solid ${COLOR.bg.border}`,
-              minHeight: '15rem',
-              display: 'flex',
-              flexDirection: 'column',
-              alignItems: 'center',
-              justifyContent: 'center',
-              gap: SPACE[5],
-              textAlign: 'center',
-              padding: SPACE[6],
-            }}
-          >
-            <div style={{ opacity: 0.3 }}>
-              <Server size={48} color={COLOR.text.muted} />
-            </div>
-            <div>
-              <Text variant="heading" size="md">
-                NO_ACTIVE_CONNECTIONS
-              </Text>
-              <div style={{ marginTop: SPACE[2] }}>
-                <Text size="sm" color="secondary">
-                  Authorize a protocol to integrate real-time market or alternative data feeds into the terminal.
-                </Text>
-              </div>
-            </div>
+      <div style={{ flex: 1, overflowY: 'auto', padding: SPACE[4] }} className="custom-scrollbar">
+        {connections.length === 0 ? (
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+            <EmptyState
+              icon={<Server size={48} />}
+              message="NO_ACTIVE_CONNECTIONS"
+              subMessage="Authorize a protocol to integrate real-time market or alternative data feeds into the terminal."
+            />
             <Button variant="accent" onClick={() => setActiveModal('SELECT')}>
               INITIATE_HANDSHAKE
             </Button>
@@ -242,11 +154,11 @@ export const ApiDashboard: React.FC = () => {
         ) : (
           <div style={{ width: '100%', maxWidth: '56rem', margin: '0 auto', display: 'flex', flexDirection: 'column', gap: SPACE[3] }}>
             <SectionHeader
-              title={`${filteredConnections.length} ACTIVE CLOUD BACKENDS`}
+              title={`${connections.length} ACTIVE CLOUD BACKENDS`}
               subtitle="Registry-driven protocol surfaces with shared shell and override rules."
             />
             <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: SPACE[2] }}>
-              {filteredConnections.map((conn) => (
+              {connections.map((conn) => (
                 <ConnectionCard
                   key={conn.id}
                   conn={conn}
@@ -339,7 +251,6 @@ export const ApiDashboard: React.FC = () => {
               </ModalShell>
             )}
             {activeModal === 'UPSTOX' && <ApiConfigModal provider="UPSTOX" onClose={() => setActiveModal(null)} />}
-            {activeModal === 'AISSTREAM' && <ApiConfigModal provider="AISSTREAM" onClose={() => setActiveModal(null)} />}
             {activeModal === 'NASA' && <ApiConfigModal provider="NASA" onClose={() => setActiveModal(null)} />}
             {activeModal === 'FLIGHTAWARE' && <ApiConfigModal provider="FLIGHTAWARE" onClose={() => setActiveModal(null)} />}
             {activeModal === 'RAPIDAPI' && <ApiConfigModal provider="RAPIDAPI" onClose={() => setActiveModal(null)} />}
