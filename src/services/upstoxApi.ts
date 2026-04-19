@@ -42,7 +42,7 @@ const processSearchQueue = async () => {
     if (!next) continue;
     
     const now = Date.now();
-    const wait = Math.max(0, 1000 - (now - lastSearchTs));
+    const wait = Math.max(0, 250 - (now - lastSearchTs));
     if (wait > 0) await new Promise(r => setTimeout(r, wait));
     
     lastSearchTs = Date.now();
@@ -355,17 +355,7 @@ export const upstoxApi = {
     return requestPromise;
   },
 
-  getInstruments: async (exchange: string) =>
-    guardedRequest(`instruments:${exchange}`, 3600000, async () => {
-      const response = await api.get(`${BASE_URL}/instruments/${exchange}`, {
-        headers: {
-          Accept: 'application/json',
-        },
-      });
-      return response.data;
-    }),
-
-  getFullQuote: async (token: string, instrumentKey: string) =>
+getFullQuote: async (token: string, instrumentKey: string) =>
     guardedRequest(`quote-full:${token.slice(-8)}:${instrumentKey}`, 750, async () => {
       const response = await api.get(`${BASE_URL}/market-quote/quotes`, {
         headers: authHeaders(token),

@@ -4,6 +4,7 @@ import { useUpstoxStore } from '../store/useUpstoxStore';
 import { upstoxApi } from '../services/upstoxApi';
 import { upstoxWebSocket } from '../services/upstoxWebSocket';
 import { upstoxSearch } from '../services/upstoxSearch';
+import { instrumentMaster } from '../services/instrumentMaster';
 import { isUselessTicker } from '../utils/liveSymbols';
 
 const ACCOUNT_REFRESH_INTERVAL_MS = 60000;
@@ -141,14 +142,20 @@ export const useUpstoxBridge = () => {
     upstoxWebSocket.syncSubscriptions(fullModeKeys, 'full');
   }, [accessToken, fullModeKeys, ltpcModeKeys, status]);
 
-  // Background Resolver for all scrips in memory (Watchlists, Holdings, etc)
+  // Resolve missing names: wait for instrument master, then batch-apply; fall back to search API
   useEffect(() => {
     if (status !== 'connected' || !accessToken) return;
 
+    let cancelled = false;
+
     const resolveAllMissing = async () => {
+      // Await master download before attempting any lookup — master may take several seconds
+      await instrumentMaster.prefetch();
+      if (cancelled) return;
+
       const { instrumentMeta, setInstrumentMeta } = useUpstoxStore.getState();
       const allKeys = uniqueKeys([...allWatchlistKeys, ...accountInstrumentKeys, ...CORE_INDEX_KEYS]);
-      
+
       const missingKeys = allKeys.filter(k => {
         const meta = instrumentMeta[k];
         return !meta || (isUselessTicker(meta.ticker) && isUselessTicker(meta.name));
@@ -156,23 +163,38 @@ export const useUpstoxBridge = () => {
 
       if (missingKeys.length === 0) return;
 
-      // Slowly resolve each to avoid hammering the search rate-limit
+      const fromMaster: Record<string, any> = {};
+      const stillMissing: string[] = [];
+
       for (const k of missingKeys) {
-        try {
-          const [, raw] = k.split('|');
-          const results = await upstoxSearch.searchSymbols(accessToken, raw || k, 1);
-          if (results.length > 0) {
-            const best = results[0];
-            setInstrumentMeta({ [k]: { ticker: best.ticker, name: best.name, exchange: best.exchange } });
+        const hit = instrumentMaster.resolve(k);
+        if (hit) fromMaster[k] = hit;
+        else stillMissing.push(k);
+      }
+
+      if (Object.keys(fromMaster).length > 0) setInstrumentMeta(fromMaster);
+
+      // Fall back to search API in parallel batches for anything not in the master
+      const BATCH = 5;
+      for (let i = 0; i < stillMissing.length; i += BATCH) {
+        if (cancelled) break;
+        const batch = stillMissing.slice(i, i + BATCH);
+        await Promise.allSettled(batch.map(async (k) => {
+          try {
+            const [, raw] = k.split('|');
+            const results = await upstoxSearch.searchSymbols(accessToken, raw || k, 1);
+            if (results.length > 0) {
+              const best = results[0];
+              setInstrumentMeta({ [k]: { ticker: best.ticker, name: best.name, exchange: best.exchange } });
+            }
+          } catch (e) {
+            console.warn('Global resolver failed for', k, e);
           }
-        } catch (e) {
-          console.warn('Global resolver failed for', k, e);
-        }
+        }));
       }
     };
 
-    // Delay slightly to prioritize account data load
-    const timeout = setTimeout(resolveAllMissing, 5000);
-    return () => clearTimeout(timeout);
+    resolveAllMissing();
+    return () => { cancelled = true; };
   }, [accessToken, allWatchlistKeys.length, accountInstrumentKeys.length, status]);
 };

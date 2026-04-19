@@ -80,7 +80,6 @@ export const getDisplayTicker = ({
 
   if (normalizedTicker && !isUselessTicker(normalizedTicker)) return normalizedTicker;
   if (normalizedName && !isUselessTicker(normalizedName)) return normalizedName;
-  if (normalizedFallback && !isUselessTicker(normalizedFallback)) return normalizedFallback;
 
   return derivedTicker || normalizedTicker || normalizedName || normalizedFallback;
 };

@@ -3,11 +3,11 @@ import { useSelectionStore, useLayoutStore, useWatchlistStore } from '../../stor
 import { useUpstoxStore } from '../../store/useUpstoxStore';
 import { useContextMenuStore } from '../../store/useContextMenuStore';
 import { SymbolData } from '../../types';
-import { 
-  COLOR, 
-  TYPE, 
-  ROW_HEIGHT, 
-  BORDER, 
+import {
+  COLOR,
+  TYPE,
+  ROW_HEIGHT,
+  BORDER,
   Text,
   Badge,
   Price,
@@ -17,8 +17,7 @@ import {
   HoverActions
 } from '../../ds';
 import { motion, AnimatePresence } from 'framer-motion';
-import { buildSymbolFromFeed, getDisplayTicker, isUselessTicker } from '../../utils/liveSymbols';
-import { upstoxSearch } from '../../services/upstoxSearch';
+import { buildSymbolFromFeed, getDisplayTicker } from '../../utils/liveSymbols';
 import { useToastStore } from '../../components/ToastContainer';
 import { Trash2, Plus, X, ArrowUpCircle, ArrowDownCircle, Info } from 'lucide-react';
 import { WidgetSymbolSearch } from '../../components/WidgetSearch/WidgetSymbolSearch';
@@ -57,7 +56,7 @@ export const WatchlistWidget: React.FC = () => {
     removeKeyFromActive
   } = useWatchlistStore();
 
-  const { accessToken, prices, instrumentMeta, setInstrumentMeta } = useUpstoxStore();
+  const { prices, instrumentMeta, setInstrumentMeta } = useUpstoxStore();
   const { selectedSymbol, setSelectedSymbol } = useSelectionStore();
   const { openOrderModal } = useLayoutStore();
   const { openContextMenu } = useContextMenuStore();
@@ -101,33 +100,6 @@ export const WatchlistWidget: React.FC = () => {
     return result;
   }, [symbols, sortCol, sortDir]);
 
-  useEffect(() => {
-    if (!accessToken || !activeWatchlist?.keys) return;
-
-    const resolveMissing = async () => {
-      const keysToResolve = activeWatchlist.keys.filter(k => {
-        const meta = instrumentMeta[k];
-        return !meta || (isUselessTicker(meta.ticker) && isUselessTicker(meta.name));
-      });
-
-      if (keysToResolve.length === 0) return;
-
-      for (const k of keysToResolve) {
-        try {
-          const [, raw] = k.split('|');
-          const results = await upstoxSearch.searchSymbols(accessToken, raw || k, 1);
-          if (results.length > 0) {
-            const best = results[0];
-            setInstrumentMeta({ [k]: { ticker: best.ticker, name: best.name, exchange: best.exchange } });
-          }
-        } catch (e) {
-          console.warn('Failed to resolve name for', k, e);
-        }
-      }
-    };
-
-    resolveMissing();
-  }, [accessToken, activeWatchlist?.keys.length]);
 
   const handleSelectResult = (res: any) => {
     addKeyToActive(res.instrumentKey);
