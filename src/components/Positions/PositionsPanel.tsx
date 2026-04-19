@@ -18,23 +18,23 @@ export const PositionsPanel: React.FC = () => {
   const [isExpanded, setIsExpanded] = useState(true);
 
   return (
-    <div className={`flex flex-col bg-bg-secondary border-t border-border transition-all duration-300 ease-in-out select-none ${isExpanded ? 'h-48' : 'h-10'}`}>
-      <div className="h-10 px-4 flex items-center justify-between border-b border-border/50 shrink-0 bg-bg-elevated/20 transition-colors">
+    <div className={`flex flex-col bg-bg-base border-t border-border transition-all duration-300 ease-in-out select-none ${isExpanded ? 'h-48' : 'h-10'}`}>
+      <div className="h-10 px-4 flex items-center justify-between border-b border-border/50 shrink-0 bg-bg-elevated transition-colors">
         <div className="flex items-center space-x-1 h-full">
           {TABS.map(tab => (
             <button
               key={tab.name}
               onClick={() => { setActiveTab(tab.name); setIsExpanded(true); }}
-              className={`flex items-center space-x-2 px-4 h-full text-[11px] font-bold transition-all relative group ${activeTab === tab.name && isExpanded ? 'text-accent-teal' : 'text-text-secondary hover:text-text-primary hover:bg-bg-elevated/40'}`}
+              className={`flex items-center space-x-2 px-4 h-full text-[11px] font-bold transition-all relative group ${activeTab === tab.name && isExpanded ? 'text-accent-info' : 'text-text-secondary hover:text-text-primary hover:bg-bg-elevated/40'}`}
             >
               {tab.icon}
               <span className="uppercase tracking-widest">{tab.name}</span>
               {tab.count > 0 && (
-                <span className={`px-1 rounded-sm text-[9px] font-black ${activeTab === tab.name ? 'bg-accent-teal text-bg-primary' : 'bg-bg-elevated text-text-muted'}`}>
+                <span className={`px-1 rounded-sm text-[9px] font-black ${activeTab === tab.name ? 'bg-accent-info text-text-inverse' : 'bg-bg-elevated text-text-muted'}`}>
                   {tab.count}
                 </span>
               )}
-              {activeTab === tab.name && isExpanded && <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-accent-teal shadow-[0_0_10px_rgba(6,182,212,0.5)]" />}
+              {activeTab === tab.name && isExpanded && <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-accent-info shadow-[0_0_10px_rgba(255,122,26,0.5)]" />}
             </button>
           ))}
         </div>
@@ -61,7 +61,7 @@ export const PositionsPanel: React.FC = () => {
       </div>
 
       <div className={`flex-1 overflow-hidden transition-opacity duration-300 ${isExpanded ? 'opacity-100' : 'opacity-0'}`}>
-        <div className="h-full flex flex-col items-center justify-center p-8 text-center bg-bg-primary/10">
+        <div className="h-full flex flex-col items-center justify-center p-8 text-center">
            <div className="w-16 h-16 rounded-full bg-bg-elevated flex items-center justify-center text-text-muted/20 border-2 border-dashed border-border mb-4 opacity-50 shrink-0">
               <Layers size={32} />
            </div>

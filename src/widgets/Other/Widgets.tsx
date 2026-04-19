@@ -111,7 +111,7 @@ export const TrendingWidget: React.FC = () => {
   );
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', height: '100%', background: COLOR.bg.surface }}>
+    <div style={{ display: 'flex', flexDirection: 'column', height: '100%', background: COLOR.bg.base }}>
       <div style={{ display: 'flex', height: ROW_HEIGHT.header, background: COLOR.bg.surface, borderBottom: BORDER.standard, flexShrink: 0 }}>
         <ColHdr label="Symbol" flex />
         <ColHdr label="LTP" w={72} align="right" />
@@ -178,7 +178,7 @@ export const PositionsWidget: React.FC = () => {
   const totalPnl = normalizedPositions.reduce((acc, p) => acc + p.pnl, 0);
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', height: '100%', background: COLOR.bg.surface }}>
+    <div style={{ display: 'flex', flexDirection: 'column', height: '100%', background: COLOR.bg.base }}>
       {normalizedPositions.length === 0 ? (
         <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
             <EmptyState 
