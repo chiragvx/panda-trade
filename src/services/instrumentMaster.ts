@@ -1,8 +1,8 @@
 import { resolveInstrumentText } from '../utils/liveSymbols';
 import type { InstrumentMeta } from '../store/useUpstoxStore';
 
-// Upstox public instrument master — no auth required
-const CDN_URL = 'https://assets.upstox.com/market-quote/instruments/exchange/complete.json.gz';
+// Proxied through Vercel to avoid CORS (assets.upstox.com blocks direct browser fetches)
+const CDN_URL = '/api/proxy/upstox-instruments';
 
 const masterCache = new Map<string, InstrumentMeta>();
 let loadPromise: Promise<void> | null = null;
